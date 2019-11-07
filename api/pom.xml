@@ -3,18 +3,18 @@
 
   <modelVersion>4.0.0</modelVersion>
 
-  <artifactId>signservice-support-api</artifactId>
+  <artifactId>signservice-integration-api</artifactId>
   <packaging>jar</packaging>
 
   <parent>
-    <groupId>se.idsec.signservice.support</groupId>
-    <artifactId>signservice-support-parent</artifactId>
+    <groupId>se.idsec.signservice.integration</groupId>
+    <artifactId>signservice-integration-parent</artifactId>
     <version>0.0.1-SNAPSHOT</version>
   </parent>
 
-  <name>IDsec Solutions :: SignService :: Support API</name>
-  <description>SignService Support API</description>
-  <url>https://github.com/idsec-solutions/signservice-support</url>
+  <name>IDsec Solutions :: SignService :: Integration API</name>
+  <description>SignService Integration API</description>
+  <url>https://github.com/idsec-solutions/signservice-integration</url>
 
   <licenses>
     <license>
@@ -25,9 +25,9 @@
   </licenses>
 
   <scm>
-    <connection>scm:git:https://github.com/idsec-solutions/signservice-support.git</connection>
-    <developerConnection>scm:git:https://github.com/idsec-solutions/signservice-support.git</developerConnection>
-    <url>https://github.com/idsec-solutions/signservice-support/tree/master</url>
+    <connection>scm:git:https://github.com/idsec-solutions/signservice-integration.git</connection>
+    <developerConnection>scm:git:https://github.com/idsec-solutions/signservice-integration.git</developerConnection>
+    <url>https://github.com/idsec-solutions/signservice-integration/tree/master</url>
   </scm>
 
   <organization>
