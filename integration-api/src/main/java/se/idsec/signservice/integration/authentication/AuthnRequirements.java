@@ -24,7 +24,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.Singular;
 import lombok.ToString;
-import se.idsec.signservice.integration.config.IntegrationServiceDefaultConfiguration;
 import se.idsec.signservice.integration.core.ObjectBuilder;
 
 /**

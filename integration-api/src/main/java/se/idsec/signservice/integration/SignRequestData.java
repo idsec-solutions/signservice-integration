@@ -80,7 +80,7 @@ public class SignRequestData implements Extensible {
    * call.
    * </p>
    * 
-   * @param signatureState
+   * @param state
    *          the signature state
    * @return the signature state for this operation
    */

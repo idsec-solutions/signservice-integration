@@ -94,10 +94,10 @@ public interface IntegrationServiceDefaultConfiguration {
    * A SignService Integration Service may execute in a stateless mode, meaning that it does not keep a session state
    * and leaves it up to the caller to maintain the state between calls to
    * {@link SignServiceIntegrationService#createSignRequest(SignRequestInput)} and
-   * {@link SignServiceIntegrationService#processSignResponse(String, SignatureState, SignResponseProcessingParameters)},
+   * {@link SignServiceIntegrationService#processSignResponse(String, String, SignatureState, SignResponseProcessingParameters)},
    * or it may execute in a stateful mode, meaning that it keeps the necessary data between calls to
    * {@link SignServiceIntegrationService#createSignRequest(SignRequestInput)} and
-   * {@link SignServiceIntegrationService#processSignResponse(String, SignatureState, SignResponseProcessingParameters)}
+   * {@link SignServiceIntegrationService#processSignResponse(String, String, SignatureState, SignResponseProcessingParameters)}
    * and the only thing the caller needs to keep track of its the ID of the signature operation (see
    * {@link SignatureState#getId()}.
    * </p>

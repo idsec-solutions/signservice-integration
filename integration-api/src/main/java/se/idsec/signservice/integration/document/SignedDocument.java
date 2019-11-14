@@ -52,7 +52,7 @@ public class SignedDocument implements Extensible {
   /**
    * The signed document as a Base64-encoded byte string.
    * 
-   * @param content
+   * @param signedContent
    *          the signed document content (Base64-encoded)
    * @return the signed document content (Base64-encoded)
    */

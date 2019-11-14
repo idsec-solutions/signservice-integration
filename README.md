@@ -24,6 +24,8 @@ The **signservice-integration** repository comprises of:
 
 See <https://idsec-solutions.github.io/signservice-integration/> for documentation of how to use the API.
 
+The Java API documentation can be found here: <https://idsec-solutions.github.io/signservice-integration/javadoc/latest/api/>
+
 ---
 
 Copyright &copy; 2019, [IDsec Solutions AB](http://www.idsec.se). Licensed under version 2.0 of the [Apache License](http://www.apache.org/licenses/LICENSE-2.0).

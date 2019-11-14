@@ -170,7 +170,7 @@ public class SignRequestInput implements Extensible {
    * The document(s) to be signed along with a per document signing requirements and parameters. At least one document
    * must be supplied.
    * 
-   * @param toBeSigned
+   * @param tbsDocuments
    *          a list of To-be-signed documents
    * @return a list of To-be-signed documents
    */  

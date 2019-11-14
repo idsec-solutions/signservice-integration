@@ -46,7 +46,7 @@ public class SignatureResult implements Extensible {
   /**
    * State for a signature operation.
    * 
-   * @param signatureState
+   * @param state
    *          the signature state
    * @return the signature state for this operation
    */
