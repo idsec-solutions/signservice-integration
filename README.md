@@ -22,6 +22,8 @@ The **signservice-integration** repository comprises of:
 
 * A sample Spring Boot application that implements a Signature Service Integration REST application.
 
+See <https://idsec-solutions.github.io/signservice-integration/> for documentation of how to use the API.
 
+---
 
----Copyright &copy; 2019, [IDsec Solutions AB](http://www.idsec.se). Licensed under version 2.0 of the [Apache License](http://www.apache.org/licenses/LICENSE-2.0).
+Copyright &copy; 2019, [IDsec Solutions AB](http://www.idsec.se). Licensed under version 2.0 of the [Apache License](http://www.apache.org/licenses/LICENSE-2.0).
