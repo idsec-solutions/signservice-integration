@@ -64,7 +64,6 @@
   </distributionManagement>
 
   <modules>
-    <module>integration-api</module>
     <module>integration-impl</module>
   </modules>
 

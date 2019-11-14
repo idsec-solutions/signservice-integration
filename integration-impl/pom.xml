@@ -12,7 +12,7 @@
     <version>0.0.1-SNAPSHOT</version>
   </parent>
 
-  <name>IDsec Solutions :: SignService :: Integration API</name>
+  <name>IDsec Solutions :: SignService :: Integration API Implementation</name>
   <description>SignService Integration API</description>
   <url>https://github.com/idsec-solutions/signservice-integration</url>
 
