@@ -164,7 +164,7 @@ public class SignRequestInput implements Extensible {
    */
   @Setter
   @Getter
-  private SigningCertificateRequirements certRequirements;
+  private SigningCertificateRequirements certificateRequirements;
 
   /**
    * The document(s) to be signed along with a per document signing requirements and parameters. At least one document

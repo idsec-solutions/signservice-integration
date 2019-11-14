@@ -62,7 +62,7 @@ public class SignRequestInputTest {
       .signatureAlgorithm("http://www.w3.org/2001/04/xmldsig-more#rsa-sha256")
       .authnRequirements(AuthnRequirements.builder()
         .authnServiceID("https://idp-sweden-connect-valfr-2017-ct.test.frejaeid.com")
-        .authnServiceID("http://id.elegnamnden.se/loa/1.0/loa3")
+        .authnContextRef("http://id.elegnamnden.se/loa/1.0/loa3")
         .requestedSignerAttributes(Arrays.asList(
           SignerIdentityAttributeValue.builder()
             .type(SignerIdentityAttributeValue.SAML_TYPE)
@@ -76,7 +76,7 @@ public class SignRequestInputTest {
             .value("1969-11-29")
             .build()))
         .build())
-      .certRequirements(SigningCertificateRequirements.builder()
+      .certificateRequirements(SigningCertificateRequirements.builder()
         .certificateType(CertificateType.PKC)
         .attributeMappings(Arrays.asList(
           CertificateAttributeMapping.builder()
@@ -139,7 +139,7 @@ public class SignRequestInputTest {
       .signRequesterID("https://qa.test.swedenconnect.se/sp")
       .authnRequirements(AuthnRequirements.builder()
         .authnServiceID("https://idp-sweden-connect-valfr-2017-ct.test.frejaeid.com")
-        .authnServiceID("http://id.elegnamnden.se/loa/1.0/loa3")
+        .authnContextRef("http://id.elegnamnden.se/loa/1.0/loa3")
         .requestedSignerAttribute(SignerIdentityAttributeValue.builder()
           .name("urn:oid:1.2.752.29.4.13")
           .value("196911292032")

@@ -15,10 +15,13 @@
  */
 package se.idsec.signservice.integration.config;
 
+import javax.annotation.Nonnull;
+
 import se.idsec.signservice.integration.SignRequestInput;
 import se.idsec.signservice.integration.SignResponseProcessingParameters;
 import se.idsec.signservice.integration.SignServiceIntegrationService;
 import se.idsec.signservice.integration.certificate.SigningCertificateRequirements;
+import se.idsec.signservice.integration.core.Extensible;
 import se.idsec.signservice.integration.core.SignatureState;
 import se.idsec.signservice.integration.security.EncryptionParameters;
 
@@ -28,27 +31,30 @@ import se.idsec.signservice.integration.security.EncryptionParameters;
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
-public interface IntegrationServiceDefaultConfiguration {
+public interface IntegrationServiceDefaultConfiguration extends Extensible {
 
   /**
-   * Returns the integration policy for which this configuration applies.
+   * Gets the integration policy name for which this configuration applies.
    * 
    * @return the policy identifier
    */
+  @Nonnull
   String getPolicy();
 
   /**
-   * Returns the default entityID of the entity that requests a signature.
+   * Gets the default ID of the entity that requests a signature. If SAML is used as the authentication protocol, this
+   * is the SAML entityID of the sign requester.
    * <p>
    * This value is used if {@link SignRequestInput#getSignRequesterID()} returns {@code null}.
    * </p>
    * 
    * @return the default sign requester ID
    */
+  @Nonnull
   String getDefaultSignRequesterID();
 
   /**
-   * Returns the default URL to which the user agent along with the sign response message should be directed after a
+   * Gets the default URL to which the user agent along with the sign response message should be directed after a
    * signature operation.
    * <p>
    * This value is used if {@link SignRequestInput#getReturnUrl()} returns {@code null}.
@@ -56,37 +62,52 @@ public interface IntegrationServiceDefaultConfiguration {
    * 
    * @return the default URL to which a sign response is to be returned
    */
+  @Nonnull
   String getDefaultReturnUrl();
 
   /**
-   * Returns the default algorithm identifier for the signature algorithm that should be used during signing of
-   * specified tasks.
+   * Gets the default algorithm identifier for the signature algorithm that should be used during signing of specified
+   * tasks.
    * <p>
    * This value is used if {@link SignRequestInput#getSignatureAlgorithm()} returns {@code null}.
    * </p>
    * 
    * @return signature algorithm identifier
    */
+  @Nonnull
   String getDefaultSignatureAlgorithm();
 
   /**
-   * Returns the entityID of the signature service. This ID is the SAML entityID of the SAML Service Provider that is
-   * running in the signature service.
+   * Gets the entityID of the signature service. If SAML is used as the authentication protocol, this is the SAML
+   * entityID of the SAML Service Provider that is running in the signature service.
    * 
    * @return the ID of the signature service
    */
+  @Nonnull
   String getSignServiceID();
 
   /**
-   * Returns the default signature service URL to where {@code dss:SignRequest} messages should be posted.
+   * Gets the default signature service URL to where SignRequest messages should be posted.
+   * <p>
+   * This value is used if {@link SignRequestInput#getDestinationUrl()} returns {@code null}.
+   * </p>
    * 
    * @return the default destination URL of the signature service to where sign messages should be posted
    */
+  @Nonnull
   String getDefaultDestinationUrl();
 
-  SigningCertificateRequirements getDefaultSigningCertificateRequirements();
-  
-  EncryptionParameters getDefaultEncryptionParameters();
+  /**
+   * Gets the default signing certificate requirements to use for SignRequest messages created under this
+   * policy/configuration.
+   * <p>
+   * This value is used if {@link SignRequestInput#getCertificateRequirements())} returns {@code null}.
+   * </p>
+   * 
+   * @return the default signing certificate requirements
+   */
+  @Nonnull
+  SigningCertificateRequirements getDefaultCertificateRequirements();
 
   /**
    * Tells whether the SignService Integration Service is running in stateless mode or not.
@@ -106,5 +127,29 @@ public interface IntegrationServiceDefaultConfiguration {
    * @see SignatureState
    */
   boolean isStateless();
+
+  /**
+   * Gets the default encryption parameters (algorithms) that is used by the SignService Integration Service when
+   * encrypting a SignMessage. The sign requester can not override these values, but the recipient may declare other
+   * algorithms to use (in the SAML case, this is done in IdP metadata).
+   * 
+   * @return the default encryption parameters
+   */
+  @Nonnull
+  EncryptionParameters getDefaultEncryptionParameters();
+
+  /**
+   * Gets the signing certificate that the SignService Integration Service uses to sign SignRequest messages.
+   * <p>
+   * The format on the returned certificate is the Base64-encoding of the DER-encoding.
+   * </p>
+   * <p>
+   * <b>Note:</b> This certificate has nothing to do with the signing certificates that are issued by the sign service.
+   * </p>
+   * 
+   * @return the signature certificate for the SignService Integration Service
+   */
+  @Nonnull
+  String getSignatureCertificate();
 
 }
