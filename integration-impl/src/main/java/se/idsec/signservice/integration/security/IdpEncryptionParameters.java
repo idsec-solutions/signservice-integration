@@ -18,8 +18,6 @@ package se.idsec.signservice.integration.security;
 import java.security.PublicKey;
 import java.security.cert.X509Certificate;
 
-import se.idsec.signservice.integration.security.EncryptionParameters;
-
 /**
  * The {@code IdpEncryptionParameters} represents the data needed for the SignService Integration Service when it should
  * encrypt a signature message that is to be encrypted for, and decrypted by, a SAML Identity Provider.

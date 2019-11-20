@@ -15,10 +15,23 @@
  */
 package se.idsec.signservice.integration.config;
 
-public interface IntegrationServiceConfiguration extends IntegrationServiceDefaultConfiguration {
+import java.security.cert.X509Certificate;
 
-  // IdpEncryptionResolver getIdpEncryptionResolver();
+/**
+ * Interface representing the signing credential for the SignService Integration Service.
+ * 
+ * @author Martin Lindström (martin@idsec.se)
+ * @author Stefan Santesson (stefan@idsec.se)
+ */
+public interface SigningCredential {
 
-  // KeyStore getIntegrationServiceSigningCredentials();
+  /**
+   * Gets the signing certificate that the SignService Integration Service uses when signing a SignRequest message.
+   * 
+   * @return the signing certificate
+   */
+  X509Certificate getSigningCertificate();
+  
+  // TODO
 
 }
