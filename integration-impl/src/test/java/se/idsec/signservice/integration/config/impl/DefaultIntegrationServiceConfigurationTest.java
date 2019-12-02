@@ -26,19 +26,21 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 
 import se.idsec.signservice.integration.authentication.SignerIdentityAttribute;
+import se.idsec.signservice.integration.authentication.SignerIdentityAttributeValue;
 import se.idsec.signservice.integration.certificate.CertificateAttributeMapping;
 import se.idsec.signservice.integration.certificate.CertificateType;
 import se.idsec.signservice.integration.certificate.RequestedCertificateAttribute;
 import se.idsec.signservice.integration.certificate.RequestedCertificateAttributeType;
 import se.idsec.signservice.integration.certificate.SigningCertificateRequirements;
 import se.idsec.signservice.integration.document.pdf.PdfSignatureImageTemplate;
+import se.idsec.signservice.integration.document.pdf.VisiblePdfSignatureRequirement;
 import se.idsec.signservice.integration.security.impl.EncryptionParametersImpl;
 
 public class DefaultIntegrationServiceConfigurationTest {
 
   @Test
   public void toJson() throws Exception {
-    
+
     DefaultIntegrationServiceConfiguration config = DefaultIntegrationServiceConfiguration.builder()
       .policy("default")
       .defaultSignRequesterID("http://demo.idsec.se")
@@ -46,6 +48,8 @@ public class DefaultIntegrationServiceConfigurationTest {
       .defaultSignatureAlgorithm("http://www.w3.org/2001/04/xmldsig-more#rsa-sha256")
       .signServiceID("http://sign.service.com")
       .defaultDestinationUrl("https://sign.service.com/req")
+      .defaultAuthnServiceID("https://idp-sweden-connect-valfr-2017-ct.test.frejaeid.com")
+      .defaultAuthnContextRef("http://id.elegnamnden.se/loa/1.0/loa3")
       .signingCertificateRequirements(
         SigningCertificateRequirements.builder()
           .certificateType(CertificateType.PKC)
@@ -73,6 +77,20 @@ public class DefaultIntegrationServiceConfigurationTest {
                 .build())
               .build()))
           .build())
+      .defaultVisiblePdfSignatureRequirement(VisiblePdfSignatureRequirement.builder()
+        .templateImageRef("companylogo")
+        .signerName(VisiblePdfSignatureRequirement.SignerName.builder()
+          .signerAttribute(SignerIdentityAttributeValue.builder().name("urn:oid:2.5.4.42").build())
+          .signerAttribute(SignerIdentityAttributeValue.builder().name("urn:oid:2.5.4.4").build())
+          .signerAttribute(SignerIdentityAttribute.createBuilder().name("urn:oid:1.2.752.29.4.13").build())
+          .formatting("%0 %1 (%2)")
+          .build())
+        .fieldValue("reason", "Approval")
+        .page(1)
+        .scale(0)
+        .xPosition(100)
+        .yPosition(100)
+        .build())
       .pdfSignatureImageTemplate(PdfSignatureImageTemplate.builder()
         .reference("companylogo")
         .image(Base64.getEncoder().encodeToString("mumbojumbo".getBytes()))
@@ -89,7 +107,7 @@ public class DefaultIntegrationServiceConfigurationTest {
       .signingCredentials(
         new KeyStoreSigningCredential(new ClassPathResource("signing.jks"), "secret".toCharArray(), "default"))
       .build();
-    
+
     ObjectMapper mapper = new ObjectMapper();
     mapper.setSerializationInclusion(Include.NON_NULL);
     ObjectWriter writer = mapper.writerWithDefaultPrettyPrinter();
@@ -97,7 +115,7 @@ public class DefaultIntegrationServiceConfigurationTest {
     String json = writer.writeValueAsString(config);
 
     System.out.println(json);
-    
+
   }
 
 }

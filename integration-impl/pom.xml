@@ -61,7 +61,7 @@
       <artifactId>signservice-integration-api</artifactId>
       <version>${project.version}</version>
     </dependency>
-    
+
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-core</artifactId>
@@ -80,6 +80,11 @@
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-annotations</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>se.swedenconnect.schemas.csig</groupId>
+      <artifactId>dss-ext11-jaxb</artifactId>
     </dependency>
 
     <dependency>

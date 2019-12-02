@@ -13,14 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package se.idsec.signservice.integration.config;
+package se.idsec.signservice.integration.cache;
 
-public interface IntegrationServiceConfiguration extends IntegrationServiceDefaultConfiguration {
+/**
+ * Interface for the SignService Integration Service cache.
+ * 
+ * @author Martin Lindström (martin@idsec.se)
+ * @author Stefan Santesson (stefan@idsec.se)
+ */
+public interface IntegrationServiceCache {
 
-  // IdpEncryptionResolver getIdpEncryptionResolver();
-
-  // KeyStore getIntegrationServiceSigningCredentials();
+  Object get(String id);
   
-  IntegrationServiceDefaultConfiguration getPublicConfiguration();
-
+  void put(String id, Object object);
+  
+  void delete(String id);
+  
 }

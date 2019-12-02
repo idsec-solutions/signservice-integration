@@ -29,10 +29,12 @@ import lombok.Singular;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import se.idsec.signservice.integration.certificate.SigningCertificateRequirements;
+import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
 import se.idsec.signservice.integration.config.IntegrationServiceDefaultConfiguration;
 import se.idsec.signservice.integration.config.SigningCredential;
 import se.idsec.signservice.integration.core.Extension;
 import se.idsec.signservice.integration.document.pdf.PdfSignatureImageTemplate;
+import se.idsec.signservice.integration.document.pdf.VisiblePdfSignatureRequirement;
 import se.idsec.signservice.integration.security.EncryptionParameters;
 
 /**
@@ -42,10 +44,11 @@ import se.idsec.signservice.integration.security.EncryptionParameters;
  * @author Stefan Santesson (stefan@idsec.se)
  */
 @Slf4j
-@Builder
+@Builder(toBuilder = true)
 @ToString(exclude = { "signingCredentials" })
-public class DefaultIntegrationServiceConfiguration implements IntegrationServiceDefaultConfiguration {
+public class DefaultIntegrationServiceConfiguration implements IntegrationServiceConfiguration {
 
+  /** The integration policy name for which this configuration applies. */
   @Setter
   private String policy;
   
@@ -65,7 +68,16 @@ public class DefaultIntegrationServiceConfiguration implements IntegrationServic
   private String defaultDestinationUrl;
   
   @Setter
+  private String defaultAuthnServiceID;
+  
+  @Setter
+  private String defaultAuthnContextRef;
+  
+  @Setter
   private SigningCertificateRequirements signingCertificateRequirements;
+  
+  @Setter
+  private VisiblePdfSignatureRequirement defaultVisiblePdfSignatureRequirement;
   
   @Setter
   @Singular
@@ -120,11 +132,28 @@ public class DefaultIntegrationServiceConfiguration implements IntegrationServic
   public String getDefaultDestinationUrl() {
     return this.defaultDestinationUrl;
   }
+  
+  /** {@inheritDoc} */
+  @Override
+  public String getDefaultAuthnServiceID() {
+    return this.defaultAuthnServiceID;
+  }
 
+  @Override
+  public String getDefaultAuthnContextRef() {
+    return this.defaultAuthnContextRef;
+  }
+  
   /** {@inheritDoc} */
   @Override
   public SigningCertificateRequirements getDefaultCertificateRequirements() {
     return this.signingCertificateRequirements;
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public VisiblePdfSignatureRequirement getDefaultVisiblePdfSignatureRequirement() {
+    return this.defaultVisiblePdfSignatureRequirement;
   }
   
   /** {@inheritDoc} */
@@ -165,5 +194,13 @@ public class DefaultIntegrationServiceConfiguration implements IntegrationServic
   public Extension getExtension() {
     return this.extension;
   }
+  
+  @Override
+  @JsonIgnore
+  public IntegrationServiceDefaultConfiguration getPublicConfiguration() {
+    // TODO
+    return this.toBuilder().build();
+  }
+
 
 }
