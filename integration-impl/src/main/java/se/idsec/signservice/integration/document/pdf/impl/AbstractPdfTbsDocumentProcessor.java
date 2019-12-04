@@ -17,7 +17,8 @@ package se.idsec.signservice.integration.document.pdf.impl;
 
 import lombok.extern.slf4j.Slf4j;
 import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
-import se.idsec.signservice.integration.core.error.BadRequestException;
+import se.idsec.signservice.integration.core.error.InputValidationException;
+import se.idsec.signservice.integration.core.impl.CorrelationID;
 import se.idsec.signservice.integration.document.DocumentType;
 import se.idsec.signservice.integration.document.TbsDocument;
 import se.idsec.signservice.integration.document.impl.AbstractTbsDocumentProcessor;
@@ -49,15 +50,15 @@ public abstract class AbstractPdfTbsDocumentProcessor extends AbstractTbsDocumen
    * Handles settings for PDF visible signatures.
    */
   @Override
-  public TbsDocument preProcess(final String correlationId, final TbsDocument document, 
-      final IntegrationServiceConfiguration config, final String fieldName) throws BadRequestException {
+  public TbsDocument preProcess(final TbsDocument document, final IntegrationServiceConfiguration config, final String fieldName) 
+      throws InputValidationException {
 
-    TbsDocument updatedDocument = super.preProcess(correlationId, document, config, fieldName);
+    TbsDocument updatedDocument = super.preProcess(document, config, fieldName);
 
     if (updatedDocument.getVisiblePdfSignatureRequirement() == null) {
       if (config.getDefaultVisiblePdfSignatureRequirement() != null) {
         log.debug("{}: Setting default value for visiblePdfSignatureRequirement ({}): {}",
-          correlationId, updatedDocument.getId(), config.getDefaultVisiblePdfSignatureRequirement());
+          CorrelationID.id(), updatedDocument.getId(), config.getDefaultVisiblePdfSignatureRequirement());
         updatedDocument.setVisiblePdfSignatureRequirement(config.getDefaultVisiblePdfSignatureRequirement());
       }
     }
@@ -65,29 +66,29 @@ public abstract class AbstractPdfTbsDocumentProcessor extends AbstractTbsDocumen
       // Validate the input ...
       //
       this.visiblePdfSignatureRequirementValidator.validateObject(
-        updatedDocument.getVisiblePdfSignatureRequirement(), fieldName + ".visiblePdfSignatureRequirement", config, correlationId);
+        updatedDocument.getVisiblePdfSignatureRequirement(), fieldName + ".visiblePdfSignatureRequirement", config);
 
       // Scale ...
       //
       if (updatedDocument.getVisiblePdfSignatureRequirement().getScale() == null) {
-        log.info("{}: visiblePdfSignatureRequirement.scale is not set, defaulting to 0", correlationId);
+        log.info("{}: visiblePdfSignatureRequirement.scale is not set, defaulting to 0", CorrelationID.id());
         updatedDocument.getVisiblePdfSignatureRequirement().setScale(0);
       }
       else if (updatedDocument.getVisiblePdfSignatureRequirement().getScale().intValue() < -100) {
         log.info("{}: visiblePdfSignatureRequirement.scale is set to '{}'. This is illegal, changing to -100",
-          correlationId, updatedDocument.getVisiblePdfSignatureRequirement().getScale());
+          CorrelationID.id(), updatedDocument.getVisiblePdfSignatureRequirement().getScale());
         updatedDocument.getVisiblePdfSignatureRequirement().setScale(-100);
       }
 
       // Page ...
       //
       if (updatedDocument.getVisiblePdfSignatureRequirement().getPage() == null) {
-        log.info("{}: visiblePdfSignatureRequirement.page is not set, defaulting to 0", correlationId);
+        log.info("{}: visiblePdfSignatureRequirement.page is not set, defaulting to 0", CorrelationID.id());
         updatedDocument.getVisiblePdfSignatureRequirement().setPage(0);
       }
       if (updatedDocument.getVisiblePdfSignatureRequirement().getPage().intValue() < 0) {
         log.info("{}: visiblePdfSignatureRequirement.page is set to '{}'. This is illegal, changing to 0",
-          correlationId, updatedDocument.getVisiblePdfSignatureRequirement().getPage());
+          CorrelationID.id(), updatedDocument.getVisiblePdfSignatureRequirement().getPage());
         updatedDocument.getVisiblePdfSignatureRequirement().setPage(0);
       }
     }

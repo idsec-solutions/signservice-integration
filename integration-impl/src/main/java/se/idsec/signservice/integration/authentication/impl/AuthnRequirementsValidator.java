@@ -18,6 +18,8 @@ package se.idsec.signservice.integration.authentication.impl;
 import org.springframework.util.StringUtils;
 
 import se.idsec.signservice.integration.authentication.AuthnRequirements;
+import se.idsec.signservice.integration.authentication.SignerIdentityAttribute;
+import se.idsec.signservice.integration.authentication.SignerIdentityAttributeValue;
 import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
 import se.idsec.signservice.integration.core.validation.AbstractInputValidator;
 import se.idsec.signservice.integration.core.validation.ValidationResult;
@@ -33,7 +35,7 @@ public class AuthnRequirementsValidator extends AbstractInputValidator<AuthnRequ
   /** {@inheritDoc} */
   @Override
   public ValidationResult validate(final AuthnRequirements object, final String objectName, 
-      final IntegrationServiceConfiguration hint, final String correlationID) {
+      final IntegrationServiceConfiguration hint) {
     
     final ValidationResult result = new ValidationResult(objectName);
 
@@ -46,6 +48,21 @@ public class AuthnRequirementsValidator extends AbstractInputValidator<AuthnRequ
         && !StringUtils.hasText(hint.getDefaultAuthnContextRef())) {
       result.rejectValue("authnContextRef", String.format(
         "Request does not contain an authnContextRef and policy '%s' has no default value", hint.getPolicy()));
+    }
+    if (object != null && object.getRequestedSignerAttributes() != null) {
+      int pos = 0;
+      for (SignerIdentityAttributeValue a : object.getRequestedSignerAttributes()) {
+        if (a.getType() != null && !SignerIdentityAttribute.SAML_TYPE.equalsIgnoreCase(a.getType())) {
+          result.rejectValue("requestedSignerAttributes[" + pos + "].type", "The only supported attribute type is 'saml'");
+        }
+        if (!StringUtils.hasText(a.getName())) {
+          result.rejectValue("requestedSignerAttributes[" + pos + "].name", "Missing attribute name");          
+        }
+        if (!StringUtils.hasText(a.getValue())) {
+          result.rejectValue("requestedSignerAttributes[" + pos + "].value", "Missing attribute value");
+        }
+        pos++;
+      }
     }
 
     return result;

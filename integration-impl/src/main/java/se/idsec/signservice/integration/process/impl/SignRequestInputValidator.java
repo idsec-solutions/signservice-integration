@@ -21,6 +21,7 @@ import se.idsec.signservice.integration.certificate.impl.SigningCertificateRequi
 import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
 import se.idsec.signservice.integration.core.validation.AbstractInputValidator;
 import se.idsec.signservice.integration.core.validation.ValidationResult;
+import se.idsec.signservice.integration.signmessage.impl.SignMessageParametersValidator;
 
 /**
  * Validator for {@link SignRequestInput} objects.
@@ -42,7 +43,7 @@ public class SignRequestInputValidator extends AbstractInputValidator<SignReques
   /** {@inheritDoc} */
   @Override
   public ValidationResult validate(
-      final SignRequestInput object, final String objectName, final IntegrationServiceConfiguration hint, final String correlationID) {
+      final SignRequestInput object, final String objectName, final IntegrationServiceConfiguration hint) {
 
     final ValidationResult result = new ValidationResult("signRequestInput");
     if (object == null) {
@@ -52,15 +53,20 @@ public class SignRequestInputValidator extends AbstractInputValidator<SignReques
 
     // AuthnRequirements
     result.setFieldErrors(this.authnRequirementsValidator.validate(
-      object.getAuthnRequirements(), "authnRequirements", hint, correlationID));
+      object.getAuthnRequirements(), "authnRequirements", hint));
 
     // SigningCertificateRequirements
     result.setFieldErrors(this.signingCertificateRequirementsValidator.validate(
-      object.getCertificateRequirements(), "certificateRequirements", hint, correlationID));
+      object.getCertificateRequirements(), "certificateRequirements", hint));
 
     // SignMessageParametersValidator
     result.setFieldErrors(this.signMessageParametersValidator.validate(
-      object.getSignMessageParameters(), "signMessageParameters", null, correlationID));
+      object.getSignMessageParameters(), "signMessageParameters", null));
+    
+    // TbsDocuments
+    if (object.getTbsDocuments() == null || object.getTbsDocuments().isEmpty()) {
+      result.rejectValue("tbsDocuments", "Missing document(s) to sign");
+    }
     
     return result;
   }

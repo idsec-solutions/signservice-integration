@@ -35,7 +35,7 @@ public class TbsDocumentValidator extends AbstractInputValidator<TbsDocument, Vo
   
   /** {@inheritDoc} */
   @Override
-  public ValidationResult validate(final TbsDocument object, final String objectName, final Void hint, final String correlationID) {
+  public ValidationResult validate(final TbsDocument object, final String objectName, final Void hint) {
     ValidationResult result = new ValidationResult(objectName);
     if (object == null) {
       return result;
@@ -47,7 +47,7 @@ public class TbsDocumentValidator extends AbstractInputValidator<TbsDocument, Vo
       result.rejectValue("mimeType", "No mimeType set in TbsDocument");
     }
     result.setFieldErrors(
-      this.adesFormatRequirementValidator.validate(object.getAdesRequirement(), "adesRequirement", null, correlationID));
+      this.adesFormatRequirementValidator.validate(object.getAdesRequirement(), "adesRequirement", null));
     
     return result;
   }
@@ -60,7 +60,7 @@ public class TbsDocumentValidator extends AbstractInputValidator<TbsDocument, Vo
 
     /** {@inheritDoc} */
     @Override
-    public ValidationResult validate(EtsiAdesFormatRequirement object, String objectName, Void hint, final String correlationID) {
+    public ValidationResult validate(EtsiAdesFormatRequirement object, String objectName, Void hint) {
       ValidationResult result = new ValidationResult(objectName);
       if (object == null) {
         return result;

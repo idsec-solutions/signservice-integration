@@ -15,8 +15,12 @@
  */
 package se.idsec.signservice.integration.document;
 
+import javax.annotation.Nonnull;
+
 import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
-import se.idsec.signservice.integration.core.error.BadRequestException;
+import se.idsec.signservice.integration.core.error.InputValidationException;
+import se.idsec.signservice.integration.core.error.SignServiceIntegrationException;
+import se.swedenconnect.schemas.csig.dssext_1_1.SignTaskData;
 
 /**
  * Interface for a processor of a "to be signed" document.
@@ -33,14 +37,12 @@ public interface TbsDocumentProcessor {
    *          the document
    * @return if the document can be processed by this instance true is returned, otherwise false
    */
-  boolean supports(final TbsDocument document);
+  boolean supports(@Nonnull final TbsDocument document);
 
   /**
    * Performs a pre-processing of the supplied document where the document is validated, and in some cases updated with
    * default settings.
    * 
-   * @param correlationId
-   *          the correlation ID (used for logging)
    * @param document
    *          the document to process
    * @param config
@@ -48,12 +50,25 @@ public interface TbsDocumentProcessor {
    * @param fieldName
    *          used for error reporting and logging
    * @return a (possibly updated) document
-   * @throws BadRequestException
+   * @throws InputValidationException
    *           for validation errors
    */
-  TbsDocument preProcess(final String correlationId, final TbsDocument document, 
-      final IntegrationServiceConfiguration config, final String fieldName) throws BadRequestException;
+  TbsDocument preProcess(
+      @Nonnull final TbsDocument document, @Nonnull final IntegrationServiceConfiguration config, @Nonnull final String fieldName)
+      throws InputValidationException;
 
-  // TODO
+  /**
+   * Prepares the document for signing by creating a {@code SignTaskData} element.
+   * 
+   * @param document
+   *          the document to sign
+   * @param config
+   *          profile configuration
+   * @return a SignTaskData element
+   * @throws SignServiceIntegrationException
+   *           for processing errors
+   */
+  SignTaskData process(@Nonnull final TbsDocument document, @Nonnull final IntegrationServiceConfiguration config)
+      throws SignServiceIntegrationException;
 
 }

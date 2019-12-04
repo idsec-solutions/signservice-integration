@@ -38,12 +38,10 @@ public interface InputValidator<T, H> {
    *          the object name
    * @param hint
    *          an optional validation hint
-   * @param correlationID
-   *          the correlation ID (for logging)
    * @return a validation errors object
    */
   ValidationResult validate(
-      @Nullable final T object, @Nonnull final String objectName, @Nullable final H hint, @Nonnull final String correlationID);
+      @Nullable final T object, @Nonnull final String objectName, @Nullable final H hint);
 
   /**
    * Validates the supplied object using the supplied hint and throws an {@code InputValidationException} for validation
@@ -55,13 +53,10 @@ public interface InputValidator<T, H> {
    *          the object name
    * @param hint
    *          an optional validation hint
-   * @param correlationID
-   *          the correlation ID (for logging)
    * @throws InputValidationException
    *           for validation errors
    */
   void validateObject(
-      @Nullable final T object, @Nonnull final String objectName, @Nullable final H hint, @Nonnull final String correlationID)
-      throws InputValidationException;
+      @Nullable final T object, @Nonnull final String objectName, @Nullable final H hint) throws InputValidationException;
 
 }

@@ -19,7 +19,8 @@ import java.util.UUID;
 
 import lombok.extern.slf4j.Slf4j;
 import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
-import se.idsec.signservice.integration.core.error.BadRequestException;
+import se.idsec.signservice.integration.core.error.InputValidationException;
+import se.idsec.signservice.integration.core.impl.CorrelationID;
 import se.idsec.signservice.integration.document.TbsDocument;
 import se.idsec.signservice.integration.document.TbsDocumentProcessor;
 
@@ -37,24 +38,24 @@ public abstract class AbstractTbsDocumentProcessor implements TbsDocumentProcess
 
   /** {@inheritDoc} */
   @Override
-  public TbsDocument preProcess(final String correlationId, final TbsDocument document, 
-      final IntegrationServiceConfiguration config, final String fieldName) throws BadRequestException {
+  public TbsDocument preProcess(final TbsDocument document,  final IntegrationServiceConfiguration config, final String fieldName) 
+      throws InputValidationException {
 
     // Make a copy of the document before updating it.
     TbsDocument updatedDocument = document.toBuilder().build();
 
     if (document.getId() == null) {
       updatedDocument.setId(UUID.randomUUID().toString());
-      log.info("{}: No document ID assigned to document, assigning generated id: {}", correlationId, updatedDocument.getId());
+      log.info("{}: No document ID assigned to document, assigning generated id: {}", CorrelationID.id(), updatedDocument.getId());
     }
 
     if (document.getAdesRequirement() != null && document.getAdesRequirement().getAdesFormat() == null) {
-      log.warn("{}: No AdES format assigned for AdES requirement for document '{}'", correlationId, updatedDocument.getId());
+      log.warn("{}: No AdES format assigned for AdES requirement for document '{}'", CorrelationID.id(), updatedDocument.getId());
       updatedDocument.setAdesRequirement(null);
     }
     
     // Validate
-    this.tbsDocumentValidator.validateObject(updatedDocument, fieldName, null, correlationId);
+    this.tbsDocumentValidator.validateObject(updatedDocument, fieldName, null);
 
     return updatedDocument;
   }

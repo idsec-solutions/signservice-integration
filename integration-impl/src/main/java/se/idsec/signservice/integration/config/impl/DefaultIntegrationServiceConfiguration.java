@@ -93,7 +93,7 @@ public class DefaultIntegrationServiceConfiguration implements IntegrationServic
   @Getter
   @Setter
   private SigningCredential signingCredentials;
-  
+    
   @Setter
   private Extension extension;
   
@@ -201,6 +201,5 @@ public class DefaultIntegrationServiceConfiguration implements IntegrationServic
     // TODO
     return this.toBuilder().build();
   }
-
 
 }

@@ -34,7 +34,7 @@ import se.idsec.signservice.integration.certificate.RequestedCertificateAttribut
 import se.idsec.signservice.integration.certificate.SigningCertificateRequirements;
 import se.idsec.signservice.integration.document.pdf.PdfSignatureImageTemplate;
 import se.idsec.signservice.integration.document.pdf.VisiblePdfSignatureRequirement;
-import se.idsec.signservice.integration.security.impl.EncryptionParametersImpl;
+import se.idsec.signservice.integration.security.impl.DefaultEncryptionParameters;
 
 public class DefaultIntegrationServiceConfigurationTest {
 
@@ -103,7 +103,7 @@ public class DefaultIntegrationServiceConfigurationTest {
         .field(PdfSignatureImageTemplate.SIGNING_TIME_FIELD_NAME, "The time the signature was created")
         .build())
       .stateless(true)
-      .defaultEncryptionParameters(EncryptionParametersImpl.builder().build())
+      .defaultEncryptionParameters(DefaultEncryptionParameters.builder().build())
       .signingCredentials(
         new KeyStoreSigningCredential(new ClassPathResource("signing.jks"), "secret".toCharArray(), "default"))
       .build();

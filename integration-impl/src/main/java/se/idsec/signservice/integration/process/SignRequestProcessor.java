@@ -19,7 +19,7 @@ import java.util.List;
 
 import se.idsec.signservice.integration.SignRequestInput;
 import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
-import se.idsec.signservice.integration.core.error.BadRequestException;
+import se.idsec.signservice.integration.core.error.InputValidationException;
 import se.idsec.signservice.integration.core.error.SignServiceIntegrationException;
 import se.idsec.signservice.integration.document.TbsDocumentProcessor;
 import se.swedenconnect.schemas.dss_1_0.SignRequest;
@@ -41,16 +41,25 @@ public interface SignRequestProcessor {
    * @param config
    *          the configuration under which we are processing the request
    * @return an updated sign request input object where all required fields are filled in
-   * @throws BadRequestException
-   *           if the request input is fawlty
+   * @throws InputValidationException
+   *           if validation of the input fails
    */
   SignRequestInput preProcess(final SignRequestInput signRequestInput, final IntegrationServiceConfiguration config)
-      throws BadRequestException;
+      throws InputValidationException;
 
+  /**
+   * Processes that sign request input and produces a {@code dss:SignRequest} message.
+   * 
+   * @param signRequestInput
+   *          the validated input
+   * @param config
+   *          configuration
+   * @return a SignRequest message
+   * @throws SignServiceIntegrationException
+   *           for processing errors
+   */
   SignRequest process(final SignRequestInput signRequestInput, final IntegrationServiceConfiguration config)
       throws SignServiceIntegrationException;
-
-  // TODO
 
   /**
    * Gets an unmutable list of installed processors for "to be signed" documents.

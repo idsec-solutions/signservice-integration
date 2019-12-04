@@ -25,14 +25,14 @@ import se.idsec.signservice.integration.core.ObjectBuilder;
 import se.idsec.signservice.integration.security.EncryptionParameters;
 
 /**
- * Implementation of the {@link EncryptionParameters} interface.
+ * Default implementation of the {@link EncryptionParameters} interface.
  * 
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
 @ToString
-@Builder(builderClassName = "EncryptionParametersBuilder")
-public class EncryptionParametersImpl implements EncryptionParameters {
+@Builder
+public class DefaultEncryptionParameters implements EncryptionParameters {
 
   /** The default data encryption algorithm is AES-128 GCM. */
   public static final String DEFAULT_DATA_ENCRYPTION_ALGORITHM = EncryptionConstants.ALGO_ID_BLOCKCIPHER_AES128_GCM;
@@ -101,11 +101,11 @@ public class EncryptionParametersImpl implements EncryptionParameters {
   public RSAOAEPParameters getRsaOaepParameters() {
     return this.rsaOaepParameters;
   }
-
+  
   /**
-   * Builder for {@code EncryptionParametersImpl} objects.
+   * Builder for {@code DefaultEncryptionParameters} objects.
    */
-  public static class EncryptionParametersBuilder implements ObjectBuilder<EncryptionParametersImpl> {
+  public static class DefaultEncryptionParametersBuilder implements ObjectBuilder<DefaultEncryptionParameters> {
     // Lombok
   }
 

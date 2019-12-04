@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package se.idsec.signservice.integration.process.impl;
+package se.idsec.signservice.integration.signmessage.impl;
 
 import org.springframework.util.StringUtils;
 
-import se.idsec.signservice.integration.SignMessageMimeType;
-import se.idsec.signservice.integration.SignMessageParameters;
 import se.idsec.signservice.integration.core.validation.AbstractInputValidator;
 import se.idsec.signservice.integration.core.validation.ValidationResult;
+import se.idsec.signservice.integration.signmessage.SignMessageMimeType;
+import se.idsec.signservice.integration.signmessage.SignMessageParameters;
 
 /**
  * Validator for {@link SignMessageParameters} objects.
@@ -32,8 +32,7 @@ public class SignMessageParametersValidator extends AbstractInputValidator<SignM
 
   /** {@inheritDoc} */
   @Override
-  public ValidationResult validate(final SignMessageParameters object, final String objectName, 
-      final Void hint, final String correlationID) {
+  public ValidationResult validate(final SignMessageParameters object, final String objectName, final Void hint) {
     
     final ValidationResult result = new ValidationResult(objectName);
     if (object == null) {

@@ -15,7 +15,11 @@
  */
 package se.idsec.signservice.integration.certificate.impl;
 
+import org.springframework.util.StringUtils;
+
+import se.idsec.signservice.integration.authentication.SignerIdentityAttribute;
 import se.idsec.signservice.integration.certificate.CertificateAttributeMapping;
+import se.idsec.signservice.integration.certificate.RequestedCertificateAttributeType;
 import se.idsec.signservice.integration.certificate.SigningCertificateRequirements;
 import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
 import se.idsec.signservice.integration.core.validation.AbstractInputValidator;
@@ -33,7 +37,7 @@ public class SigningCertificateRequirementsValidator extends
   /** {@inheritDoc} */
   @Override
   public ValidationResult validate(SigningCertificateRequirements object, String objectName, 
-      IntegrationServiceConfiguration hint, final String correlationID) {
+      IntegrationServiceConfiguration hint) {
     
     ValidationResult result = new ValidationResult(objectName);
     
@@ -54,10 +58,40 @@ public class SigningCertificateRequirementsValidator extends
       if (mapping.getDestination() == null) {
         result.rejectValue("attributeMappings[" + pos + "].destination", "Missing destination for mapping");
       }
-      else if (mapping.getSources() == null || mapping.getSources().isEmpty()) {
-        if (Boolean.TRUE.equals(mapping.getDestination().getRequired())
+      else {
+        if (!StringUtils.hasText(mapping.getDestination().getType())) {
+          result.rejectValue("attributeMappings[" + pos + "].destination.type", "Missing type for destination attribute");
+        }
+        else {
+          try {
+            RequestedCertificateAttributeType.fromType(mapping.getDestination().getType());            
+          }
+          catch (IllegalArgumentException e) {
+            result.rejectValue("attributeMappings[" + pos + "].destination.type", e.getMessage());
+          }
+        }
+        if (!StringUtils.hasText(mapping.getDestination().getName())) {
+          result.rejectValue("attributeMappings[" + pos + "].destination.name", "Missing name for destination attribute");
+        }
+      }
+      
+      if (mapping.getSources() == null || mapping.getSources().isEmpty()) {
+        if (mapping.getDestination() != null && Boolean.TRUE.equals(mapping.getDestination().getRequired())
             && mapping.getDestination().getDefaultValue() == null) {
           result.rejectValue("attributeMappings[" + pos + "]", "Attribute mapping has no sources and destination has no default value - illegal");
+        }
+      }
+      else {
+        int spos = 0;
+        for (SignerIdentityAttribute source : mapping.getSources()) {
+          if (source.getType() != null && !SignerIdentityAttribute.SAML_TYPE.equalsIgnoreCase(source.getType())) {
+            result.rejectValue("attributeMappings[" + pos + "].sources[" + spos + "].type",
+              String.format("Unsupported attribute type - %s", source.getType()));
+          }
+          if (!StringUtils.hasText(source.getName())) {
+            result.rejectValue("attributeMappings[" + pos + "].sources[" + spos + "].name", "Missing attribute name");
+          }
+          spos++;
         }
       }
       pos++;

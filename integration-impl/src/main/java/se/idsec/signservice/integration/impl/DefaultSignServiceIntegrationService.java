@@ -34,7 +34,9 @@ import se.idsec.signservice.integration.config.IntegrationServiceDefaultConfigur
 import se.idsec.signservice.integration.config.PolicyNotFoundException;
 import se.idsec.signservice.integration.core.SignatureState;
 import se.idsec.signservice.integration.core.error.SignServiceIntegrationException;
+import se.idsec.signservice.integration.core.impl.CorrelationID;
 import se.idsec.signservice.integration.process.SignRequestProcessor;
+import se.swedenconnect.schemas.dss_1_0.SignRequest;
 
 /**
  * Implementation of the SignService Integration Service.
@@ -57,27 +59,38 @@ public class DefaultSignServiceIntegrationService implements SignServiceIntegrat
   /** The sign request processor. */
   private SignRequestProcessor signRequestProcessor;
 
+  /**
+   * Default constructor.
+   */
   public DefaultSignServiceIntegrationService() {
   }
 
   /** {@inheritDoc} */
   @Override
   public SignRequestData createSignRequest(final SignRequestInput signRequestInput) throws SignServiceIntegrationException {
-
-    log.debug("Request for creating a SignRequest: {}", signRequestInput);
-
-    // Find out under which policy we should create the SignRequest.
-    //
-    final IntegrationServiceConfiguration config = this.getConfigurationInternal(signRequestInput.getPolicy());
     
-    // Validate the input to make sure that we can process it. Also assign default values to use as input.
-    //
-    final SignRequestInput input = this.signRequestProcessor.preProcess(signRequestInput, config);
-    log.trace("After validation and pre-processing the following input will be processed: {}", input);
-        
-    // Create a SignRequest element and fill in the ...
+    CorrelationID.init(signRequestInput != null ? signRequestInput.getCorrelationId() : null);
+    log.debug("{}: Request for creating a SignRequest: {}", CorrelationID.id(), signRequestInput);
 
-    return null;
+    try {
+      // Find out under which policy we should create the SignRequest.
+      //
+      final IntegrationServiceConfiguration config = this.getConfigurationInternal(signRequestInput.getPolicy());
+
+      // Validate the input to make sure that we can process it. Also assign default values to use as input.
+      //
+      final SignRequestInput input = this.signRequestProcessor.preProcess(signRequestInput, config);
+      log.trace("{}: After validation and pre-processing the following input will be processed: {}", input.getCorrelationId(), input);
+
+      // Create the SignRequest ...
+      //
+      final SignRequest signRequest = this.signRequestProcessor.process(input, config);
+
+      return null;
+    }
+    finally {
+      CorrelationID.clear();
+    }
   }
 
   @Override
@@ -178,7 +191,7 @@ public class DefaultSignServiceIntegrationService implements SignServiceIntegrat
     Assert.isTrue(this.policies.containsKey(IntegrationServiceDefaultConfiguration.DEFAULT_POLICY_NAME),
       "There must be a policy named 'default'");
     Assert.notNull(this.cache, "The property 'cache' must be assigned");
-    Assert.notNull(this.signRequestProcessor, "The property 'signRequestProcessor' must be assigned"); 
+    Assert.notNull(this.signRequestProcessor, "The property 'signRequestProcessor' must be assigned");
   }
 
 }

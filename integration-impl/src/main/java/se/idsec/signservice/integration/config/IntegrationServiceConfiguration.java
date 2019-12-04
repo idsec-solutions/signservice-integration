@@ -17,8 +17,6 @@ package se.idsec.signservice.integration.config;
 
 public interface IntegrationServiceConfiguration extends IntegrationServiceDefaultConfiguration {
 
-  // IdpEncryptionResolver getIdpEncryptionResolver();
-
   // KeyStore getIntegrationServiceSigningCredentials();
   
   IntegrationServiceDefaultConfiguration getPublicConfiguration();

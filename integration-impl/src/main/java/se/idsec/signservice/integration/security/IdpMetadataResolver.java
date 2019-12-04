@@ -15,27 +15,34 @@
  */
 package se.idsec.signservice.integration.security;
 
+import javax.annotation.Nonnull;
+
+import org.opensaml.saml.saml2.metadata.EntityDescriptor;
+
+import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
+
 /**
- * An interface for a resolver that returns the Identity Provider encryption information to be used when the SignService
- * Integration Service performs encryption of a sign message (intended to be displayed by the SAML Identity Provider).
+ * Interface used by the SignService Integration Service to obtain SAML metadata for an IdP before the encryption
+ * process.
  * 
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
 @FunctionalInterface
-public interface IdpEncryptionResolver {
+public interface IdpMetadataResolver {
 
   /**
-   * Given the SAML entityID of the Identity Provider the method finds the encryption parameters (certificate/key and
-   * algorithms) to be used when encrypting a sign message for an Identity Provider.
+   * Gets the (valid) metadata for the given SAML IdP.
    * 
    * @param entityID
-   *          the SAML entityID for the Identity Provider
-   * @return the IdP encryption parameters
-   * @throws Exception
-   *           if no encryption parameters can be resolved
+   *          the entityID for the IdP
+   * @param config
+   *          policy configuration
+   * @return the IdP metadata
+   * @throws MetadataException
+   *           if no valid metadata can be found, or any other error occur
    */
-  IdpEncryptionParameters resolveIdpEncryptionParameters(String entityID) throws Exception;
+  EntityDescriptor resolveMetadata(@Nonnull final String entityID, @Nonnull final IntegrationServiceConfiguration config)
+      throws MetadataException;
 
-  // TODO: declare exception
 }

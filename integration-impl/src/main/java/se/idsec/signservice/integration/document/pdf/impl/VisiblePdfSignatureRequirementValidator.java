@@ -36,10 +36,10 @@ public class VisiblePdfSignatureRequirementValidator extends
 
   /** {@inheritDoc} */
   @Override
-  public ValidationResult validate(VisiblePdfSignatureRequirement object, String objectName, 
-      IntegrationServiceConfiguration hint, final String correlationID) {
-    
-    ValidationResult result = new ValidationResult(objectName);
+  public ValidationResult validate(final VisiblePdfSignatureRequirement object, final String objectName,
+      final IntegrationServiceConfiguration hint) {
+
+    final ValidationResult result = new ValidationResult(objectName);
     if (object == null) {
       return result;
     }
