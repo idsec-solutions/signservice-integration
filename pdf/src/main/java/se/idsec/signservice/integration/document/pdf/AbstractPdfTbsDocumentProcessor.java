@@ -13,24 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package se.idsec.signservice.integration.document.pdf.impl;
+package se.idsec.signservice.integration.document.pdf;
 
 import lombok.extern.slf4j.Slf4j;
 import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
 import se.idsec.signservice.integration.core.error.InputValidationException;
+import se.idsec.signservice.integration.core.error.SignServiceIntegrationException;
 import se.idsec.signservice.integration.core.impl.CorrelationID;
 import se.idsec.signservice.integration.document.DocumentType;
 import se.idsec.signservice.integration.document.TbsDocument;
 import se.idsec.signservice.integration.document.impl.AbstractTbsDocumentProcessor;
+import se.swedenconnect.schemas.csig.dssext_1_1.SignTaskData;
 
 /**
- * Abstract base class for a PDF TBS-document processor.
+ * PDF TBS-document processor.
  * 
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
 @Slf4j
-public abstract class AbstractPdfTbsDocumentProcessor extends AbstractTbsDocumentProcessor {
+public class AbstractPdfTbsDocumentProcessor extends AbstractTbsDocumentProcessor<Void> {
 
   /** Validator for visible PDF signature requirements. */
   protected final VisiblePdfSignatureRequirementValidator visiblePdfSignatureRequirementValidator = new VisiblePdfSignatureRequirementValidator();
@@ -94,6 +96,31 @@ public abstract class AbstractPdfTbsDocumentProcessor extends AbstractTbsDocumen
     }
 
     return updatedDocument;
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public SignTaskData process(final TbsDocument document, final IntegrationServiceConfiguration config) throws SignServiceIntegrationException {
+    
+    // TODO: Implement
+    return null;
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  protected Void validateDocumentContent(final TbsDocument document, final IntegrationServiceConfiguration config, final String fieldName)
+      throws InputValidationException {
+    
+    // TODO: Implement
+    return null;
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  protected Class<Void> getDocumentContentType() {
+    
+    // TODO: implement
+    return Void.class;
   }
 
 }

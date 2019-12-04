@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package se.idsec.signservice.integration.document.pdf.impl;
+package se.idsec.signservice.integration.document.pdf;
 
 import java.util.List;
 
