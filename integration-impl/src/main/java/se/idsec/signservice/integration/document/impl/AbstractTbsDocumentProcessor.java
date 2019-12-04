@@ -15,6 +15,7 @@
  */
 package se.idsec.signservice.integration.document.impl;
 
+import java.util.Base64;
 import java.util.UUID;
 
 import lombok.extern.slf4j.Slf4j;
@@ -60,7 +61,16 @@ public abstract class AbstractTbsDocumentProcessor<T> implements TbsDocumentProc
 
     // Validate the document content ...
     //
-    T validatedContent = this.validateDocumentContent(updatedDocument, config, fieldName);
+    byte[] content;
+    try {
+       content = Base64.getDecoder().decode(document.getContent());
+    }
+    catch (IllegalArgumentException e) {
+      final String msg = String.format("Supplied document content for document '%s' is not correctly Base64 encoded", updatedDocument.getId()); 
+      log.error("{}: {}", CorrelationID.id(), msg);
+      throw new InputValidationException(fieldName + ".content", msg, e);
+    }    
+    T validatedContent = this.validateDocumentContent(content, updatedDocument, config, fieldName);
     if (validatedContent != null) {
       Extension extension = updatedDocument.getExtension() != null ? updatedDocument.getExtension() : new Extension();
       extension.put("validatedContent", validatedContent);
@@ -73,6 +83,8 @@ public abstract class AbstractTbsDocumentProcessor<T> implements TbsDocumentProc
   /**
    * Validates the document contents.
    * 
+   * @param content
+   *          the document content (in byte format)
    * @param document
    *          the document holding the content to validate
    * @param config
@@ -84,7 +96,8 @@ public abstract class AbstractTbsDocumentProcessor<T> implements TbsDocumentProc
    *           for validation errors
    */
   protected abstract T validateDocumentContent(
-      final TbsDocument document, final IntegrationServiceConfiguration config, final String fieldName) throws InputValidationException;
+      final byte[] content, final TbsDocument document, final IntegrationServiceConfiguration config, final String fieldName)
+      throws InputValidationException;
 
   /**
    * Gets the validated document content

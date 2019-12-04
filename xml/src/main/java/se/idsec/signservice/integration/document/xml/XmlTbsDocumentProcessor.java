@@ -15,15 +15,17 @@
  */
 package se.idsec.signservice.integration.document.xml;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
+import java.io.ByteArrayInputStream;
 
+import org.opensaml.core.xml.config.XMLObjectProviderRegistrySupport;
 import org.w3c.dom.Document;
 
 import lombok.extern.slf4j.Slf4j;
+import net.shibboleth.utilities.java.support.xml.XMLParserException;
 import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
 import se.idsec.signservice.integration.core.error.InputValidationException;
 import se.idsec.signservice.integration.core.error.SignServiceIntegrationException;
+import se.idsec.signservice.integration.core.impl.CorrelationID;
 import se.idsec.signservice.integration.document.DocumentType;
 import se.idsec.signservice.integration.document.TbsDocument;
 import se.idsec.signservice.integration.document.impl.AbstractTbsDocumentProcessor;
@@ -38,14 +40,10 @@ import se.swedenconnect.schemas.csig.dssext_1_1.SignTaskData;
 @Slf4j
 public class XmlTbsDocumentProcessor extends AbstractTbsDocumentProcessor<Document> {
 
-  /** The document factory. */
-  private DocumentBuilderFactory documentFactory;
-  
   /**
    * Constructor.
    */
   public XmlTbsDocumentProcessor() {
-    this.documentFactory = DocumentBuilderFactory.newInstance();
   }
 
   /** {@inheritDoc} */
@@ -58,24 +56,29 @@ public class XmlTbsDocumentProcessor extends AbstractTbsDocumentProcessor<Docume
       return false;
     }
   }
-  
 
   /** {@inheritDoc} */
   @Override
-  public SignTaskData process(final TbsDocument document, final IntegrationServiceConfiguration config) throws SignServiceIntegrationException {
+  public SignTaskData process(final TbsDocument document, final IntegrationServiceConfiguration config)
+      throws SignServiceIntegrationException {
     return null;
   }
 
   /** {@inheritDoc} */
   @Override
-  protected Document validateDocumentContent(final TbsDocument document, final IntegrationServiceConfiguration config, final String fieldName)
-      throws InputValidationException {
-    
-//    DocumentBuilder builder = this.documentFactory.newDocumentBuilder();
-    
-    // TODO
-    
-    return null;
+  protected Document validateDocumentContent(final byte[] content, final TbsDocument document,
+      final IntegrationServiceConfiguration config, final String fieldName) throws InputValidationException {
+
+    try {
+      Document xmlDocument = XMLObjectProviderRegistrySupport.getParserPool().parse(new ByteArrayInputStream(content));
+      log.debug("{}: Successfully validated XML document (doc-id: {})", CorrelationID.id(), document.getId());
+      return xmlDocument;
+    }
+    catch (XMLParserException e) {
+      final String msg = String.format("Failed to load XML content for document '%s' - %s", document.getId(), e.getMessage());
+      log.error("{}: {}", CorrelationID.id(), msg, e);
+      throw new InputValidationException(fieldName + ".content", msg, e);
+    }
   }
 
   /** {@inheritDoc} */

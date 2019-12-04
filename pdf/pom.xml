@@ -52,6 +52,7 @@
   </developers>
 
   <properties>
+    <pdfbox.version>2.0.17</pdfbox.version>
   </properties>
 
   <dependencies>
@@ -60,12 +61,18 @@
       <groupId>se.idsec.signservice.integration</groupId>
       <artifactId>signservice-integration-api</artifactId>
     </dependency>
-    
+
     <dependency>
       <groupId>se.idsec.signservice.integration</groupId>
       <artifactId>signservice-integration-impl</artifactId>
       <version>${project.version}</version>
-    </dependency>    
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.pdfbox</groupId>
+      <artifactId>pdfbox</artifactId>
+      <version>${pdfbox.version}</version>
+    </dependency>
 
     <dependency>
       <groupId>org.springframework</groupId>
@@ -76,7 +83,7 @@
       <groupId>javax.xml.bind</groupId>
       <artifactId>jaxb-api</artifactId>
     </dependency>
-    
+
     <dependency>
       <groupId>se.swedenconnect.schemas.csig</groupId>
       <artifactId>dss-ext11-jaxb</artifactId>

@@ -15,6 +15,11 @@
  */
 package se.idsec.signservice.integration.document.pdf;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+
+import org.apache.pdfbox.pdmodel.PDDocument;
+
 import lombok.extern.slf4j.Slf4j;
 import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
 import se.idsec.signservice.integration.core.error.InputValidationException;
@@ -32,7 +37,7 @@ import se.swedenconnect.schemas.csig.dssext_1_1.SignTaskData;
  * @author Stefan Santesson (stefan@idsec.se)
  */
 @Slf4j
-public class AbstractPdfTbsDocumentProcessor extends AbstractTbsDocumentProcessor<Void> {
+public class PdfTbsDocumentProcessor extends AbstractTbsDocumentProcessor<PDDocument> {
 
   /** Validator for visible PDF signature requirements. */
   protected final VisiblePdfSignatureRequirementValidator visiblePdfSignatureRequirementValidator = new VisiblePdfSignatureRequirementValidator();
@@ -101,26 +106,34 @@ public class AbstractPdfTbsDocumentProcessor extends AbstractTbsDocumentProcesso
   /** {@inheritDoc} */
   @Override
   public SignTaskData process(final TbsDocument document, final IntegrationServiceConfiguration config) throws SignServiceIntegrationException {
-    
     // TODO: Implement
     return null;
   }
 
   /** {@inheritDoc} */
   @Override
-  protected Void validateDocumentContent(final TbsDocument document, final IntegrationServiceConfiguration config, final String fieldName)
-      throws InputValidationException {
+  protected PDDocument validateDocumentContent(final byte[] content, final TbsDocument document, 
+      final IntegrationServiceConfiguration config, final String fieldName) throws InputValidationException {
     
-    // TODO: Implement
-    return null;
+    // We want to load the PDF document in order to make sure it is a valid PDF document.
+    //
+    InputStream is = new ByteArrayInputStream(content);
+    try {
+      PDDocument pdf = PDDocument.load(is);
+      log.debug("{}: Successfully validated PDF document (doc-id: {})", CorrelationID.id(), document.getId());
+      return pdf;
+    }
+    catch (Exception e) {
+      final String msg = String.format("Failed to load PDF content for document '%s' - %s", document.getId(), e.getMessage());
+      log.error("{}: {}", CorrelationID.id(), msg, e);
+      throw new InputValidationException(fieldName + ".content", msg, e);
+    }
   }
 
   /** {@inheritDoc} */
   @Override
-  protected Class<Void> getDocumentContentType() {
-    
-    // TODO: implement
-    return Void.class;
+  protected Class<PDDocument> getDocumentContentType() {
+    return PDDocument.class;
   }
 
 }
