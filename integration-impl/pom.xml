@@ -61,6 +61,12 @@
       <groupId>se.idsec.signservice.integration</groupId>
       <artifactId>signservice-integration-api</artifactId>
     </dependency>
+    
+    <!-- SignService commons -->
+    <dependency>
+      <groupId>se.idsec.signservice.commons</groupId>
+      <artifactId>signservice-commons</artifactId>
+    </dependency>
 
     <!-- Spring -->
     <dependency>

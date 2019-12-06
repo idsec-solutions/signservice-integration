@@ -28,7 +28,7 @@ import se.idsec.signservice.integration.core.impl.CorrelationID;
 import se.idsec.signservice.integration.document.DocumentType;
 import se.idsec.signservice.integration.document.TbsDocument;
 import se.idsec.signservice.integration.document.impl.AbstractTbsDocumentProcessor;
-import se.swedenconnect.schemas.csig.dssext_1_1.SignTaskData;
+import se.idsec.signservice.integration.document.impl.TbsCalculationResult;
 
 /**
  * PDF TBS-document processor.
@@ -105,8 +105,9 @@ public class PdfTbsDocumentProcessor extends AbstractTbsDocumentProcessor<PDDocu
 
   /** {@inheritDoc} */
   @Override
-  public SignTaskData process(final TbsDocument document, final IntegrationServiceConfiguration config) throws SignServiceIntegrationException {
-    // TODO: Implement
+  protected TbsCalculationResult calculateToBeSigned(TbsDocument document, IntegrationServiceConfiguration config)
+      throws SignServiceIntegrationException {
+
     return null;
   }
 

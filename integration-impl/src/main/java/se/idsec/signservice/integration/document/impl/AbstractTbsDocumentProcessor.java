@@ -22,9 +22,12 @@ import lombok.extern.slf4j.Slf4j;
 import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
 import se.idsec.signservice.integration.core.Extension;
 import se.idsec.signservice.integration.core.error.InputValidationException;
+import se.idsec.signservice.integration.core.error.SignServiceIntegrationException;
 import se.idsec.signservice.integration.core.impl.CorrelationID;
 import se.idsec.signservice.integration.document.TbsDocument;
 import se.idsec.signservice.integration.document.TbsDocumentProcessor;
+import se.swedenconnect.schemas.csig.dssext_1_1.AdESObject;
+import se.swedenconnect.schemas.csig.dssext_1_1.SignTaskData;
 
 /**
  * Abstract base class for {@link TbsDocumentProcessor} implementations.
@@ -63,13 +66,14 @@ public abstract class AbstractTbsDocumentProcessor<T> implements TbsDocumentProc
     //
     byte[] content;
     try {
-       content = Base64.getDecoder().decode(document.getContent());
+      content = Base64.getDecoder().decode(document.getContent());
     }
     catch (IllegalArgumentException e) {
-      final String msg = String.format("Supplied document content for document '%s' is not correctly Base64 encoded", updatedDocument.getId()); 
+      final String msg =
+          String.format("Supplied document content for document '%s' is not correctly Base64 encoded", updatedDocument.getId());
       log.error("{}: {}", CorrelationID.id(), msg);
       throw new InputValidationException(fieldName + ".content", msg, e);
-    }    
+    }
     T validatedContent = this.validateDocumentContent(content, updatedDocument, config, fieldName);
     if (validatedContent != null) {
       Extension extension = updatedDocument.getExtension() != null ? updatedDocument.getExtension() : new Extension();
@@ -79,6 +83,52 @@ public abstract class AbstractTbsDocumentProcessor<T> implements TbsDocumentProc
 
     return updatedDocument;
   }
+
+  /** {@inheritDoc} */
+  @Override
+  public final SignTaskData process(final TbsDocument document, final IntegrationServiceConfiguration config)
+      throws SignServiceIntegrationException {
+    
+    TbsCalculationResult tbsCalculation = this.calculateToBeSigned(document, config);
+    
+    SignTaskData signTaskData = new SignTaskData();
+    signTaskData.setSignTaskId(document.getId());
+    signTaskData.setSigType(tbsCalculation.getSigType());
+    signTaskData.setToBeSignedBytes(tbsCalculation.getToBeSignedBytes());
+    if (document.getAdesRequirement() != null) {
+      signTaskData.setAdESType(document.getAdesRequirement().getAdesFormat().name());
+      if (document.getAdesRequirement().getAdesFormat() == TbsDocument.AdesType.BES) {
+        if (tbsCalculation.getAdesSignatureId() != null) {
+          AdESObject adesObject = new AdESObject();
+          adesObject.setSignatureId(tbsCalculation.getAdesSignatureId());
+          if (tbsCalculation.getAdesObjectBytes() != null) {
+            adesObject.setAdESObjectBytes(tbsCalculation.getAdesObjectBytes());
+          }
+          signTaskData.setAdESObject(adesObject);
+        }
+      }
+      // else: EPES. TODO
+    }
+    else {
+      signTaskData.setAdESType("None");
+    }    
+
+    return signTaskData;
+  }
+
+  /**
+   * Calculates the ToBeSignedBytes, and optionally AdES data, that will be part of the {@code SignTaskData}.
+   * 
+   * @param document
+   *          the document to sign
+   * @param config
+   *          the profile configuration
+   * @return the TBS bytes and optionally AdES data
+   * @throws SignServiceIntegrationException
+   *           for processing errors
+   */
+  protected abstract TbsCalculationResult calculateToBeSigned(final TbsDocument document, final IntegrationServiceConfiguration config)
+      throws SignServiceIntegrationException;
 
   /**
    * Validates the document contents.

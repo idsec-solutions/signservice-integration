@@ -31,11 +31,11 @@ import lombok.extern.slf4j.Slf4j;
 import se.idsec.signservice.integration.certificate.SigningCertificateRequirements;
 import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
 import se.idsec.signservice.integration.config.IntegrationServiceDefaultConfiguration;
-import se.idsec.signservice.integration.config.SigningCredential;
 import se.idsec.signservice.integration.core.Extension;
 import se.idsec.signservice.integration.document.pdf.PdfSignatureImageTemplate;
 import se.idsec.signservice.integration.document.pdf.VisiblePdfSignatureRequirement;
 import se.idsec.signservice.integration.security.EncryptionParameters;
+import se.idsec.signservice.security.sign.SigningCredential;
 
 /**
  * Default implementation of the {@code IntegrationServiceDefaultConfiguration} interface.

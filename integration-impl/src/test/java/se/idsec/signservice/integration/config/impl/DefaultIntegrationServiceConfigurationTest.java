@@ -35,6 +35,7 @@ import se.idsec.signservice.integration.certificate.SigningCertificateRequiremen
 import se.idsec.signservice.integration.document.pdf.PdfSignatureImageTemplate;
 import se.idsec.signservice.integration.document.pdf.VisiblePdfSignatureRequirement;
 import se.idsec.signservice.integration.security.impl.DefaultEncryptionParameters;
+import se.idsec.signservice.security.sign.impl.KeyStoreSigningCredential;
 
 public class DefaultIntegrationServiceConfigurationTest {
 
