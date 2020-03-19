@@ -9,7 +9,7 @@
   <parent>
     <groupId>se.idsec.signservice.integration</groupId>
     <artifactId>signservice-integration-parent</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>1.0.0-SNAPSHOT</version>
   </parent>
 
   <name>IDsec Solutions :: SignService :: Integration :: XML Processing</name>
@@ -65,36 +65,16 @@
       <groupId>se.idsec.signservice.integration</groupId>
       <artifactId>signservice-integration-impl</artifactId>
       <version>${project.version}</version>
-    </dependency>    
-
-    <dependency>
-      <groupId>org.springframework</groupId>
-      <artifactId>spring-core</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>javax.xml.bind</groupId>
-      <artifactId>jaxb-api</artifactId>
     </dependency>
     
     <dependency>
-      <groupId>se.swedenconnect.schemas.csig</groupId>
-      <artifactId>dss-ext11-jaxb</artifactId>
+      <groupId>se.idsec.signservice.commons</groupId>
+      <artifactId>signservice-commons</artifactId>
     </dependency>
-
+        
     <dependency>
-      <groupId>se.swedenconnect.opensaml</groupId>
-      <artifactId>opensaml-security-ext</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>se.litsec.opensaml</groupId>
-      <artifactId>opensaml3-ext</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>se.litsec.opensaml.sweid</groupId>
-      <artifactId>swedish-eid-opensaml3</artifactId>
+      <groupId>se.idsec.signservice.commons</groupId>
+      <artifactId>signservice-xml-commons</artifactId>
     </dependency>
 
     <dependency>

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 IDsec Solutions AB
+ * Copyright 2019-2020 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,20 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package se.idsec.signservice.integration.cache;
+package se.idsec.signservice.integration.state;
+
+import se.idsec.signservice.integration.core.IntegrationServiceCache;
+import se.idsec.signservice.integration.core.SignatureState;
 
 /**
- * Interface for the SignService Integration Service cache.
+ * Interface for the SignService Integration Service state cache.
  * 
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
-public interface IntegrationServiceCache {
-
-  Object get(String id);
-  
-  void put(String id, Object object);
-  
-  void delete(String id);
-  
+public interface IntegrationServiceStateCache extends IntegrationServiceCache<SignatureState> {
 }

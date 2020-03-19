@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 IDsec Solutions AB
+ * Copyright 2019-2020 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,18 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package se.idsec.signservice.integration.process.impl;
+package se.idsec.signservice.integration.dss;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.Nonnull;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
-import javax.xml.transform.dom.DOMResult;
 
 import org.joda.time.DateTime;
 import org.opensaml.core.xml.XMLObject;
 import org.opensaml.core.xml.io.MarshallingException;
+import org.opensaml.core.xml.io.Unmarshaller;
+import org.opensaml.core.xml.io.UnmarshallingException;
 import org.opensaml.core.xml.schema.XSBase64Binary;
 import org.opensaml.core.xml.schema.XSBoolean;
 import org.opensaml.core.xml.schema.XSBooleanValue;
@@ -35,15 +37,19 @@ import org.opensaml.core.xml.util.XMLObjectSupport;
 import org.opensaml.saml.saml2.core.Attribute;
 import org.opensaml.saml.saml2.core.NameID;
 import org.springframework.util.StringUtils;
-import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import lombok.extern.slf4j.Slf4j;
 import se.idsec.signservice.integration.authentication.SignerIdentityAttribute;
 import se.idsec.signservice.integration.authentication.SignerIdentityAttributeValue;
 import se.idsec.signservice.integration.certificate.CertificateAttributeMapping;
 import se.idsec.signservice.integration.certificate.SigningCertificateRequirements;
 import se.idsec.signservice.integration.core.error.impl.SignServiceProtocolException;
+import se.idsec.signservice.integration.core.impl.CorrelationID;
+import se.idsec.signservice.xml.JAXBContextUtils;
+import se.idsec.signservice.xml.JAXBMarshaller;
 import se.litsec.opensaml.saml2.attribute.AttributeBuilder;
+import se.litsec.opensaml.saml2.attribute.AttributeUtils;
 import se.swedenconnect.schemas.csig.dssext_1_1.CertRequestProperties;
 import se.swedenconnect.schemas.csig.dssext_1_1.MappedAttributeType;
 import se.swedenconnect.schemas.csig.dssext_1_1.PreferredSAMLAttributeNameType;
@@ -57,7 +63,14 @@ import se.swedenconnect.schemas.saml_2_0.assertion.NameIDType;
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
+@Slf4j
 public class DssUtils {
+
+  /** The DSS profile we use. */
+  public static final String DSS_PROFILE = "http://id.elegnamnden.se/csig/1.1/dss-ext/profile";
+
+  /** The namespace for DSS extension. */
+  public static final String DSS_EXT_NAMESPACE = "http://id.elegnamnden.se/csig/1.1/dss-ext/ns";
 
   /**
    * Creates a NameID object.
@@ -87,7 +100,7 @@ public class DssUtils {
   public static <T> T toJAXB(@Nonnull final XMLObject object, @Nonnull final Class<T> destination) throws SignServiceProtocolException {
     try {
       Element element = XMLObjectSupport.marshall(object);
-      JAXBContext context = JAXBContext.newInstance(destination);  // TODO: fix classpath
+      JAXBContext context = JAXBContextUtils.createJAXBContext(destination);
       Object jaxb = context.createUnmarshaller().unmarshal(element);
       return destination.cast(jaxb);
     }
@@ -99,15 +112,27 @@ public class DssUtils {
     }
   }
 
-  public static Element toElement(@Nonnull final Object jaxbObject) throws SignServiceProtocolException {
+  /**
+   * Transforms a JAXB object to its corresponding OpenSAML object.
+   * 
+   * @param jaxbObject
+   *          JAXB object
+   * @param destination
+   *          the OpenSAML class
+   * @return OpenSAML object
+   * @throws SignServiceProtocolException
+   *           for unmarshalling errors
+   */
+  public static <T> T toOpenSAML(@Nonnull final Object jaxbObject, @Nonnull final Class<T> destination)
+      throws SignServiceProtocolException {
     try {
-      JAXBContext context = JAXBContext.newInstance(jaxbObject.getClass());
-      DOMResult res = new DOMResult();
-      context.createMarshaller().marshal(jaxbObject, res);
-      return ((Document) res.getNode()).getDocumentElement();
+      Element element = JAXBMarshaller.marshall(jaxbObject).getDocumentElement();
+      Unmarshaller unmarshaller = XMLObjectSupport.getUnmarshaller(element);
+      XMLObject object = unmarshaller.unmarshall(element);
+      return destination.cast(object);
     }
-    catch (JAXBException e) {
-      throw new SignServiceProtocolException("JAXB error", e);
+    catch (JAXBException | UnmarshallingException e) {
+      throw new SignServiceProtocolException(String.format("Failed to decode %s - %s", destination.getSimpleName(), e.getMessage()), e);
     }
   }
 
@@ -120,7 +145,7 @@ public class DssUtils {
    * @throws SignServiceProtocolException
    *           for encoding/decoding errors
    */
-  public static AttributeStatement toSigner(@Nonnull final List<SignerIdentityAttributeValue> attributes)
+  public static AttributeStatement toAttributeStatement(@Nonnull final List<SignerIdentityAttributeValue> attributes)
       throws SignServiceProtocolException {
 
     org.opensaml.saml.saml2.core.AttributeStatement attributeStatement = (org.opensaml.saml.saml2.core.AttributeStatement) XMLObjectSupport
@@ -130,6 +155,41 @@ public class DssUtils {
       attributeStatement.getAttributes().add(toOpenSAMLAttribute(av));
     }
     return toJAXB(attributeStatement, AttributeStatement.class);
+  }
+
+  /**
+   * Converts from an {@code AttributeStatement} object to a list of {@code SignerIdentityAttributeValue} objects.
+   * 
+   * @param attributeStatement
+   *          the statement to convert
+   * @return a list of SignerIdentityAttributeValue objects
+   * @throws SignServiceProtocolException
+   *           for unmarshalling errors
+   */
+  public static List<SignerIdentityAttributeValue> fromAttributeStatement(@Nonnull final AttributeStatement attributeStatement)
+      throws SignServiceProtocolException {
+
+    final org.opensaml.saml.saml2.core.AttributeStatement openSaml =
+        DssUtils.toOpenSAML(attributeStatement, org.opensaml.saml.saml2.core.AttributeStatement.class);
+
+    List<SignerIdentityAttributeValue> list = new ArrayList<>();
+    for (org.opensaml.saml.saml2.core.Attribute a : openSaml.getAttributes()) {
+      final SignerIdentityAttributeValue attribute = SignerIdentityAttributeValue.builder()
+        .type(SignerIdentityAttribute.SAML_TYPE)
+        .name(a.getName())
+        .nameFormat(a.getNameFormat())
+        .value(AttributeUtils.getAttributeStringValue(a))
+        // TODO: value type ...
+        .build();
+      if (attribute.getValue() == null) {
+        final String msg = String.format("Error getting attribute value for attribute '%s'", a.getName());
+        log.error("{}: {}", CorrelationID.id(), msg);
+        throw new SignServiceProtocolException(msg);
+      }
+      list.add(attribute);
+    }
+
+    return list;
   }
 
   /**
@@ -146,7 +206,7 @@ public class DssUtils {
   public static CertRequestProperties toCertRequestProperties(@Nonnull final SigningCertificateRequirements certReqs,
       @Nonnull final String authnContextRef) throws SignServiceProtocolException {
 
-    CertRequestProperties crp = new CertRequestProperties();
+    CertRequestProperties crp = (new se.swedenconnect.schemas.csig.dssext_1_1.ObjectFactory()).createCertRequestProperties();
     crp.setCertType(certReqs.getCertificateType().getType());
     crp.setAuthnContextClassRef(authnContextRef);
 
@@ -179,7 +239,9 @@ public class DssUtils {
         }
         certAttributes.getRequestedCertAttributes().add(certAttr);
       }
+      crp.setRequestedCertAttributes(certAttributes);
     }
+
     return crp;
   }
 

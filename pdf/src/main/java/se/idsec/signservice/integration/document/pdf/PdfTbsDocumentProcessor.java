@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 IDsec Solutions AB
+ * Copyright 2019-2020 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,17 +15,17 @@
  */
 package se.idsec.signservice.integration.document.pdf;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-
 import org.apache.pdfbox.pdmodel.PDDocument;
 
 import lombok.extern.slf4j.Slf4j;
 import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
 import se.idsec.signservice.integration.core.error.InputValidationException;
-import se.idsec.signservice.integration.core.error.SignServiceIntegrationException;
 import se.idsec.signservice.integration.core.impl.CorrelationID;
+import se.idsec.signservice.integration.document.DocumentDecoder;
+import se.idsec.signservice.integration.document.DocumentEncoder;
+import se.idsec.signservice.integration.document.DocumentProcessingException;
 import se.idsec.signservice.integration.document.DocumentType;
+import se.idsec.signservice.integration.document.ProcessedTbsDocument;
 import se.idsec.signservice.integration.document.TbsDocument;
 import se.idsec.signservice.integration.document.impl.AbstractTbsDocumentProcessor;
 import se.idsec.signservice.integration.document.impl.TbsCalculationResult;
@@ -41,7 +41,10 @@ public class PdfTbsDocumentProcessor extends AbstractTbsDocumentProcessor<PDDocu
 
   /** Validator for visible PDF signature requirements. */
   protected final VisiblePdfSignatureRequirementValidator visiblePdfSignatureRequirementValidator = new VisiblePdfSignatureRequirementValidator();
-
+  
+  /** Document decoder. */
+  protected final static PdfDocumentEncoderDecoder documentEncoderDecoder = new PdfDocumentEncoderDecoder();
+  
   /** {@inheritDoc} */
   @Override
   public boolean supports(final TbsDocument document) {
@@ -51,90 +54,77 @@ public class PdfTbsDocumentProcessor extends AbstractTbsDocumentProcessor<PDDocu
     catch (IllegalArgumentException e) {
       return false;
     }
-  }
+  }  
 
   /**
    * Handles settings for PDF visible signatures.
    */
   @Override
-  public TbsDocument preProcess(final TbsDocument document, final IntegrationServiceConfiguration config, final String fieldName) 
+  public ProcessedTbsDocument preProcess(final TbsDocument document, final IntegrationServiceConfiguration config, final String fieldName) 
       throws InputValidationException {
 
-    TbsDocument updatedDocument = super.preProcess(document, config, fieldName);
+    final ProcessedTbsDocument processedTbsDocument = super.preProcess(document, config, fieldName);  
+    final TbsDocument tbsDocument = processedTbsDocument.getTbsDocument();
 
-    if (updatedDocument.getVisiblePdfSignatureRequirement() == null) {
+    if (tbsDocument.getVisiblePdfSignatureRequirement() == null) {
       if (config.getDefaultVisiblePdfSignatureRequirement() != null) {
         log.debug("{}: Setting default value for visiblePdfSignatureRequirement ({}): {}",
-          CorrelationID.id(), updatedDocument.getId(), config.getDefaultVisiblePdfSignatureRequirement());
-        updatedDocument.setVisiblePdfSignatureRequirement(config.getDefaultVisiblePdfSignatureRequirement());
+          CorrelationID.id(), tbsDocument.getId(), config.getDefaultVisiblePdfSignatureRequirement());
+        tbsDocument.setVisiblePdfSignatureRequirement(config.getDefaultVisiblePdfSignatureRequirement());
       }
     }
     else {
       // Validate the input ...
       //
       this.visiblePdfSignatureRequirementValidator.validateObject(
-        updatedDocument.getVisiblePdfSignatureRequirement(), fieldName + ".visiblePdfSignatureRequirement", config);
+        tbsDocument.getVisiblePdfSignatureRequirement(), fieldName + ".visiblePdfSignatureRequirement", config);
 
       // Scale ...
       //
-      if (updatedDocument.getVisiblePdfSignatureRequirement().getScale() == null) {
+      if (tbsDocument.getVisiblePdfSignatureRequirement().getScale() == null) {
         log.info("{}: visiblePdfSignatureRequirement.scale is not set, defaulting to 0", CorrelationID.id());
-        updatedDocument.getVisiblePdfSignatureRequirement().setScale(0);
+        tbsDocument.getVisiblePdfSignatureRequirement().setScale(0);
       }
-      else if (updatedDocument.getVisiblePdfSignatureRequirement().getScale().intValue() < -100) {
+      else if (tbsDocument.getVisiblePdfSignatureRequirement().getScale().intValue() < -100) {
         log.info("{}: visiblePdfSignatureRequirement.scale is set to '{}'. This is illegal, changing to -100",
-          CorrelationID.id(), updatedDocument.getVisiblePdfSignatureRequirement().getScale());
-        updatedDocument.getVisiblePdfSignatureRequirement().setScale(-100);
+          CorrelationID.id(), tbsDocument.getVisiblePdfSignatureRequirement().getScale());
+        tbsDocument.getVisiblePdfSignatureRequirement().setScale(-100);
       }
 
       // Page ...
       //
-      if (updatedDocument.getVisiblePdfSignatureRequirement().getPage() == null) {
+      if (tbsDocument.getVisiblePdfSignatureRequirement().getPage() == null) {
         log.info("{}: visiblePdfSignatureRequirement.page is not set, defaulting to 0", CorrelationID.id());
-        updatedDocument.getVisiblePdfSignatureRequirement().setPage(0);
+        tbsDocument.getVisiblePdfSignatureRequirement().setPage(0);
       }
-      if (updatedDocument.getVisiblePdfSignatureRequirement().getPage().intValue() < 0) {
+      if (tbsDocument.getVisiblePdfSignatureRequirement().getPage().intValue() < 0) {
         log.info("{}: visiblePdfSignatureRequirement.page is set to '{}'. This is illegal, changing to 0",
-          CorrelationID.id(), updatedDocument.getVisiblePdfSignatureRequirement().getPage());
-        updatedDocument.getVisiblePdfSignatureRequirement().setPage(0);
+          CorrelationID.id(), tbsDocument.getVisiblePdfSignatureRequirement().getPage());
+        tbsDocument.getVisiblePdfSignatureRequirement().setPage(0);
       }
     }
 
-    return updatedDocument;
+    return processedTbsDocument;
   }
 
   /** {@inheritDoc} */
   @Override
-  protected TbsCalculationResult calculateToBeSigned(TbsDocument document, IntegrationServiceConfiguration config)
-      throws SignServiceIntegrationException {
+  protected TbsCalculationResult calculateToBeSigned(final ProcessedTbsDocument document, final String signatureAlgorithm, 
+      IntegrationServiceConfiguration config) throws DocumentProcessingException {
 
     return null;
   }
-
+  
   /** {@inheritDoc} */
   @Override
-  protected PDDocument validateDocumentContent(final byte[] content, final TbsDocument document, 
-      final IntegrationServiceConfiguration config, final String fieldName) throws InputValidationException {
-    
-    // We want to load the PDF document in order to make sure it is a valid PDF document.
-    //
-    InputStream is = new ByteArrayInputStream(content);
-    try {
-      PDDocument pdf = PDDocument.load(is);
-      log.debug("{}: Successfully validated PDF document (doc-id: {})", CorrelationID.id(), document.getId());
-      return pdf;
-    }
-    catch (Exception e) {
-      final String msg = String.format("Failed to load PDF content for document '%s' - %s", document.getId(), e.getMessage());
-      log.error("{}: {}", CorrelationID.id(), msg, e);
-      throw new InputValidationException(fieldName + ".content", msg, e);
-    }
+  public DocumentDecoder<PDDocument> getDocumentDecoder() {
+    return documentEncoderDecoder;
   }
-
+  
   /** {@inheritDoc} */
   @Override
-  protected Class<PDDocument> getDocumentContentType() {
-    return PDDocument.class;
-  }
+  public DocumentEncoder<PDDocument> getDocumentEncoder() {
+    return documentEncoderDecoder;
+  }  
 
 }

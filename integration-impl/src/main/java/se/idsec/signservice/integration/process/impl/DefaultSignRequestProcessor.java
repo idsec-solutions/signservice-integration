@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 IDsec Solutions AB
+ * Copyright 2019-2020 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,14 +15,16 @@
  */
 package se.idsec.signservice.integration.process.impl;
 
+import java.security.SignatureException;
 import java.util.Collections;
 import java.util.GregorianCalendar;
 import java.util.List;
-import java.util.UUID;
 
+import javax.xml.bind.JAXBException;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.xpath.XPathExpressionException;
 
 import org.joda.time.DateTime;
 import org.opensaml.core.xml.util.XMLObjectSupport;
@@ -32,28 +34,38 @@ import org.opensaml.saml.saml2.core.Conditions;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+import org.w3c.dom.Document;
 
 import lombok.extern.slf4j.Slf4j;
 import se.idsec.signservice.integration.SignRequestInput;
 import se.idsec.signservice.integration.authentication.AuthnRequirements;
 import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
+import se.idsec.signservice.integration.core.Extension;
 import se.idsec.signservice.integration.core.error.ErrorCode;
 import se.idsec.signservice.integration.core.error.InputValidationException;
 import se.idsec.signservice.integration.core.error.SignServiceIntegrationException;
 import se.idsec.signservice.integration.core.error.impl.InternalSignServiceIntegrationException;
 import se.idsec.signservice.integration.core.impl.CorrelationID;
+import se.idsec.signservice.integration.document.ProcessedTbsDocument;
 import se.idsec.signservice.integration.document.TbsDocument;
 import se.idsec.signservice.integration.document.TbsDocumentProcessor;
+import se.idsec.signservice.integration.dss.DssUtils;
+import se.idsec.signservice.integration.dss.SignRequestWrapper;
+import se.idsec.signservice.integration.process.SignRequestProcessingResult;
 import se.idsec.signservice.integration.process.SignRequestProcessor;
 import se.idsec.signservice.integration.signmessage.SignMessageMimeType;
 import se.idsec.signservice.integration.signmessage.SignMessageParameters;
 import se.idsec.signservice.integration.signmessage.SignMessageProcessor;
+import se.idsec.signservice.security.sign.SigningCredential;
+import se.idsec.signservice.security.sign.xml.XMLSignatureLocation;
+import se.idsec.signservice.security.sign.xml.XMLSignatureLocation.ChildPosition;
+import se.idsec.signservice.security.sign.xml.XMLSignerResult;
+import se.idsec.signservice.security.sign.xml.impl.DefaultXMLSigner;
+import se.idsec.signservice.xml.DOMUtils;
+import se.idsec.signservice.xml.JAXBMarshaller;
 import se.swedenconnect.schemas.csig.dssext_1_1.SignRequestExtension;
 import se.swedenconnect.schemas.csig.dssext_1_1.SignTaskData;
 import se.swedenconnect.schemas.csig.dssext_1_1.SignTasks;
-import se.swedenconnect.schemas.dss_1_0.AnyType;
-import se.swedenconnect.schemas.dss_1_0.InputDocuments;
-import se.swedenconnect.schemas.dss_1_0.SignRequest;
 
 /**
  * Default implementation of the {@link SignRequestProcessor} interface.
@@ -63,15 +75,39 @@ import se.swedenconnect.schemas.dss_1_0.SignRequest;
  */
 @Slf4j
 public class DefaultSignRequestProcessor implements SignRequestProcessor, InitializingBean {
-
+  
   /** Processors for different TBS documents. */
-  private List<TbsDocumentProcessor> tbsDocumentProcessors;
+  private List<TbsDocumentProcessor<?>> tbsDocumentProcessors;
 
   /** Validator. */
   private final SignRequestInputValidator signRequestInputValidator = new SignRequestInputValidator();
-  
+
   /** The processor for SignMessages. */
   private SignMessageProcessor signMessageProcessor;
+
+  /** Object factory for DSS objects. */
+  private static se.swedenconnect.schemas.dss_1_0.ObjectFactory dssObjectFactory =
+      new se.swedenconnect.schemas.dss_1_0.ObjectFactory();
+
+  /** Object factory for DSS-Ext objects. */
+  private static se.swedenconnect.schemas.csig.dssext_1_1.ObjectFactory dssExtObjectFactory =
+      new se.swedenconnect.schemas.csig.dssext_1_1.ObjectFactory();
+
+  /** Needed when signing the sign request. */
+  private XMLSignatureLocation xmlSignatureLocation;
+  
+  /**
+   * Constructor.
+   */
+  public DefaultSignRequestProcessor() {
+    try {
+      this.xmlSignatureLocation = new XMLSignatureLocation("/*/*[local-name()='OptionalInputs']", ChildPosition.LAST);
+    }
+    catch (XPathExpressionException e) {
+      log.error("Failed to setup XPath for signature inclusion", e);
+      throw new SecurityException("Failed to setup XPath for signature inclusion", e);
+    }
+  }
 
   /** {@inheritDoc} */
   @Override
@@ -129,13 +165,13 @@ public class DefaultSignRequestProcessor implements SignRequestProcessor, Initia
 
     String authnServiceID = authnRequirements.getAuthnServiceID();
     if (authnServiceID == null) {
-      log.debug("{}: No authnRequirements.authnServiceID given in input, using '{}'", CorrelationID.id(), 
+      log.debug("{}: No authnRequirements.authnServiceID given in input, using '{}'", CorrelationID.id(),
         config.getDefaultAuthnServiceID());
       authnRequirements.setAuthnServiceID(config.getDefaultAuthnServiceID());
       authnServiceID = config.getDefaultAuthnServiceID();
     }
     if (authnRequirements.getAuthnContextRef() == null) {
-      log.debug("{}: No authnRequirements.authnContextRef given in input, using '{}'", 
+      log.debug("{}: No authnRequirements.authnContextRef given in input, using '{}'",
         CorrelationID.id(), config.getDefaultAuthnContextRef());
       authnRequirements.setAuthnContextRef(config.getDefaultAuthnContextRef());
     }
@@ -159,12 +195,25 @@ public class DefaultSignRequestProcessor implements SignRequestProcessor, Initia
     int pos = 0;
     for (final TbsDocument doc : signRequestInput.getTbsDocuments()) {
       final String fieldName = "signRequestInput.tbsDocuments[" + pos++ + "]";
-      final TbsDocumentProcessor processor = this.tbsDocumentProcessors.stream()
+      final TbsDocumentProcessor<?> processor = this.tbsDocumentProcessors.stream()
         .filter(p -> p.supports(doc))
         .findFirst()
         .orElseThrow(() -> new InputValidationException(fieldName,
           String.format("Document of type '%s' is not supported", doc.getMimeType())));
-      inputBuilder.tbsDocument(processor.preProcess(doc, config, fieldName));
+      
+      final ProcessedTbsDocument processedTbsDocument = processor.preProcess(doc, config, fieldName);
+      if (processedTbsDocument.getDocumentObject() != null) {
+        if (processedTbsDocument.getDocumentObject() != null) {
+          Extension ext = processedTbsDocument.getTbsDocument().getExtension();
+          if (ext == null) {
+            ext = new Extension();            
+          }
+          ext.put("cachedDocument", processedTbsDocument.getDocumentObject());
+          processedTbsDocument.getTbsDocument().setExtension(ext);
+        }
+      }
+      
+      inputBuilder.tbsDocument(processedTbsDocument.getTbsDocument());
     }
 
     // SignMessageParameters
@@ -172,7 +221,7 @@ public class DefaultSignRequestProcessor implements SignRequestProcessor, Initia
     if (signRequestInput.getSignMessageParameters() != null) {
       SignMessageParameters.SignMessageParametersBuilder smpBuilder = null;
       if (signRequestInput.getSignMessageParameters().getMimeType() == null) {
-        log.debug("{}: No signMessageParameters.mimeType given in input, using {}", 
+        log.debug("{}: No signMessageParameters.mimeType given in input, using {}",
           CorrelationID.id(), SignMessageMimeType.TEXT.getMimeType());
         smpBuilder = signRequestInput.getSignMessageParameters().toBuilder();
         smpBuilder.mimeType(SignMessageMimeType.TEXT);
@@ -186,7 +235,7 @@ public class DefaultSignRequestProcessor implements SignRequestProcessor, Initia
       }
       if (signRequestInput.getSignMessageParameters().isPerformEncryption()
           && signRequestInput.getSignMessageParameters().getDisplayEntity() == null) {
-        log.debug("{}: signMessageParameters.displayEntity is not set in input, defaulting to {}", 
+        log.debug("{}: signMessageParameters.displayEntity is not set in input, defaulting to {}",
           CorrelationID.id(), authnServiceID);
         if (smpBuilder == null) {
           smpBuilder = signRequestInput.getSignMessageParameters().toBuilder();
@@ -203,22 +252,18 @@ public class DefaultSignRequestProcessor implements SignRequestProcessor, Initia
 
   /** {@inheritDoc} */
   @Override
-  public SignRequest process(SignRequestInput signRequestInput, IntegrationServiceConfiguration config)
+  public SignRequestProcessingResult process(final SignRequestInput signRequestInput, final String requestID, final IntegrationServiceConfiguration config)
       throws SignServiceIntegrationException {
-
-    // Generate an ID for this request.
-    final String requestID = UUID.randomUUID().toString();
-    log.info("{}: Generated SignRequest RequestID attribute: {}", signRequestInput.getCorrelationId(), requestID);
 
     // Start building the SignRequest ...
     //
     final long now = System.currentTimeMillis();
 
-    SignRequest signRequest = new SignRequest();
-    signRequest.setProfile("http://id.elegnamnden.se/csig/1.1/dss-ext/profile");  // TODO: use constant
+    SignRequestWrapper signRequest = new SignRequestWrapper(dssObjectFactory.createSignRequest());
+    signRequest.setProfile(DssUtils.DSS_PROFILE);
     signRequest.setRequestID(requestID);
 
-    SignRequestExtension signRequestExtension = new SignRequestExtension();
+    SignRequestExtension signRequestExtension = dssExtObjectFactory.createSignRequestExtension();
 
     // RequestTime
     //
@@ -234,7 +279,7 @@ public class DefaultSignRequestProcessor implements SignRequestProcessor, Initia
     AudienceRestriction audienceRestriction = (AudienceRestriction) XMLObjectSupport.buildXMLObject(
       AudienceRestriction.DEFAULT_ELEMENT_NAME);
     Audience audience = (Audience) XMLObjectSupport.buildXMLObject(Audience.DEFAULT_ELEMENT_NAME);
-    audience.setAudienceURI(signRequestInput.getDestinationUrl());
+    audience.setAudienceURI(signRequestInput.getReturnUrl());
     audienceRestriction.getAudiences().add(audience);
 
     conditions.getAudienceRestrictions().add(audienceRestriction);
@@ -246,7 +291,7 @@ public class DefaultSignRequestProcessor implements SignRequestProcessor, Initia
     if (signRequestInput.getAuthnRequirements().getRequestedSignerAttributes() != null
         && !signRequestInput.getAuthnRequirements().getRequestedSignerAttributes().isEmpty()) {
 
-      signRequestExtension.setSigner(DssUtils.toSigner(signRequestInput.getAuthnRequirements().getRequestedSignerAttributes()));
+      signRequestExtension.setSigner(DssUtils.toAttributeStatement(signRequestInput.getAuthnRequirements().getRequestedSignerAttributes()));
     }
 
     // IdentityProvider
@@ -260,6 +305,10 @@ public class DefaultSignRequestProcessor implements SignRequestProcessor, Initia
     // SignService
     //
     signRequestExtension.setSignService(DssUtils.toEntity(config.getSignServiceID()));
+    
+    // Requested signature algorithm
+    //
+    signRequestExtension.setRequestedSignatureAlgorithm(signRequestInput.getSignatureAlgorithm());
 
     // CertRequestProperties
     //
@@ -272,41 +321,90 @@ public class DefaultSignRequestProcessor implements SignRequestProcessor, Initia
 
     // Install the sign request extension ...
     //
-    AnyType optionalInputs = new AnyType();
-    optionalInputs.getAnies().add(DssUtils.toElement(signRequestExtension));
-    signRequest.setOptionalInputs(optionalInputs);
-    
+    signRequest.setSignRequestExtension(signRequestExtension);
+
     // Invoke all TBS processors ...
     //
-    SignTasks signTasks = new SignTasks();
+    SignTasks signTasks = dssExtObjectFactory.createSignTasks();
     for (final TbsDocument doc : signRequestInput.getTbsDocuments()) {
-      final TbsDocumentProcessor processor = this.tbsDocumentProcessors.stream()
-          .filter(p -> p.supports(doc))
-          .findFirst()
-          .orElseThrow(() -> new InternalSignServiceIntegrationException(new ErrorCode.Code("config"), "Could not find document processor"));
+      final TbsDocumentProcessor<?> processor = this.tbsDocumentProcessors.stream()
+        .filter(p -> p.supports(doc))
+        .findFirst()
+        .orElseThrow(() -> new InternalSignServiceIntegrationException(new ErrorCode.Code("config"), "Could not find document processor"));
+
+      final Object cachedDocument = doc.getExtension() != null ? doc.getExtension().get("cachedDocument") : null;
+      if (doc.getExtension() != null) {
+        // Remove the cached object. We don't want to save it to the session ...
+        doc.getExtension().remove("cachedDocument");
+        if (doc.getExtension().isEmpty()) {
+          doc.setExtension(null);
+        }
+      }
       
-      final SignTaskData signTaskData = processor.process(doc, config);
+      final SignTaskData signTaskData = processor.process(new ProcessedTbsDocument(doc, cachedDocument), signRequestInput.getSignatureAlgorithm(), config);
       signTasks.getSignTaskDatas().add(signTaskData);
     }
-    
+
     // Install the documents ...
     //
-    InputDocuments inputDocuments = new InputDocuments();
-    AnyType dssOther = new AnyType();
-    dssOther.getAnies().add(DssUtils.toElement(signTasks));
-    inputDocuments.getDocumentsAndTransformedDatasAndDocumentHashes().add(dssOther);
-    
-    // Finally, sign the document ...
-    //
-    
-    // TODO
+    signRequest.setSignTasks(signTasks);
 
-    return signRequest;
+    // Sign the document ...
+    //
+    Document signedSignRequest = this.signSignRequest(signRequest, signRequestInput.getCorrelationId(), config.getSigningCredential());
+    
+    if (log.isTraceEnabled()) {
+      log.trace("{}: Created SignRequest: {}", signRequestInput.getCorrelationId(), DOMUtils.prettyPrint(signedSignRequest));
+    }
+    
+    // Transform and Base64-encode the message.
+    //
+    return new SignRequestProcessingResult(signRequest, DOMUtils.nodeToBase64(signedSignRequest));
+  }
+
+  /**
+   * Signs the supplied {@code SignRequest} message.
+   * 
+   * @param signRequest
+   *          the SignRequest message to sign
+   * @param correlationID
+   *          the correlation ID for this operation
+   * @param signingCredential
+   *          the signing credential to use
+   * @return a signed document
+   * @throws InternalSignServiceIntegrationException
+   *           for signature errors
+   */
+  protected Document signSignRequest(final SignRequestWrapper signRequest,
+      final String correlationID, final SigningCredential signingCredential) throws InternalSignServiceIntegrationException {
+
+    log.debug("{}: Signing SignRequest '{}' ...", correlationID, signRequest.getRequestID());    
+
+    try {
+      // First marshall the JAXB to a DOM document ...
+      //
+      final Document signRequestDocument = JAXBMarshaller.marshall(signRequest.getWrappedSignRequest());
+            
+      log.debug("Signing: {}", DOMUtils.prettyPrint(signRequestDocument));
+
+      // Get a signer and sign the message ...
+      //
+      final DefaultXMLSigner signer = new DefaultXMLSigner(signingCredential);
+      signer.setSignatureLocation(this.xmlSignatureLocation);
+      XMLSignerResult signerResult = signer.sign(signRequestDocument);
+      log.debug("{}: SignRequest '{}' successfully signed", correlationID, signRequest.getRequestID());
+
+      return signerResult.getSignedDocument();
+    }
+    catch (JAXBException | SignatureException e) {
+      log.error("{}: Error during signing of SignRequest - {}", correlationID, e.getMessage(), e);
+      throw new InternalSignServiceIntegrationException(new ErrorCode.Code("signing"), "Error during signing of SignRequest", e);
+    }
   }
 
   /** {@inheritDoc} */
   @Override
-  public List<TbsDocumentProcessor> getTbsDocumentProcessors() {
+  public List<TbsDocumentProcessor<?>> getTbsDocumentProcessors() {
     return Collections.unmodifiableList(this.tbsDocumentProcessors);
   }
 
@@ -316,13 +414,15 @@ public class DefaultSignRequestProcessor implements SignRequestProcessor, Initia
    * @param tbsDocumentProcessors
    *          the document processors
    */
-  public void setTbsDocumentProcessors(List<TbsDocumentProcessor> tbsDocumentProcessors) {
+  public void setTbsDocumentProcessors(List<TbsDocumentProcessor<?>> tbsDocumentProcessors) {
     this.tbsDocumentProcessors = tbsDocumentProcessors;
   }
-  
+
   /**
    * Assigns the sign message processor to use.
-   * @param signMessageProcessor the sign message processor
+   * 
+   * @param signMessageProcessor
+   *          the sign message processor
    */
   public void setSignMessageProcessor(SignMessageProcessor signMessageProcessor) {
     this.signMessageProcessor = signMessageProcessor;

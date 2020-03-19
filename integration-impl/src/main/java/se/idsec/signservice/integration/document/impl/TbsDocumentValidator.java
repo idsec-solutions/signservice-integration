@@ -15,6 +15,8 @@
  */
 package se.idsec.signservice.integration.document.impl;
 
+import java.util.Base64;
+
 import org.springframework.util.StringUtils;
 
 import se.idsec.signservice.integration.core.validation.AbstractInputValidator;
@@ -68,6 +70,14 @@ public class TbsDocumentValidator extends AbstractInputValidator<TbsDocument, Vo
       if (TbsDocument.AdesType.EPES.equals(object.getAdesFormat()) && !StringUtils.hasText(object.getSignaturePolicy())) {
         result.rejectValue("signaturePolicy", 
           "AdES requirement states Extended Policy Electronic Signature but no signature policy has been given");
+      }
+      if (object.getAdesObject() != null) {
+        try {
+          Base64.getDecoder().decode(object.getAdesObject());
+        }
+        catch (Exception e) {
+          result.rejectValue("adesObject", "Invalid Base64 encoding for adesObject");
+        }
       }
       return result;
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 IDsec Solutions AB
+ * Copyright 2019-2020 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,16 +19,18 @@ import javax.annotation.Nonnull;
 
 import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
 import se.idsec.signservice.integration.core.error.InputValidationException;
-import se.idsec.signservice.integration.core.error.SignServiceIntegrationException;
 import se.swedenconnect.schemas.csig.dssext_1_1.SignTaskData;
 
 /**
  * Interface for a processor of a "to be signed" document.
  * 
+ * @param <T>
+ *          the type of documents handled by this processor
+ * 
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
-public interface TbsDocumentProcessor {
+public interface TbsDocumentProcessor<T> extends DocumentProcessor<T> {
 
   /**
    * Predicate that tells if the supplied document can be handled by this processor.
@@ -49,11 +51,11 @@ public interface TbsDocumentProcessor {
    *          the current policy configuration
    * @param fieldName
    *          used for error reporting and logging
-   * @return a (possibly updated) document
+   * @return a processed (and possibly updated) document
    * @throws InputValidationException
    *           for validation errors
    */
-  TbsDocument preProcess(
+  ProcessedTbsDocument preProcess(
       @Nonnull final TbsDocument document, @Nonnull final IntegrationServiceConfiguration config, @Nonnull final String fieldName)
       throws InputValidationException;
 
@@ -62,13 +64,15 @@ public interface TbsDocumentProcessor {
    * 
    * @param document
    *          the document to sign
+   * @param signatureAlgorithm
+   *          the signature algorithm to be used for signing the document
    * @param config
    *          profile configuration
    * @return a SignTaskData element
-   * @throws SignServiceIntegrationException
+   * @throws DocumentProcessingException
    *           for processing errors
    */
-  SignTaskData process(@Nonnull final TbsDocument document, @Nonnull final IntegrationServiceConfiguration config)
-      throws SignServiceIntegrationException;
+  SignTaskData process(@Nonnull final ProcessedTbsDocument document, @Nonnull final String signatureAlgorithm,
+      @Nonnull final IntegrationServiceConfiguration config) throws DocumentProcessingException;
 
 }

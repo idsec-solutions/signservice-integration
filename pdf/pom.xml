@@ -9,7 +9,7 @@
   <parent>
     <groupId>se.idsec.signservice.integration</groupId>
     <artifactId>signservice-integration-parent</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>1.0.0-SNAPSHOT</version>
   </parent>
 
   <name>IDsec Solutions :: SignService :: Integration :: PDF Processing</name>
@@ -52,7 +52,6 @@
   </developers>
 
   <properties>
-    <pdfbox.version>2.0.17</pdfbox.version>
   </properties>
 
   <dependencies>
@@ -67,11 +66,16 @@
       <artifactId>signservice-integration-impl</artifactId>
       <version>${project.version}</version>
     </dependency>
+    
+    <dependency>
+      <groupId>se.idsec.signservice.commons</groupId>
+      <artifactId>signservice-pdf-commons</artifactId>
+      <version>1.0.0-SNAPSHOT</version>
+    </dependency>
 
     <dependency>
       <groupId>org.apache.pdfbox</groupId>
       <artifactId>pdfbox</artifactId>
-      <version>${pdfbox.version}</version>
     </dependency>
 
     <dependency>

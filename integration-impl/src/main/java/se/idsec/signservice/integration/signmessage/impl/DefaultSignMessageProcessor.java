@@ -41,7 +41,7 @@ import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
 import se.idsec.signservice.integration.core.error.ErrorCode;
 import se.idsec.signservice.integration.core.error.SignServiceIntegrationException;
 import se.idsec.signservice.integration.core.impl.CorrelationID;
-import se.idsec.signservice.integration.process.impl.DssUtils;
+import se.idsec.signservice.integration.dss.DssUtils;
 import se.idsec.signservice.integration.security.IdpMetadataResolver;
 import se.idsec.signservice.integration.security.MetadataException;
 import se.idsec.signservice.integration.security.SignServiceEncryptException;

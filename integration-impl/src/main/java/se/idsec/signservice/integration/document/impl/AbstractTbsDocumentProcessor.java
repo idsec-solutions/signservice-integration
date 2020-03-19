@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 IDsec Solutions AB
+ * Copyright 2019-2020 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,15 +15,16 @@
  */
 package se.idsec.signservice.integration.document.impl;
 
-import java.util.Base64;
 import java.util.UUID;
 
 import lombok.extern.slf4j.Slf4j;
 import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
-import se.idsec.signservice.integration.core.Extension;
 import se.idsec.signservice.integration.core.error.InputValidationException;
 import se.idsec.signservice.integration.core.error.SignServiceIntegrationException;
 import se.idsec.signservice.integration.core.impl.CorrelationID;
+import se.idsec.signservice.integration.document.DocumentDecoder;
+import se.idsec.signservice.integration.document.DocumentProcessingException;
+import se.idsec.signservice.integration.document.ProcessedTbsDocument;
 import se.idsec.signservice.integration.document.TbsDocument;
 import se.idsec.signservice.integration.document.TbsDocumentProcessor;
 import se.swedenconnect.schemas.csig.dssext_1_1.AdESObject;
@@ -36,14 +37,18 @@ import se.swedenconnect.schemas.csig.dssext_1_1.SignTaskData;
  * @author Stefan Santesson (stefan@idsec.se)
  */
 @Slf4j
-public abstract class AbstractTbsDocumentProcessor<T> implements TbsDocumentProcessor {
+public abstract class AbstractTbsDocumentProcessor<T> implements TbsDocumentProcessor<T> {
 
   /** Validator. */
   protected final TbsDocumentValidator tbsDocumentValidator = new TbsDocumentValidator();
 
+  /** Object factory for DSS-Ext objects. */
+  private static se.swedenconnect.schemas.csig.dssext_1_1.ObjectFactory dssExtObjectFactory =
+      new se.swedenconnect.schemas.csig.dssext_1_1.ObjectFactory();
+  
   /** {@inheritDoc} */
   @Override
-  public TbsDocument preProcess(final TbsDocument document, final IntegrationServiceConfiguration config, final String fieldName)
+  public ProcessedTbsDocument preProcess(final TbsDocument document, final IntegrationServiceConfiguration config, final String fieldName)
       throws InputValidationException {
 
     // Make a copy of the document before updating it.
@@ -64,54 +69,37 @@ public abstract class AbstractTbsDocumentProcessor<T> implements TbsDocumentProc
 
     // Validate the document content ...
     //
-    byte[] content;
-    try {
-      content = Base64.getDecoder().decode(document.getContent());
-    }
-    catch (IllegalArgumentException e) {
-      final String msg =
-          String.format("Supplied document content for document '%s' is not correctly Base64 encoded", updatedDocument.getId());
-      log.error("{}: {}", CorrelationID.id(), msg);
-      throw new InputValidationException(fieldName + ".content", msg, e);
-    }
-    T validatedContent = this.validateDocumentContent(content, updatedDocument, config, fieldName);
-    if (validatedContent != null) {
-      Extension extension = updatedDocument.getExtension() != null ? updatedDocument.getExtension() : new Extension();
-      extension.put("validatedContent", validatedContent);
-      updatedDocument.setExtension(extension);
-    }
+    final T validatedContent = this.validateDocumentContent(updatedDocument, config, fieldName);
 
-    return updatedDocument;
+    return new ProcessedTbsDocument(updatedDocument, validatedContent);
   }
 
   /** {@inheritDoc} */
   @Override
-  public final SignTaskData process(final TbsDocument document, final IntegrationServiceConfiguration config)
-      throws SignServiceIntegrationException {
-    
-    TbsCalculationResult tbsCalculation = this.calculateToBeSigned(document, config);
-    
-    SignTaskData signTaskData = new SignTaskData();
-    signTaskData.setSignTaskId(document.getId());
+  public final SignTaskData process(final ProcessedTbsDocument document, final String signatureAlgorithm,
+      final IntegrationServiceConfiguration config) throws DocumentProcessingException {
+
+    final TbsCalculationResult tbsCalculation = this.calculateToBeSigned(document, signatureAlgorithm, config);
+    final TbsDocument tbsDocument = document.getTbsDocument();
+
+    SignTaskData signTaskData = dssExtObjectFactory.createSignTaskData();
+    signTaskData.setSignTaskId(tbsDocument.getId());
     signTaskData.setSigType(tbsCalculation.getSigType());
     signTaskData.setToBeSignedBytes(tbsCalculation.getToBeSignedBytes());
-    if (document.getAdesRequirement() != null) {
-      signTaskData.setAdESType(document.getAdesRequirement().getAdesFormat().name());
-      if (document.getAdesRequirement().getAdesFormat() == TbsDocument.AdesType.BES) {
-        if (tbsCalculation.getAdesSignatureId() != null) {
-          AdESObject adesObject = new AdESObject();
-          adesObject.setSignatureId(tbsCalculation.getAdesSignatureId());
-          if (tbsCalculation.getAdesObjectBytes() != null) {
-            adesObject.setAdESObjectBytes(tbsCalculation.getAdesObjectBytes());
-          }
-          signTaskData.setAdESObject(adesObject);
+    if (tbsDocument.getAdesRequirement() != null) {
+      signTaskData.setAdESType(tbsDocument.getAdesRequirement().getAdesFormat().name());
+      if (tbsCalculation.getAdesSignatureId() != null) {
+        AdESObject adesObject = dssExtObjectFactory.createAdESObject();
+        adesObject.setSignatureId(tbsCalculation.getAdesSignatureId());
+        if (tbsCalculation.getAdesObjectBytes() != null) {
+          adesObject.setAdESObjectBytes(tbsCalculation.getAdesObjectBytes());
         }
+        signTaskData.setAdESObject(adesObject);
       }
-      // else: EPES. TODO
     }
     else {
       signTaskData.setAdESType("None");
-    }    
+    }
 
     return signTaskData;
   }
@@ -121,20 +109,20 @@ public abstract class AbstractTbsDocumentProcessor<T> implements TbsDocumentProc
    * 
    * @param document
    *          the document to sign
+   * @param signatureAlgorithm
+   *          the signature algorithm to be used for signing the document
    * @param config
    *          the profile configuration
    * @return the TBS bytes and optionally AdES data
    * @throws SignServiceIntegrationException
    *           for processing errors
    */
-  protected abstract TbsCalculationResult calculateToBeSigned(final TbsDocument document, final IntegrationServiceConfiguration config)
-      throws SignServiceIntegrationException;
+  protected abstract TbsCalculationResult calculateToBeSigned(final ProcessedTbsDocument document, final String signatureAlgorithm,
+      final IntegrationServiceConfiguration config) throws DocumentProcessingException;
 
   /**
-   * Validates the document contents.
+   * Validates the document contents. The default implementation invokes {@link DocumentDecoder#decodeDocument(String)}.
    * 
-   * @param content
-   *          the document content (in byte format)
    * @param document
    *          the document holding the content to validate
    * @param config
@@ -145,26 +133,20 @@ public abstract class AbstractTbsDocumentProcessor<T> implements TbsDocumentProc
    * @throws InputValidationException
    *           for validation errors
    */
-  protected abstract T validateDocumentContent(
-      final byte[] content, final TbsDocument document, final IntegrationServiceConfiguration config, final String fieldName)
-      throws InputValidationException;
-
-  /**
-   * Gets the validated document content
-   * 
-   * @param document
-   *          the TBS document
-   * @return the validated document content or null
-   */
-  protected T getValidatedContent(final TbsDocument document) {
-    return document.getExtension() != null ? document.getExtension().get("validatedContent", this.getDocumentContentType()) : null;
+  protected T validateDocumentContent(
+      final TbsDocument document, final IntegrationServiceConfiguration config, final String fieldName)
+      throws InputValidationException {
+    
+    try {
+      final T documentObject = this.getDocumentDecoder().decodeDocument(document.getContent());
+      log.debug("{}: Successfully validated document (doc-id: {})", CorrelationID.id(), document.getId());
+      return documentObject;
+    }
+    catch (DocumentProcessingException e) {
+      final String msg = String.format("Failed to load content for document '%s' - %s", document.getId(), e.getMessage());
+      log.error("{}: {}", CorrelationID.id(), msg, e);
+      throw new InputValidationException(fieldName + ".content", msg, e);
+    }
   }
-
-  /**
-   * Gets the type of the validated document content that this processor handles.
-   * 
-   * @return the type
-   */
-  protected abstract Class<T> getDocumentContentType();
 
 }

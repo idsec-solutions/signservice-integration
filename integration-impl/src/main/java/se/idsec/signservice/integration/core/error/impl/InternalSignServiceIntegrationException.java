@@ -38,7 +38,7 @@ public class InternalSignServiceIntegrationException extends SignServiceIntegrat
    *          the error code (within the given category)
    * @param message
    *          the error message
-   */  
+   */
   public InternalSignServiceIntegrationException(@Nonnull final ErrorCode.Code code, final String message) {
     super(code, message);
   }

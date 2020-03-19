@@ -6,7 +6,7 @@
   <groupId>se.idsec.signservice.integration</groupId>
   <artifactId>signservice-integration-parent</artifactId>
   <packaging>pom</packaging>
-  <version>0.0.1-SNAPSHOT</version>
+  <version>1.0.0-SNAPSHOT</version>
 
   <name>IDsec Solutions :: Parent POM for SignService :: Integration</name>
   <description>Parent POM for SignService Integration libraries</description>
@@ -53,7 +53,7 @@
 
     <spring.version>5.2.1.RELEASE</spring.version>
     <slf4j.version>1.7.29</slf4j.version>
-    <jackson.version>2.10.0</jackson.version>
+    <jackson.version>2.10.2</jackson.version>
     <opensaml.version>3.4.5</opensaml.version>
   </properties>
 
@@ -89,7 +89,7 @@
       <dependency>
         <groupId>se.idsec.signservice.integration</groupId>
         <artifactId>signservice-integration-api</artifactId>
-        <version>0.0.1-SNAPSHOT</version>
+        <version>1.0.1-SNAPSHOT</version>
       </dependency>
       
       <dependency>
@@ -100,7 +100,7 @@
       
       <dependency>
         <groupId>se.idsec.signservice.commons</groupId>
-        <artifactId>xml-commons</artifactId>
+        <artifactId>signservice-xml-commons</artifactId>
         <version>1.0.0-SNAPSHOT</version>
       </dependency>      
 
@@ -211,6 +211,23 @@
 
       <build>
         <plugins>
+        
+          <plugin>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok-maven-plugin</artifactId>
+            <executions>
+              <execution>
+                <phase>generate-sources</phase>
+                <goals>
+                  <goal>delombok</goal>
+                </goals>
+                <configuration>
+                  <addOutputDirectory>false</addOutputDirectory>
+                  <sourceDirectory>src/main/java</sourceDirectory>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>        
 
           <plugin>
             <groupId>org.sonatype.plugins</groupId>

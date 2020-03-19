@@ -51,7 +51,7 @@ public class DefaultIntegrationServiceConfigurationTest {
       .defaultDestinationUrl("https://sign.service.com/req")
       .defaultAuthnServiceID("https://idp-sweden-connect-valfr-2017-ct.test.frejaeid.com")
       .defaultAuthnContextRef("http://id.elegnamnden.se/loa/1.0/loa3")
-      .signingCertificateRequirements(
+      .defaultCertificateRequirements(
         SigningCertificateRequirements.builder()
           .certificateType(CertificateType.PKC)
           .attributeMappings(Arrays.asList(
@@ -105,7 +105,7 @@ public class DefaultIntegrationServiceConfigurationTest {
         .build())
       .stateless(true)
       .defaultEncryptionParameters(DefaultEncryptionParameters.builder().build())
-      .signingCredentials(
+      .signingCredential(
         new KeyStoreSigningCredential(new ClassPathResource("signing.jks"), "secret".toCharArray(), "default"))
       .build();
 

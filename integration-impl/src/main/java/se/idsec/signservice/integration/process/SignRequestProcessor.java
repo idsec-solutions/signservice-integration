@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 IDsec Solutions AB
+ * Copyright 2019-2020 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@ import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
 import se.idsec.signservice.integration.core.error.InputValidationException;
 import se.idsec.signservice.integration.core.error.SignServiceIntegrationException;
 import se.idsec.signservice.integration.document.TbsDocumentProcessor;
-import se.swedenconnect.schemas.dss_1_0.SignRequest;
 
 /**
  * An interface that defines the operations for a SignRequest processor.
@@ -52,13 +51,15 @@ public interface SignRequestProcessor {
    * 
    * @param signRequestInput
    *          the validated input
+   * @param requestID
+   *          the unique ID for this request
    * @param config
    *          configuration
-   * @return a SignRequest message
+   * @return the SignRequest
    * @throws SignServiceIntegrationException
    *           for processing errors
    */
-  SignRequest process(final SignRequestInput signRequestInput, final IntegrationServiceConfiguration config)
+  SignRequestProcessingResult process(final SignRequestInput signRequestInput, final String requestID, final IntegrationServiceConfiguration config)
       throws SignServiceIntegrationException;
 
   /**
@@ -66,6 +67,6 @@ public interface SignRequestProcessor {
    * 
    * @return the processors for tbsDocuments
    */
-  List<TbsDocumentProcessor> getTbsDocumentProcessors();
+  List<TbsDocumentProcessor<?>> getTbsDocumentProcessors();
 
 }

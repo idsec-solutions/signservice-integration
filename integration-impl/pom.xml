@@ -9,7 +9,7 @@
   <parent>
     <groupId>se.idsec.signservice.integration</groupId>
     <artifactId>signservice-integration-parent</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>1.0.0-SNAPSHOT</version>
   </parent>
 
   <name>IDsec Solutions :: SignService :: Integration :: API Implementation</name>
@@ -67,6 +67,11 @@
       <groupId>se.idsec.signservice.commons</groupId>
       <artifactId>signservice-commons</artifactId>
     </dependency>
+    
+    <dependency>
+      <groupId>se.idsec.signservice.commons</groupId>
+      <artifactId>signservice-xml-commons</artifactId>
+    </dependency>    
 
     <!-- Spring -->
     <dependency>
@@ -113,7 +118,17 @@
 
     <dependency>
       <groupId>se.swedenconnect.schemas.csig</groupId>
-      <artifactId>dss-ext11-jaxb</artifactId>
+      <artifactId>dss-ext11-jaxb</artifactId>      
+    </dependency>
+    
+    <dependency>
+      <groupId>se.swedenconnect.schemas</groupId>
+      <artifactId>etsi-xades-jaxb</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>se.swedenconnect.schemas</groupId>
+      <artifactId>etsi-xades-ext-jaxb</artifactId>
     </dependency>
 
     <!-- OpenSAML -->
@@ -130,6 +145,13 @@
     <dependency>
       <groupId>se.litsec.opensaml.sweid</groupId>
       <artifactId>swedish-eid-opensaml3</artifactId>
+      <exclusions>
+        <!-- We're not using this, and it causes Maven problems right now ... -->
+        <exclusion>
+          <groupId>com.nimbusds</groupId>
+          <artifactId>nimbus-jose-jwt</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <!-- Misc -->

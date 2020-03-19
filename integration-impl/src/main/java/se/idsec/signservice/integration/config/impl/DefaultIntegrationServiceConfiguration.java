@@ -17,21 +17,28 @@ package se.idsec.signservice.integration.config.impl;
 
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Collections;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.Singular;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
+import se.idsec.signservice.integration.authentication.AuthnRequirements;
 import se.idsec.signservice.integration.certificate.SigningCertificateRequirements;
 import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
 import se.idsec.signservice.integration.config.IntegrationServiceDefaultConfiguration;
 import se.idsec.signservice.integration.core.Extension;
+import se.idsec.signservice.integration.core.ObjectBuilder;
 import se.idsec.signservice.integration.document.pdf.PdfSignatureImageTemplate;
 import se.idsec.signservice.integration.document.pdf.VisiblePdfSignatureRequirement;
 import se.idsec.signservice.integration.security.EncryptionParameters;
@@ -45,161 +52,297 @@ import se.idsec.signservice.security.sign.SigningCredential;
  */
 @Slf4j
 @Builder(toBuilder = true)
-@ToString(exclude = { "signingCredentials" })
+@NoArgsConstructor
+@AllArgsConstructor
+@ToString(exclude = { "signingCredential" })
 public class DefaultIntegrationServiceConfiguration implements IntegrationServiceConfiguration {
 
-  /** The integration policy name for which this configuration applies. */
-  @Setter
-  private String policy;
-  
-  @Setter
-  private String defaultSignRequesterID;
-  
-  @Setter
-  private String defaultReturnUrl;
-  
-  @Setter
-  private String defaultSignatureAlgorithm;
-  
-  @Setter
-  private String signServiceID;
-  
-  @Setter
-  private String defaultDestinationUrl;
-  
-  @Setter
-  private String defaultAuthnServiceID;
-  
-  @Setter
-  private String defaultAuthnContextRef;
-  
-  @Setter
-  private SigningCertificateRequirements signingCertificateRequirements;
-  
-  @Setter
-  private VisiblePdfSignatureRequirement defaultVisiblePdfSignatureRequirement;
-  
-  @Setter
-  @Singular
-  private List<PdfSignatureImageTemplate> pdfSignatureImageTemplates;
-  
-  @Setter
-  private boolean stateless;
-  
-  @Setter
-  private EncryptionParameters defaultEncryptionParameters;
-    
-  @JsonIgnore
+  /**
+   * The integration policy name for which this configuration applies.
+   * 
+   * @param policy
+   *          the policy identifier
+   */
   @Getter
   @Setter
-  private SigningCredential signingCredentials;
-    
+  private String policy;
+
+  /**
+   * The default ID of the entity that requests a signature. If SAML is used as the authentication protocol, this is the
+   * SAML entityID of the sign requester.
+   * 
+   * @param defaultSignRequesterID
+   *          the default sign requester ID
+   */
+  @Getter
+  @Setter
+  private String defaultSignRequesterID;
+
+  /**
+   * The default URL to which the user agent along with the sign response message should be directed after a signature
+   * operation.
+   * 
+   * @param defaultReturnUrl
+   *          the default URL to which a sign response is to be returned
+   */
+  @Getter
+  @Setter
+  private String defaultReturnUrl;
+
+  /**
+   * The default algorithm identifier for the signature algorithm that should be used during signing of specified tasks.
+   * 
+   * @param defaultSignatureAlgorithm
+   *          signature algorithm identifier
+   */
+  @Getter
+  @Setter
+  private String defaultSignatureAlgorithm;
+
+  /**
+   * The entityID of the signature service. If SAML is used as the authentication protocol, this is the SAML entityID of
+   * the SAML Service Provider that is running in the signature service.
+   * 
+   * @param signServiceID
+   *          the ID of the signature service
+   */
+  @Getter
+  @Setter
+  private String signServiceID;
+
+  /**
+   * The default signature service URL to where SignRequest messages should be posted.
+   * 
+   * @param defaultDestinationUrl
+   *          the default destination URL of the signature service to where sign messages should be posted
+   */
+  @Getter
+  @Setter
+  private String defaultDestinationUrl;
+
+  /**
+   * In a setup where only one authentication service (IdP) is used to authenticate users, a default value could be
+   * used. If the {@link AuthnRequirements#getAuthnServiceID()} method returns {@code null}, the default value will the
+   * be used.
+   * 
+   * @param defaultAuthnServiceID
+   *          the entityID for the default authentication service
+   */
+  @Getter
+  @Setter
+  private String defaultAuthnServiceID;
+
+  /**
+   * In a setup where all users are authenticated according to the same authentication contect, a default value could be
+   * used. If the {@link AuthnRequirements#getAuthnContextRef()} method returns {@code null}, the default value will be
+   * used.
+   * 
+   * @param defaultAuthnContextRef
+   *          the default authentication context reference URI
+   */
+  @Getter
+  @Setter
+  private String defaultAuthnContextRef;
+
+  /**
+   * The default signing certificate requirements to use for SignRequest messages created under this
+   * policy/configuration.
+   * 
+   * @param defaultCertificateRequirements
+   *          the default signing certificate requirements
+   */
+  @Getter
+  @Setter
+  private SigningCertificateRequirements defaultCertificateRequirements;
+
+  /**
+   * A policy may be configured to include a default "visible PDF signature requirement" for all PDF documents that are
+   * signed under this policy.
+   * 
+   * @param defaultVisiblePdfSignatureRequirement
+   *          the default visible PDF signature requirement to use for PDF signatures
+   */
+  @Getter
+  @Setter
+  private VisiblePdfSignatureRequirement defaultVisiblePdfSignatureRequirement;
+
+  /**
+   * A policy may have one, or more, image templates for visible PDF signatures in its configuration. See
+   * {@link PdfSignatureImageTemplate}. This method gets these templates.
+   * 
+   * @param pdfSignatureImageTemplates
+   *          a list of image templates for visible PDF signatures
+   */
+  @Setter
+  @Getter
+  @Singular
+  private List<PdfSignatureImageTemplate> pdfSignatureImageTemplates;
+
+  /**
+   * Tells whether the SignService Integration Service is running in stateless mode or not.
+   * 
+   * @param stateless
+   *          stateless mode
+   */
+  @Getter
+  @Setter
+  private boolean stateless;
+
+  /**
+   * The default encryption parameters (algorithms) that is used by the SignService Integration Service when encrypting
+   * a SignMessage. The sign requester can not override these values, but the recipient may declare other algorithms to
+   * use (in the SAML case, this is done in IdP metadata).
+   * 
+   * @param defaultEncryptionParameters
+   *          the default encryption parameters
+   */
+  @Getter
+  @Setter
+  private EncryptionParameters defaultEncryptionParameters;
+
+  /**
+   * The signing certificate that the SignService Integration Service uses to sign SignRequest messages.
+   */
+  @Getter
+  private String signatureCertificate;
+
+  /**
+   * The signing credential that the SignService Integration Service policy instance uses to sign SignRequest messages.
+   */
+  @JsonIgnore
+  @Getter
+  private SigningCredential signingCredential;
+
+  /**
+   * The signature service signing certificate(s) used by the signature service to sign {@code SignResponse} messages.
+   * 
+   * @param signServiceCertificates
+   *          the signature service signing certificate(s)
+   */
+  @JsonIgnore
+  @Setter
+  @Singular
+  private List<X509Certificate> signServiceCertificates;
+
+  /**
+   * The trust anchor certificate(s) of the SignService CA (Certificate Authority). With trust anchor we mean the
+   * trusted root certificate that is the root of the certificate chain that starts with the generated user signature
+   * certificate.
+   * 
+   * @param trustAnchors
+   *          the SignService CA root certificates
+   */
+  @JsonIgnore
+  @Setter
+  @Singular
+  private List<X509Certificate> trustAnchors;
+
+  /**
+   * The extension parameters for the instance.
+   * 
+   * @param extension
+   *          the extension
+   */
+  @Getter
   @Setter
   private Extension extension;
-  
-  /** {@inheritDoc} */
-  @Override
-  public String getPolicy() {
-    return this.policy;
-  }
 
-  /** {@inheritDoc} */
-  @Override
-  public String getDefaultSignRequesterID() {
-    return this.defaultSignRequesterID;
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public String getDefaultReturnUrl() {
-    return this.defaultReturnUrl;
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public String getDefaultSignatureAlgorithm() {
-    return this.defaultSignatureAlgorithm;
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public String getSignServiceID() {
-    return this.signServiceID;
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public String getDefaultDestinationUrl() {
-    return this.defaultDestinationUrl;
-  }
-  
-  /** {@inheritDoc} */
-  @Override
-  public String getDefaultAuthnServiceID() {
-    return this.defaultAuthnServiceID;
-  }
-
-  @Override
-  public String getDefaultAuthnContextRef() {
-    return this.defaultAuthnContextRef;
-  }
-  
-  /** {@inheritDoc} */
-  @Override
-  public SigningCertificateRequirements getDefaultCertificateRequirements() {
-    return this.signingCertificateRequirements;
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public VisiblePdfSignatureRequirement getDefaultVisiblePdfSignatureRequirement() {
-    return this.defaultVisiblePdfSignatureRequirement;
-  }
-  
-  /** {@inheritDoc} */
-  @Override
-  public List<PdfSignatureImageTemplate> getPdfSignatureImageTemplates() {
-    return this.pdfSignatureImageTemplates;
-  }  
-
-  /** {@inheritDoc} */
-  @Override
-  public boolean isStateless() {
-    return this.stateless;
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public EncryptionParameters getDefaultEncryptionParameters() {
-    return this.defaultEncryptionParameters;
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public String getSignatureCertificate() {
-    X509Certificate cert = this.signingCredentials != null ? this.signingCredentials.getSigningCertificate() : null;
-    if (cert == null) {
-      return null;
-    }
-    try {
-      return Base64.getEncoder().encodeToString(cert.getEncoded());
-    }
-    catch (CertificateEncodingException e) {
-      log.error("Failed to encode signing certificate", e);
-      return null;
+  /**
+   * Assigns the signing credential that the SignService Integration Service policy instance uses to sign SignRequest
+   * messages.
+   * 
+   * @param signingCredential
+   *          the signing credential for the SignService Integration Service policy
+   */
+  public void setSigningCredential(final SigningCredential signingCredential) {
+    this.signingCredential = signingCredential;
+    if (this.signingCredential != null && this.signingCredential.getSigningCertificate() != null) {
+      try {
+        this.signatureCertificate = Base64.getEncoder().encodeToString(this.signingCredential.getSigningCertificate().getEncoded());
+      }
+      catch (CertificateEncodingException e) {
+        log.error("Failed to encode signing certificate", e);
+      }
     }
   }
 
+  /** {@inheritDoc} */
   @Override
-  public Extension getExtension() {
-    return this.extension;
+  public List<X509Certificate> getSignServiceCertificatesInternal() {
+    return this.signServiceCertificates != null ? this.signServiceCertificates : Collections.emptyList();
   }
-  
+
+  /** {@inheritDoc} */
+  @Override
+  @JsonGetter
+  public List<String> getSignServiceCertificates() {
+    if (this.signServiceCertificates == null) {
+      return Collections.emptyList();
+    }
+    List<String> list = new ArrayList<>();
+    for (X509Certificate c : this.signServiceCertificates) {
+      try {
+        list.add(Base64.getEncoder().encodeToString(c.getEncoded()));
+      }
+      catch (CertificateEncodingException e) {
+        log.error("Failed to encode signature service signing certificate", e);
+      }
+    }
+    return list;
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public List<X509Certificate> getTrustAnchorsInternal() {
+    return this.trustAnchors != null ? this.trustAnchors : Collections.emptyList();
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  @JsonGetter
+  public List<String> getTrustAnchors() {
+    if (this.trustAnchors == null) {
+      return Collections.emptyList();
+    }
+    List<String> list = new ArrayList<>();
+    for (X509Certificate c : this.trustAnchors) {
+      try {
+        list.add(Base64.getEncoder().encodeToString(c.getEncoded()));
+      }
+      catch (CertificateEncodingException e) {
+        log.error("Failed to encode signature service CA trust anchor", e);
+      }
+    }
+    return list;
+  }
+
+  /** {@inheritDoc} */
   @Override
   @JsonIgnore
   public IntegrationServiceDefaultConfiguration getPublicConfiguration() {
-    // TODO
-    return this.toBuilder().build();
+    DefaultIntegrationServiceConfigurationBuilder builder = this.toBuilder();
+    builder.signingCredential(null);
+    return builder.build();
+  }
+
+  /**
+   * Builder for {@code DefaultIntegrationServiceConfiguration} objects.
+   */
+  public static class DefaultIntegrationServiceConfigurationBuilder implements ObjectBuilder<DefaultIntegrationServiceConfiguration> {
+    // Lombok
+
+    public DefaultIntegrationServiceConfigurationBuilder signingCredential(final SigningCredential signingCredential) {
+      this.signingCredential = signingCredential;
+      if (this.signingCredential != null && this.signingCredential.getSigningCertificate() != null) {
+        try {
+          this.signatureCertificate = Base64.getEncoder().encodeToString(this.signingCredential.getSigningCertificate().getEncoded());
+        }
+        catch (CertificateEncodingException e) {
+          log.error("Failed to encode signing certificate", e);
+        }
+      }
+      return this;
+    }
   }
 
 }

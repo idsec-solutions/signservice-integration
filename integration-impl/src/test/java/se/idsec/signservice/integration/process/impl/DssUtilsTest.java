@@ -24,6 +24,7 @@ import org.opensaml.saml.saml2.core.AudienceRestriction;
 import org.opensaml.saml.saml2.core.Conditions;
 
 import se.idsec.signservice.integration.TestBase;
+import se.idsec.signservice.integration.dss.DssUtils;
 
 /**
  * Test cases for DssUtils.
