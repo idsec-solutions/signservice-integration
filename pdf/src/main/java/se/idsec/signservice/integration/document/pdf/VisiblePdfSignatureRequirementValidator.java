@@ -46,10 +46,12 @@ public class VisiblePdfSignatureRequirementValidator extends
     final List<PdfSignatureImageTemplate> templates = hint.getPdfSignatureImageTemplates();
 
     final PdfSignatureImageTemplate template = object.getTemplateImageRef() != null
-        ? templates.stream()
-          .filter(t -> object.getTemplateImageRef().equals(t.getReference()))
-          .findFirst()
-          .orElse(null)
+        ? templates != null
+            ? templates.stream()
+              .filter(t -> object.getTemplateImageRef().equals(t.getReference()))
+              .findFirst()
+              .orElse(null)
+            : null
         : null;
 
     if (!StringUtils.hasText(object.getTemplateImageRef())) {
@@ -62,13 +64,13 @@ public class VisiblePdfSignatureRequirementValidator extends
     if (object.getXPosition() == null) {
       result.rejectValue("xPosition", "Missing xPosition value");
     }
-    if (object.getXPosition().intValue() < 0) {
+    else if (object.getXPosition().intValue() < 0) {
       result.rejectValue("xPosition", "Illegal value for xPosition given in visiblePdfSignatureRequirement");
     }
     if (object.getYPosition() == null) {
       result.rejectValue("yPosition", "Missing yPosition value");
     }
-    if (object.getYPosition().intValue() < 0) {
+    else if (object.getYPosition().intValue() < 0) {
       result.rejectValue("yPosition", "Illegal value for yPosition given in visiblePdfSignatureRequirement");
     }
 

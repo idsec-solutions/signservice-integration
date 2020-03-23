@@ -16,18 +16,22 @@
 package se.idsec.signservice.integration.document.pdf;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
+import org.springframework.util.StringUtils;
 
 import lombok.extern.slf4j.Slf4j;
 import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
 import se.idsec.signservice.integration.core.error.InputValidationException;
 import se.idsec.signservice.integration.core.impl.CorrelationID;
+import se.idsec.signservice.integration.core.validation.ValidationResult;
 import se.idsec.signservice.integration.document.DocumentDecoder;
 import se.idsec.signservice.integration.document.DocumentEncoder;
 import se.idsec.signservice.integration.document.DocumentProcessingException;
 import se.idsec.signservice.integration.document.DocumentType;
 import se.idsec.signservice.integration.document.ProcessedTbsDocument;
 import se.idsec.signservice.integration.document.TbsDocument;
+import se.idsec.signservice.integration.document.TbsDocument.EtsiAdesRequirement;
 import se.idsec.signservice.integration.document.impl.AbstractTbsDocumentProcessor;
+import se.idsec.signservice.integration.document.impl.EtsiAdesRequirementValidator;
 import se.idsec.signservice.integration.document.impl.TbsCalculationResult;
 
 /**
@@ -40,11 +44,12 @@ import se.idsec.signservice.integration.document.impl.TbsCalculationResult;
 public class PdfTbsDocumentProcessor extends AbstractTbsDocumentProcessor<PDDocument> {
 
   /** Validator for visible PDF signature requirements. */
-  protected final VisiblePdfSignatureRequirementValidator visiblePdfSignatureRequirementValidator = new VisiblePdfSignatureRequirementValidator();
-  
+  protected final VisiblePdfSignatureRequirementValidator visiblePdfSignatureRequirementValidator =
+      new VisiblePdfSignatureRequirementValidator();
+
   /** Document decoder. */
   protected final static PdfDocumentEncoderDecoder documentEncoderDecoder = new PdfDocumentEncoderDecoder();
-  
+
   /** {@inheritDoc} */
   @Override
   public boolean supports(final TbsDocument document) {
@@ -54,16 +59,16 @@ public class PdfTbsDocumentProcessor extends AbstractTbsDocumentProcessor<PDDocu
     catch (IllegalArgumentException e) {
       return false;
     }
-  }  
+  }
 
   /**
    * Handles settings for PDF visible signatures.
    */
   @Override
-  public ProcessedTbsDocument preProcess(final TbsDocument document, final IntegrationServiceConfiguration config, final String fieldName) 
+  public ProcessedTbsDocument preProcess(final TbsDocument document, final IntegrationServiceConfiguration config, final String fieldName)
       throws InputValidationException {
 
-    final ProcessedTbsDocument processedTbsDocument = super.preProcess(document, config, fieldName);  
+    final ProcessedTbsDocument processedTbsDocument = super.preProcess(document, config, fieldName);
     final TbsDocument tbsDocument = processedTbsDocument.getTbsDocument();
 
     if (tbsDocument.getVisiblePdfSignatureRequirement() == null) {
@@ -103,28 +108,62 @@ public class PdfTbsDocumentProcessor extends AbstractTbsDocumentProcessor<PDDocu
         tbsDocument.getVisiblePdfSignatureRequirement().setPage(0);
       }
     }
+    
+    // TODO: Do anything with AdES?
 
     return processedTbsDocument;
   }
 
   /** {@inheritDoc} */
   @Override
-  protected TbsCalculationResult calculateToBeSigned(final ProcessedTbsDocument document, final String signatureAlgorithm, 
+  protected TbsCalculationResult calculateToBeSigned(final ProcessedTbsDocument document, final String signatureAlgorithm,
       IntegrationServiceConfiguration config) throws DocumentProcessingException {
 
+    // TODO
     return null;
   }
-  
+
   /** {@inheritDoc} */
   @Override
   public DocumentDecoder<PDDocument> getDocumentDecoder() {
     return documentEncoderDecoder;
   }
-  
+
   /** {@inheritDoc} */
   @Override
   public DocumentEncoder<PDDocument> getDocumentEncoder() {
     return documentEncoderDecoder;
-  }  
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  protected EtsiAdesRequirementValidator getEtsiAdesRequirementValidator() {
+    return new PadesRequirementValidator();
+  }
+
+  /**
+   * Validator for {@link EtsiAdesRequirement} objects.
+   */
+  public static class PadesRequirementValidator extends EtsiAdesRequirementValidator {
+
+    /** {@inheritDoc} */
+    @Override
+    public ValidationResult validate(EtsiAdesRequirement object, String objectName, Void hint) {
+      ValidationResult result = new ValidationResult(objectName);
+      if (object == null) {
+        return result;
+      }
+
+      if (TbsDocument.AdesType.EPES.equals(object.getAdesFormat()) && !StringUtils.hasText(object.getSignaturePolicy())) {
+        result.rejectValue("signaturePolicy",
+          "AdES requirement states Extended Policy Electronic Signature but no signature policy has been given");
+      }
+
+      // TODO: Validate the input ...
+
+      return result;
+    }
+
+  }
 
 }
