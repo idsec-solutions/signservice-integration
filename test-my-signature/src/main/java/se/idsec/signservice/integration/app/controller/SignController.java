@@ -26,7 +26,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.opensaml.saml.saml2.core.Attribute;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.MessageSource;
@@ -51,11 +50,10 @@ import se.idsec.signservice.integration.core.error.SignServiceIntegrationExcepti
 import se.idsec.signservice.integration.document.DocumentType;
 import se.idsec.signservice.integration.document.TbsDocument;
 import se.idsec.signservice.integration.document.TbsDocument.AdesType;
-import se.idsec.signservice.integration.document.TbsDocument.EtsiAdesFormatRequirement;
+import se.idsec.signservice.integration.document.TbsDocument.EtsiAdesRequirement;
 import se.idsec.signservice.integration.signmessage.SignMessageMimeType;
 import se.idsec.signservice.integration.signmessage.SignMessageParameters;
 import se.idsec.signservice.integration.state.impl.DefaultSignatureState;
-import se.idsec.signservice.xml.DOMUtils;
 import se.litsec.swedisheid.opensaml.saml2.attribute.AttributeConstants;
 import se.litsec.swedisheid.opensaml.saml2.authentication.LevelofAssuranceAuthenticationContextURI;
 import se.swedenconnect.eid.sp.controller.ApplicationException;
@@ -91,6 +89,10 @@ public class SignController extends BaseController {
   @Autowired
   @Qualifier("debugReturnUrl")
   private String debugReturnUrl;
+  
+  @Autowired
+  @Qualifier("signIntegrationBaseUrl")
+  private String signIntegrationBaseUrl;  
 
   @RequestMapping("/request")
   public ModelAndView sendSignRequest(HttpServletRequest request, HttpServletResponse response,
@@ -127,9 +129,9 @@ public class SignController extends BaseController {
       .signMessage(givenName != null
           ? this.messageSource.getMessage("sp.msg.sign-message", new Object[] { givenName }, LocaleContextHolder.getLocale())
           : this.messageSource.getMessage("sp.msg.sigm-message-noname", null, LocaleContextHolder.getLocale()))
-      .performEncryption(true)
+      .performEncryption(/*true*/false)
       .mimeType(SignMessageMimeType.TEXT)
-      .mustShow(true)
+      .mustShow(/*true*/false)
       .build();
 
     session.setAttribute("sign-message", signMessageParameters.getSignMessage());
@@ -139,7 +141,7 @@ public class SignController extends BaseController {
       .content(Base64.getEncoder().encodeToString(createSampleXml(signMessageParameters.getSignMessage()).getBytes()))
       .mimeType(DocumentType.XML)
       .adesRequirement(
-        EtsiAdesFormatRequirement.builder()
+        EtsiAdesRequirement.builder()
           .adesFormat(AdesType.BES)
           .build())
       .build();
@@ -152,7 +154,9 @@ public class SignController extends BaseController {
       .authnRequirements(
         AuthnRequirements.builder()
           .authnContextRef(lastAuthentication.getAuthnContextUri())
-          .authnServiceID(lastAuthentication.getIdp())
+          .authnServiceID(/*"https://qa.connector.eidas.swedenconnect.se/eidas"*/
+            /*lastAuthentication.getIdp()*/
+            "http://qa.test.swedenconnect.se/idp")
           .requestedSignerAttributes(requestedAttributes)
           .build())
       .tbsDocument(tbsDocument)
@@ -196,10 +200,12 @@ public class SignController extends BaseController {
 
     try {
       SignatureResult result = this.integrationService.processSignResponse(signResponse, relayState, state, null);
+      
+      session.setAttribute("signedDocument", result.getSignedDocuments().get(0).getSignedContent());
+      
       mav.addObject("authenticationInfo", this.createAuthenticationInfo(result));
       mav.addObject("signMessage", signMessage);
-      mav.addObject("signedDocument",
-        DOMUtils.prettyPrint(DOMUtils.base64ToDocument(result.getSignedDocuments().get(0).getSignedContent())));
+      mav.addObject("signedDocumentPath", "/signed");      
       mav.setViewName("success-sign");
     }
     catch (SignResponseCancelStatusException e) {

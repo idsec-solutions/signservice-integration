@@ -40,12 +40,19 @@ import se.swedenconnect.schemas.csig.dssext_1_1.SignTaskData;
 public abstract class AbstractTbsDocumentProcessor<T> implements TbsDocumentProcessor<T> {
 
   /** Validator. */
-  protected final TbsDocumentValidator tbsDocumentValidator = new TbsDocumentValidator();
+  protected TbsDocumentValidator tbsDocumentValidator;
 
   /** Object factory for DSS-Ext objects. */
   private static se.swedenconnect.schemas.csig.dssext_1_1.ObjectFactory dssExtObjectFactory =
       new se.swedenconnect.schemas.csig.dssext_1_1.ObjectFactory();
   
+  /**
+   * Constructor.
+   */
+  public AbstractTbsDocumentProcessor() {
+    tbsDocumentValidator = new TbsDocumentValidator(this.getEtsiAdesRequirementValidator());
+  }
+
   /** {@inheritDoc} */
   @Override
   public ProcessedTbsDocument preProcess(final TbsDocument document, final IntegrationServiceConfiguration config, final String fieldName)
@@ -121,6 +128,13 @@ public abstract class AbstractTbsDocumentProcessor<T> implements TbsDocumentProc
       final IntegrationServiceConfiguration config) throws DocumentProcessingException;
 
   /**
+   * Gets the validator for checking AdES requirements.
+   * 
+   * @return validator for AdES requirements
+   */
+  protected abstract EtsiAdesRequirementValidator getEtsiAdesRequirementValidator();
+
+  /**
    * Validates the document contents. The default implementation invokes {@link DocumentDecoder#decodeDocument(String)}.
    * 
    * @param document
@@ -136,7 +150,7 @@ public abstract class AbstractTbsDocumentProcessor<T> implements TbsDocumentProc
   protected T validateDocumentContent(
       final TbsDocument document, final IntegrationServiceConfiguration config, final String fieldName)
       throws InputValidationException {
-    
+
     try {
       final T documentObject = this.getDocumentDecoder().decodeDocument(document.getContent());
       log.debug("{}: Successfully validated document (doc-id: {})", CorrelationID.id(), document.getId());

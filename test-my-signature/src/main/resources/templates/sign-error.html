@@ -24,7 +24,7 @@
               <p th:text="#{sp.msg.sign-error-intro}">Msg</p>
             </div>       
             <div class="col-sm-12" th:if="${status.majorCode != null && status.message != null}">
-              <p th:text="#{sp.msg.sign-error-code-with-message(${status.majorCode}, ${status.minorCode}, ${status.errorMessage})}">Msg</p>
+              <p th:text="#{sp.msg.sign-error-code-with-message(${status.majorCode}, ${status.minorCode}, ${status.message})}">Msg</p>
             </div>
             <div class="col-sm-12" th:if="${status.majorCode != null && status.message == null}">
               <p th:text="#{sp.msg.saml-error-code-no-message(${status.majorCode}, ${status.minorCode})}">Msg</p>

@@ -15,14 +15,11 @@
  */
 package se.idsec.signservice.integration.document.impl;
 
-import java.util.Base64;
-
 import org.springframework.util.StringUtils;
 
 import se.idsec.signservice.integration.core.validation.AbstractInputValidator;
 import se.idsec.signservice.integration.core.validation.ValidationResult;
 import se.idsec.signservice.integration.document.TbsDocument;
-import se.idsec.signservice.integration.document.TbsDocument.EtsiAdesFormatRequirement;
 
 /**
  * Validator for {@link TbsDocument} objects.
@@ -31,10 +28,20 @@ import se.idsec.signservice.integration.document.TbsDocument.EtsiAdesFormatRequi
  * @author Stefan Santesson (stefan@idsec.se)
  */
 public class TbsDocumentValidator extends AbstractInputValidator<TbsDocument, Void> {
-  
+
   /** Validator for AdES reqs. */
-  private final EtsiAdesFormatRequirementValidator adesFormatRequirementValidator = new EtsiAdesFormatRequirementValidator();
-  
+  private final EtsiAdesRequirementValidator adesRequirementValidator;
+
+  /**
+   * Constructor.
+   * 
+   * @param adesRequirementValidator
+   *          validatorfor AdES requirements
+   */
+  public TbsDocumentValidator(final EtsiAdesRequirementValidator adesRequirementValidator) {
+    this.adesRequirementValidator = adesRequirementValidator;
+  }
+
   /** {@inheritDoc} */
   @Override
   public ValidationResult validate(final TbsDocument object, final String objectName, final Void hint) {
@@ -49,39 +56,9 @@ public class TbsDocumentValidator extends AbstractInputValidator<TbsDocument, Vo
       result.rejectValue("mimeType", "No mimeType set in TbsDocument");
     }
     result.setFieldErrors(
-      this.adesFormatRequirementValidator.validate(object.getAdesRequirement(), "adesRequirement", null));
-    
+      this.adesRequirementValidator.validate(object.getAdesRequirement(), "adesRequirement", null));
+
     return result;
   }
-
-
-  /**
-   * Validator for {@link EtsiAdesFormatRequirement} objects.
-   */
-  public static class EtsiAdesFormatRequirementValidator extends AbstractInputValidator<EtsiAdesFormatRequirement, Void> {
-
-    /** {@inheritDoc} */
-    @Override
-    public ValidationResult validate(EtsiAdesFormatRequirement object, String objectName, Void hint) {
-      ValidationResult result = new ValidationResult(objectName);
-      if (object == null) {
-        return result;
-      }
-      if (TbsDocument.AdesType.EPES.equals(object.getAdesFormat()) && !StringUtils.hasText(object.getSignaturePolicy())) {
-        result.rejectValue("signaturePolicy", 
-          "AdES requirement states Extended Policy Electronic Signature but no signature policy has been given");
-      }
-      if (object.getAdesObject() != null) {
-        try {
-          Base64.getDecoder().decode(object.getAdesObject());
-        }
-        catch (Exception e) {
-          result.rejectValue("adesObject", "Invalid Base64 encoding for adesObject");
-        }
-      }
-      return result;
-    }
-
-  }
-
+  
 }

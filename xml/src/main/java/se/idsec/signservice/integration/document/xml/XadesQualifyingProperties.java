@@ -17,6 +17,7 @@ package se.idsec.signservice.integration.document.xml;
 
 import javax.xml.bind.JAXBException;
 
+import org.apache.xml.security.binding.xmldsig.ObjectType;
 import org.w3c.dom.Element;
 
 import lombok.extern.slf4j.Slf4j;
@@ -25,9 +26,12 @@ import se.idsec.signservice.integration.core.impl.CorrelationID;
 import se.idsec.signservice.integration.document.DocumentProcessingException;
 import se.idsec.signservice.integration.document.ades.AdesObject;
 import se.idsec.signservice.integration.document.ades.AdesSigningCertificateDigest;
+import se.idsec.signservice.xml.JAXBMarshaller;
 import se.idsec.signservice.xml.JAXBUnmarshaller;
 import se.swedenconnect.schemas.etsi.xades_1_3_2.DigestAlgAndValueType;
 import se.swedenconnect.schemas.etsi.xades_1_3_2.QualifyingProperties;
+import se.swedenconnect.schemas.etsi.xades_1_3_2.SignaturePolicyIdentifier;
+import se.swedenconnect.schemas.etsi.xades_1_3_2.SigningCertificate;
 import se.swedenconnect.schemas.etsi.xades_1_3_2.SigningCertificateV2;
 
 /**
@@ -45,52 +49,155 @@ public class XadesQualifyingProperties implements AdesObject {
   /** The local name for the QualifyingProperties element. */
   public static final String LOCAL_NAME = "QualifyingProperties";
 
+  /** Object factory for XAdES objects. */
+  private static final se.swedenconnect.schemas.etsi.xades_1_3_2.ObjectFactory xadesObjectFactory =
+      new se.swedenconnect.schemas.etsi.xades_1_3_2.ObjectFactory();
+
+  /** Object factory for ds objects. */
+  private static final org.apache.xml.security.binding.xmldsig.ObjectFactory dsObjectFactory =
+      new org.apache.xml.security.binding.xmldsig.ObjectFactory();
+
+  /** The ds:Object holding the QualifyingProperties. */
+  private ObjectType dsObject;
+
   /** The XAdES object. */
-  private final QualifyingProperties qualifyingProperties;
+  private QualifyingProperties qualifyingProperties;
+
+  /** Flag telling whether the QualifyingProperties has been updated. */
+  private boolean updated = false;
 
   /**
    * Constructor.
    * 
-   * @param qualifyingProperties
-   *          the XAdES object
+   * @param dsObject
+   *          the ds:Object holding the QualifyingProperties element
+   * @throws DocumentProcessingException
+   *           for protocol errors
    */
-  public XadesQualifyingProperties(final QualifyingProperties qualifyingProperties) {
-    if (qualifyingProperties == null) {
-      throw new IllegalArgumentException("qualifyingProperties must not be null");
+  public XadesQualifyingProperties(final ObjectType dsObject) throws DocumentProcessingException {
+    if (dsObject == null) {
+      throw new IllegalArgumentException("dsObject must not be null");
     }
-    this.qualifyingProperties = qualifyingProperties;
+    try {
+      this.dsObject = dsObject;
+      for (Object child : this.dsObject.getContent()) {
+        if (child instanceof QualifyingProperties) {
+          this.qualifyingProperties = (QualifyingProperties) qualifyingProperties;
+          break;
+        }
+        else if (child instanceof Element) {
+          Element elm = (Element) child;
+          if (XadesQualifyingProperties.LOCAL_NAME.equals(elm.getLocalName())) {
+            this.qualifyingProperties = JAXBUnmarshaller.unmarshall(elm, QualifyingProperties.class);
+            break;
+          }
+        }
+      }
+      if (this.qualifyingProperties == null) {
+        final String msg = "No QualifyingProperties element found in XAdES object";
+        log.error("{}: {}", CorrelationID.id(), msg);
+        throw new DocumentProcessingException(new ErrorCode.Code("invalid-ades-object"), msg);
+      }
+    }
+    catch (JAXBException e) {
+      final String msg = "Invalid QualifyingProperties element found in XAdES object";
+      log.error("{}: {}", CorrelationID.id(), msg, e);
+      throw new DocumentProcessingException(new ErrorCode.Code("invalid-ades-object"), msg, e);
+    }
   }
 
   /**
-   * Given the DOM element for a QualifyingProperties element a XadesQualifyingProperties object is created.
+   * Creates a {@code XadesQualifyingProperties} from a DOM element.
    * 
-   * @param element
-   *          the DOM element
+   * @param dsObject
+   *          DOM element of the ds:Object holding the QualifyingProperties element
    * @return a XadesQualifyingProperties object
    * @throws DocumentProcessingException
-   *           for unmarshalling errors
+   *           for protocol errors
    */
-  public static XadesQualifyingProperties createXadesQualifyingProperties(final Element element) throws DocumentProcessingException {
+  public static XadesQualifyingProperties createXadesQualifyingProperties(final Element dsObject) throws DocumentProcessingException {
     try {
-      return new XadesQualifyingProperties(JAXBUnmarshaller.unmarshall(element, QualifyingProperties.class));
+      return new XadesQualifyingProperties(JAXBUnmarshaller.unmarshall(dsObject, ObjectType.class));
     }
     catch (JAXBException e) {
-      final String msg = String.format("Failed to unmarshall object to QualifyingProperties element - %s", e.getMessage());
+      final String msg = "Invalid QualifyingProperties element found in XAdES object";
       log.error("{}: {}", CorrelationID.id(), msg, e);
-      throw new DocumentProcessingException(new ErrorCode.Code("invalid-xades-object"), msg);
+      throw new DocumentProcessingException(new ErrorCode.Code("invalid-ades-object"), msg, e);
     }
+  }
+
+  /**
+   * Creates a {@code XadesQualifyingProperties} with a {@code ds:Object} holding a {@code xades:QualifyingProperties}
+   * with no content.
+   * 
+   * @return a XadesQualifyingProperties object
+   * @throws DocumentProcessingException
+   *           for protocol errors
+   */
+  public static XadesQualifyingProperties createXadesQualifyingProperties() throws DocumentProcessingException {
+    try {
+      ObjectType dsObject = dsObjectFactory.createObjectType();
+      QualifyingProperties qp = xadesObjectFactory.createQualifyingProperties();
+      dsObject.getContent().add(JAXBMarshaller.marshall(qp).getDocumentElement());
+      return new XadesQualifyingProperties(dsObject);
+    }
+    catch (JAXBException e) {
+      final String msg = "Failed to marshall QualifyingProperties element";
+      log.error("{}: {}", CorrelationID.id(), msg, e);
+      throw new DocumentProcessingException(new ErrorCode.Code("invalid-ades-object"), msg, e);
+    }
+  }
+
+  /**
+   * Gets the DOM element of the AdES object (which is a {@code ds:Object} containing a
+   * {@code xades:QualifyingProperties}).
+   * 
+   * @return the DOM element for the AdES object
+   * @throws JAXBException
+   *           for marshalling errors
+   */
+  public Element getAdesElement() throws JAXBException {
+    if (updated) {
+      // OK, the qualifying properties were updated, lets look the element up and replace it...
+      //
+      for (int i = 0; i < this.dsObject.getContent().size(); i++) {
+        Object child = this.dsObject.getContent().get(i);
+        if (QualifyingProperties.class.isInstance(child)
+            || (Element.class.isInstance(child) && XadesQualifyingProperties.LOCAL_NAME.equals(((Element) child).getLocalName()))) {
+
+          this.dsObject.getContent().set(i, JAXBMarshaller.marshall(this.qualifyingProperties).getDocumentElement());
+          this.updated = false;
+          break;
+        }
+      }
+    }
+    return JAXBMarshaller.marshallNonRootElement(dsObjectFactory.createObject(this.dsObject)).getDocumentElement();
   }
 
   /** {@inheritDoc} */
   @Override
   public AdesSigningCertificateDigest getSigningCertificateDigest() {
     if (this.qualifyingProperties.getSignedProperties() != null
-        && this.qualifyingProperties.getSignedProperties().getSignedSignatureProperties() != null
-        && this.qualifyingProperties.getSignedProperties().getSignedSignatureProperties().getSigningCertificateV2() != null) {
-      final SigningCertificateV2 signingCert =
-          this.qualifyingProperties.getSignedProperties().getSignedSignatureProperties().getSigningCertificateV2();
-      if (!signingCert.getCerts().isEmpty() && signingCert.getCerts().get(0).getCertDigest() != null) {
-        final DigestAlgAndValueType digest = signingCert.getCerts().get(0).getCertDigest();
+        && this.qualifyingProperties.getSignedProperties().getSignedSignatureProperties() != null) {
+
+      DigestAlgAndValueType digest = null;
+
+      if (this.qualifyingProperties.getSignedProperties().getSignedSignatureProperties().getSigningCertificateV2() != null) {
+        final SigningCertificateV2 signingCert =
+            this.qualifyingProperties.getSignedProperties().getSignedSignatureProperties().getSigningCertificateV2();
+        if (!signingCert.getCerts().isEmpty() && signingCert.getCerts().get(0).getCertDigest() != null) {
+          digest = signingCert.getCerts().get(0).getCertDigest();
+        }
+      }
+      else if (this.qualifyingProperties.getSignedProperties().getSignedSignatureProperties().getSigningCertificate() != null) {
+        final SigningCertificate signingCert =
+            this.qualifyingProperties.getSignedProperties().getSignedSignatureProperties().getSigningCertificate();
+        if (!signingCert.getCerts().isEmpty() && signingCert.getCerts().get(0).getCertDigest() != null) {
+          log.warn("{}: XAdES object contains <xades:SigningCertificate>. Should be <xades:SigningCertificateV2>", CorrelationID.id());
+          digest = signingCert.getCerts().get(0).getCertDigest();
+        }
+      }
+      if (digest != null) {
         if (digest.getDigestMethod() != null && digest.getDigestMethod().getAlgorithm() != null && digest.getDigestValue() != null) {
           return AdesSigningCertificateDigest.builder()
             .digestMethod(digest.getDigestMethod().getAlgorithm())
@@ -112,11 +219,83 @@ public class XadesQualifyingProperties implements AdesObject {
     if (this.qualifyingProperties.getSignedProperties() != null
         && this.qualifyingProperties.getSignedProperties().getSignedSignatureProperties() != null
         && this.qualifyingProperties.getSignedProperties().getSignedSignatureProperties().getSigningTime() != null) {
-      
+
       return this.qualifyingProperties.getSignedProperties().getSignedSignatureProperties().getSigningTime()
         .toGregorianCalendar().getTimeInMillis();
     }
     return null;
+  }
+
+  /**
+   * Gets the SignaturePolicyIdentifier or null
+   * 
+   * @return the SignaturePolicyIdentifier or null
+   */
+  public SignaturePolicyIdentifier getSignaturePolicyIdentifier() {
+    if (this.qualifyingProperties.getSignedProperties() != null
+        && this.qualifyingProperties.getSignedProperties().getSignedSignatureProperties() != null
+        && this.qualifyingProperties.getSignedProperties().getSignedSignatureProperties().getSignaturePolicyIdentifier() != null) {
+      return this.qualifyingProperties.getSignedProperties().getSignedSignatureProperties().getSignaturePolicyIdentifier();
+    }
+    return null;
+  }
+
+  /**
+   * Assigns the signature policy ID to the XAdES object.
+   * 
+   * @param signaturePolicy
+   *          the ID to assign
+   * @return whether the object was updated
+   */
+  public boolean setSignaturePolicy(final String signaturePolicy) {
+    if (this.qualifyingProperties.getSignedProperties() == null) {
+      this.qualifyingProperties.setSignedProperties(xadesObjectFactory.createSignedProperties());
+      updated = true;
+    }
+    if (this.qualifyingProperties.getSignedProperties().getSignedSignatureProperties() == null) {
+      this.qualifyingProperties.getSignedProperties().setSignedSignatureProperties(xadesObjectFactory.createSignedSignatureProperties());
+      this.updated = true;
+    }
+    if (this.qualifyingProperties.getSignedProperties().getSignedSignatureProperties().getSignaturePolicyIdentifier() == null) {
+      this.qualifyingProperties.getSignedProperties().getSignedSignatureProperties().setSignaturePolicyIdentifier(
+        xadesObjectFactory.createSignaturePolicyIdentifier());
+      this.updated = true;
+    }
+    if (this.qualifyingProperties.getSignedProperties().getSignedSignatureProperties().getSignaturePolicyIdentifier()
+      .getSignaturePolicyId() == null) {
+      this.qualifyingProperties.getSignedProperties().getSignedSignatureProperties().getSignaturePolicyIdentifier().setSignaturePolicyId(
+        xadesObjectFactory.createSignaturePolicyIdType());
+      this.updated = true;
+    }
+    if (this.qualifyingProperties.getSignedProperties().getSignedSignatureProperties().getSignaturePolicyIdentifier().getSignaturePolicyId()
+      .getSigPolicyId() == null) {
+      this.qualifyingProperties.getSignedProperties().getSignedSignatureProperties().getSignaturePolicyIdentifier().getSignaturePolicyId()
+        .setSigPolicyId(
+          xadesObjectFactory.createObjectIdentifier());
+      this.updated = true;
+    }
+    if (this.qualifyingProperties.getSignedProperties().getSignedSignatureProperties().getSignaturePolicyIdentifier().getSignaturePolicyId()
+      .getSigPolicyId().getIdentifier() == null) {
+      this.qualifyingProperties.getSignedProperties().getSignedSignatureProperties().getSignaturePolicyIdentifier().getSignaturePolicyId()
+        .getSigPolicyId().setIdentifier(
+          xadesObjectFactory.createIdentifierType());
+      this.updated = true;
+    }
+    final String value =
+        this.qualifyingProperties.getSignedProperties().getSignedSignatureProperties().getSignaturePolicyIdentifier().getSignaturePolicyId()
+          .getSigPolicyId().getIdentifier().getValue();
+    if (value == null) {
+      this.qualifyingProperties.getSignedProperties().getSignedSignatureProperties().getSignaturePolicyIdentifier().getSignaturePolicyId()
+        .getSigPolicyId().getIdentifier().setValue(signaturePolicy);
+      this.updated = true;
+    }
+    else if (!value.equals(signaturePolicy)) {
+      this.qualifyingProperties.getSignedProperties().getSignedSignatureProperties().getSignaturePolicyIdentifier().getSignaturePolicyId()
+        .getSigPolicyId().getIdentifier().setValue(signaturePolicy);
+      this.updated = true;
+    }
+
+    return this.updated;
   }
 
 }

@@ -28,7 +28,6 @@ import org.apache.xml.security.utils.Constants;
 import org.springframework.util.StringUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
 
 import lombok.extern.slf4j.Slf4j;
 import se.idsec.signservice.integration.SignResponseProcessingParameters;
@@ -153,15 +152,7 @@ public class XmlSignedDocumentProcessor extends AbstractSignedDocumentProcessor<
       signatureElement.appendChild(document.importNode(dsObject, true));
 
       // Get hold of the XadesQualifyingProperties element ...
-      final NodeList list =
-          dsObject.getElementsByTagNameNS(XadesQualifyingProperties.XADES_NAMESPACE, XadesQualifyingProperties.LOCAL_NAME);
-      if (list.getLength() == 0) {
-        final String msg = String.format("No QualifyingProperties element found in XAdES object for sign task '%s' [request-id='%s']",
-          signedData.getSignTaskId(), signRequest.getRequestID());
-        log.error("{}: {}", CorrelationID.id(), msg);
-        throw new DocumentProcessingException(new ErrorCode.Code("invalid-ades-object"), msg);
-      }
-      xadesObject = XadesQualifyingProperties.createXadesQualifyingProperties((Element) list.item(0));
+      xadesObject = XadesQualifyingProperties.createXadesQualifyingProperties(dsObject);
     }
 
     // OK, time to insert the signature into the document ...
@@ -185,9 +176,11 @@ public class XmlSignedDocumentProcessor extends AbstractSignedDocumentProcessor<
 
   /** {@inheritDoc} */
   @Override
-  public void validateSignedDocument(final Document signedDocument, final X509Certificate signerCertificate,
-      final SignTaskData signTaskData, final SignResponseProcessingParameters parameters, final String requestID)
-      throws SignServiceIntegrationException {
+  public void validateSignedDocument(final Document signedDocument, 
+      final X509Certificate signerCertificate,
+      final SignTaskData signTaskData, 
+      final SignResponseProcessingParameters parameters, 
+      final String requestID) throws SignServiceIntegrationException {
 
     log.debug("{}: Validating signed XML document for Sign task '{}' ... [request-id='{}']",
       CorrelationID.id(), signTaskData.getSignTaskId(), requestID);
@@ -322,14 +315,14 @@ public class XmlSignedDocumentProcessor extends AbstractSignedDocumentProcessor<
    */
   private Element getDsObject(final SignTaskData signedData, final String requestID) throws SignResponseProcessingException {
     try {
-      Element dsObject = DOMUtils.bytesToDocument(signedData.getAdESObject().getAdESObjectBytes()).getDocumentElement();
-      if (!Constants._TAG_OBJECT.equals(dsObject.getLocalName())) {
+      Element dsObjectElement = DOMUtils.bytesToDocument(signedData.getAdESObject().getAdESObjectBytes()).getDocumentElement();      
+      if (!Constants._TAG_OBJECT.equals(dsObjectElement.getLocalName())) {
         final String msg = String.format("Invalid AdESObjectBytes of sign task '%s' - Expected ds:Object but was %s [request-id='%s']",
-          signedData.getSignTaskId(), dsObject.getLocalName(), requestID);
+          signedData.getSignTaskId(), dsObjectElement.getLocalName(), requestID);
         log.error("{}: {}", msg);
         throw new SignResponseProcessingException(new ErrorCode.Code("invalid-response"), msg);
-      }
-      return dsObject;
+      }      
+      return dsObjectElement;
     }
     catch (InternalXMLException e) {
       final String msg = String.format("Invalid AdESObjectBytes of sign task '%s' - Failed to unmarshall - %s [request-id='%s']",
