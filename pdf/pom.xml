@@ -117,17 +117,20 @@
 
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
-      </plugin>
-
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-jar-plugin</artifactId>
-      </plugin>
-
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-clean-plugin</artifactId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <!-- Temporory here. Just so that Stefan writes correct Javadoc, and Martin doesn't have to fix it afterwards ;-) -->
+        <executions>
+          <execution>
+            <id>attach-javadoc</id>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+          </execution>
+        </executions>        
+        <configuration>
+          <doctitle>SignService Integration API PDF Implementation - ${project.version}</doctitle>
+          <windowtitle>SignService Integration API PDF Implementation - ${project.version}</windowtitle>
+        </configuration>
       </plugin>
 
     </plugins>

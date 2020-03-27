@@ -24,7 +24,7 @@ import se.idsec.signservice.integration.core.ObjectBuilder;
 
 /**
  * Representation of the result object for
- * {@link AbstractTbsDocumentProcessor#calculateToBeSigned(se.idsec.signservice.integration.document.TbsDocument, se.idsec.signservice.integration.config.IntegrationServiceConfiguration)}.
+ * {@link AbstractTbsDocumentProcessor#calculateToBeSigned(se.idsec.signservice.integration.document.ProcessedTbsDocument, String, se.idsec.signservice.integration.config.IntegrationServiceConfiguration)}.
  * 
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)

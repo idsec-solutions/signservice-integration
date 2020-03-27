@@ -20,7 +20,6 @@ import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
 import se.idsec.signservice.integration.core.error.InputValidationException;
-import se.idsec.signservice.integration.core.error.SignServiceIntegrationException;
 import se.idsec.signservice.integration.core.impl.CorrelationID;
 import se.idsec.signservice.integration.document.DocumentDecoder;
 import se.idsec.signservice.integration.document.DocumentProcessingException;
@@ -121,7 +120,7 @@ public abstract class AbstractTbsDocumentProcessor<T> implements TbsDocumentProc
    * @param config
    *          the profile configuration
    * @return the TBS bytes and optionally AdES data
-   * @throws SignServiceIntegrationException
+   * @throws DocumentProcessingException
    *           for processing errors
    */
   protected abstract TbsCalculationResult calculateToBeSigned(final ProcessedTbsDocument document, final String signatureAlgorithm,

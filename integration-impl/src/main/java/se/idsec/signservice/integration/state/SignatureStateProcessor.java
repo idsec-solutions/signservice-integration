@@ -20,7 +20,6 @@ import se.idsec.signservice.integration.SignServiceIntegrationService;
 import se.idsec.signservice.integration.core.SignatureState;
 import se.idsec.signservice.integration.dss.SignRequestWrapper;
 import se.idsec.signservice.integration.process.SignRequestProcessor;
-import se.swedenconnect.schemas.dss_1_0.SignRequest;
 
 /**
  * A processor for handling signature states.
@@ -55,7 +54,7 @@ public interface SignatureStateProcessor {
    * In the call to
    * {@link SignServiceIntegrationService#processSignResponse(String, String, SignatureState, se.idsec.signservice.integration.SignResponseProcessingParameters)}
    * that state is supplied by the caller. The state that is supplied should be the same state as received from calling
-   * {@link #createSignatureState(SignRequestInput, SignRequest, boolean)}.
+   * {@link #createSignatureState(SignRequestInput, SignRequestWrapper, boolean)}.
    * </p>
    * 
    * @param inputState

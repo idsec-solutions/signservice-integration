@@ -65,7 +65,6 @@ public interface SignedDocumentProcessor<T, X extends AdesObject> extends Docume
    *          the corresponding sign request
    * @param parameters
    *          processing parameters received from the caller
-   * @param config
    * @return a compiled signed document
    * @throws SignServiceIntegrationException
    *           for processing errors
@@ -114,8 +113,6 @@ public interface SignedDocumentProcessor<T, X extends AdesObject> extends Docume
    *          the sign request
    * @param signResponse
    *          the sign response
-   * @param processingConfiguration
-   *          processing configuration
    * @param parameters
    *          processing parameters received from the caller
    * @throws SignServiceIntegrationException
