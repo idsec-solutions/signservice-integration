@@ -438,8 +438,6 @@ public class DefaultSignRequestProcessor implements SignRequestProcessor, Initia
       //
       final DefaultXMLSigner signer = new DefaultXMLSigner(signingCredential);
       signer.setSignatureLocation(this.xmlSignatureLocation);
-      signer
-        .setXPathTransform("not(ancestor-or-self::*[local-name()='Signature' and namespace-uri()='http://www.w3.org/2000/09/xmldsig#'])");
       XMLSignerResult signerResult = signer.sign(signRequestDocument);
       log.debug("{}: SignRequest '{}' successfully signed", correlationID, signRequest.getRequestID());
 

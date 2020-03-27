@@ -144,7 +144,6 @@ public class XmlTbsDocumentProcessor extends AbstractTbsDocumentProcessor<Docume
       final XMLSigner signer = DefaultXMLSigner.builder(this.staticKeys.getSigningCredential(signatureAlgorithm))
         .signatureAlgorithm(signatureAlgorithm)
         .setIncludeSignatureId(requireXadesSignature)
-        .xPathTransform("not(ancestor-or-self::*[local-name()='Signature' and namespace-uri()='http://www.w3.org/2000/09/xmldsig#'])")
         .build();
 
       final XMLSignerResult preSignResult = signer.sign(domDocument);
