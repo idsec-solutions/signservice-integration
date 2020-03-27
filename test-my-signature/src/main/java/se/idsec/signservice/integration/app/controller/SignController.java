@@ -154,9 +154,8 @@ public class SignController extends BaseController {
       .authnRequirements(
         AuthnRequirements.builder()
           .authnContextRef(lastAuthentication.getAuthnContextUri())
-          .authnServiceID(/*"https://qa.connector.eidas.swedenconnect.se/eidas"*/
-            /*lastAuthentication.getIdp()*/
-            "http://qa.test.swedenconnect.se/idp")
+          .authnServiceID(lastAuthentication.getIdp()
+              /*"http://qa.test.swedenconnect.se/idp"*/)
           .requestedSignerAttributes(requestedAttributes)
           .build())
       .tbsDocument(tbsDocument)
