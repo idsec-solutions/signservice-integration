@@ -20,6 +20,9 @@ import java.util.NoSuchElementException;
 /**
  * Generic cache interface for the SignService Integration Service.
  * 
+ * @param <T>
+ *          the type of the cached objects
+ * 
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
@@ -97,5 +100,13 @@ public interface IntegrationServiceCache<T> {
    * Utility method that removes expired entries. Should be called by a scheduled task.
    */
   void clearExpired();
+
+  /**
+   * A predicate that tells if the cache implementation requires the supplied objects to be serializable to a string
+   * object.
+   * 
+   * @return true if the objects should be serializable
+   */
+  boolean requiresSerializableObjects();
 
 }

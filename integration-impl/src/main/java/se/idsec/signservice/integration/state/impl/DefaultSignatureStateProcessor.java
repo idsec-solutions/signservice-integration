@@ -69,7 +69,7 @@ public class DefaultSignatureStateProcessor implements SignatureStateProcessor, 
     // SignRequest instance itself isn't something we can serialize to JSON (which will be done if we are
     // running as a REST-service).
     //
-    if (stateless) {
+    if (stateless || this.stateCache.requiresSerializableObjects()) {
       try {
         final String encodedSignRequest = DOMUtils.nodeToBase64(JAXBMarshaller.marshall(signRequest.getWrappedSignRequest()));
         sessionState.setEncodedSignRequest(encodedSignRequest);
@@ -207,7 +207,6 @@ public class DefaultSignatureStateProcessor implements SignatureStateProcessor, 
         throw new IllegalArgumentException("The 'stateCache' property must be assigned");
       }
       else {
-        // Install a dummy cache (it won't be needed, but we don't want any NPE's).
         this.stateCache = new InMemoryIntegrationServiceStateCache();
       }
     }
