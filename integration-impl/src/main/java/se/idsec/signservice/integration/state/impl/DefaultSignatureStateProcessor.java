@@ -46,26 +46,27 @@ public class DefaultSignatureStateProcessor implements SignatureStateProcessor, 
 
   /** The state cache. */
   private IntegrationServiceStateCache stateCache;
-  
+
   /** Handles policy configurations. */
   private ConfigurationManager configurationManager;
-  
+
   /** {@inheritDoc} */
   @Override
-  public SignatureState createSignatureState(final SignRequestInput requestInput, final SignRequestWrapper signRequest, final boolean stateless) {
-    
+  public SignatureState createSignatureState(final SignRequestInput requestInput, final SignRequestWrapper signRequest,
+      final boolean stateless) {
+
     // Build a session state ...
     //
     SignatureSessionState sessionState = SignatureSessionState.builder()
-        .correlationId(requestInput.getCorrelationId())
-        .policy(requestInput.getPolicy())
-        .expectedReturnUrl(requestInput.getReturnUrl())
-        .tbsDocuments(requestInput.getTbsDocuments())
-        .signMessage(requestInput.getSignMessageParameters())
-        .build();
-    
+      .correlationId(requestInput.getCorrelationId())
+      .policy(requestInput.getPolicy())
+      .expectedReturnUrl(requestInput.getReturnUrl())
+      .tbsDocuments(requestInput.getTbsDocuments())
+      .signMessage(requestInput.getSignMessageParameters())
+      .build();
+
     // If we are running in stateless mode we add the Base64-encoded SignRequest to the state, since the
-    // SignRequest instance itself isn't something we can serialize to JSON (which will be done if we are 
+    // SignRequest instance itself isn't something we can serialize to JSON (which will be done if we are
     // running as a REST-service).
     //
     if (stateless) {
@@ -82,17 +83,17 @@ public class DefaultSignatureStateProcessor implements SignatureStateProcessor, 
     else {
       sessionState.setSignRequest(signRequest);
     }
-    
+
     // If we are running in a stateless mode we don't cache anything, we simply return the state
     // and leave it up to the caller to supply it in the next call.
     // If we are running in a stateful mode we cache the complete state and return a simple state
     // holding just the requestID.
     //
     SignatureState completeState = DefaultSignatureState.builder()
-        .id(signRequest.getRequestID())
-        .state(sessionState)
-        .build();
-    
+      .id(signRequest.getRequestID())
+      .state(sessionState)
+      .build();
+
     if (stateless) {
       return completeState;
     }
@@ -105,7 +106,7 @@ public class DefaultSignatureStateProcessor implements SignatureStateProcessor, 
   /** {@inheritDoc} */
   @Override
   public SignatureSessionState getSignatureState(final SignatureState inputState) throws StateException {
-    
+
     if (inputState == null) {
       final String msg = "No signature state supplied";
       log.error(msg);
@@ -117,7 +118,7 @@ public class DefaultSignatureStateProcessor implements SignatureStateProcessor, 
       throw new StateException(new ErrorCode.Code("format-error"), msg);
     }
     log.debug("Processing signature state '{}'", inputState.getId());
-    
+
     if (inputState.getState() == null) {
       // This indicates that the active policy is "stateful". Go get the SignatureState from the
       // cache.
@@ -131,7 +132,7 @@ public class DefaultSignatureStateProcessor implements SignatureStateProcessor, 
       return SignatureSessionState.class.cast(state.getState());
     }
     else {
-      // This means that we are running in stateless mode. 
+      // This means that we are running in stateless mode.
       //
       if (!SignatureSessionState.class.isInstance(inputState.getState())) {
         final String msg = String.format("Could not read supplied state for ID '%s'", inputState.getId());
@@ -143,7 +144,7 @@ public class DefaultSignatureStateProcessor implements SignatureStateProcessor, 
       final SignatureSessionState state = SignatureSessionState.class.cast(inputState.getState());
       final IntegrationServiceConfiguration config = this.configurationManager.getConfiguration(state.getPolicy());
       if (config == null) {
-        final String msg = String.format("Signature state with ID '%s' referenced policy '%s' which is not available", 
+        final String msg = String.format("Signature state with ID '%s' referenced policy '%s' which is not available",
           inputState.getId(), state.getPolicy());
         log.error(msg);
         throw new StateException(new ErrorCode.Code("policy-error"), msg);
@@ -153,7 +154,7 @@ public class DefaultSignatureStateProcessor implements SignatureStateProcessor, 
         // caller that has misunderstood things ...
         //
         final String msg = String.format("Signature state with ID '%s' used policy '%s', but this policy is stateless"
-          + " and we still received session state - bad request", inputState.getId(), state.getPolicy());
+            + " and we still received session state - bad request", inputState.getId(), state.getPolicy());
         log.error(msg);
         throw new StateException(new ErrorCode.Code("policy-error"), msg);
       }
@@ -176,7 +177,7 @@ public class DefaultSignatureStateProcessor implements SignatureStateProcessor, 
   public void setStateCache(final IntegrationServiceStateCache stateCache) {
     this.stateCache = stateCache;
   }
-  
+
   /**
    * Assigns the policy configuration manager bean.
    * 
@@ -189,8 +190,26 @@ public class DefaultSignatureStateProcessor implements SignatureStateProcessor, 
 
   /** {@inheritDoc} */
   @Override
-  public void afterPropertiesSet() throws Exception {
-    Assert.notNull(this.stateCache, "The 'stateCache' property must be assigned");
+  public void afterPropertiesSet() throws Exception {    
     Assert.notNull(this.configurationManager, "The 'configurationManager' property must be assigned");
+
+    // If all policies are stateless, we don't need a cache ...
+    //
+    if (this.stateCache == null) {
+      boolean cacheNeeded = false;
+      for (String policy : this.configurationManager.getPolicies()) {
+        if (!this.configurationManager.getConfiguration(policy).isStateless()) {
+          cacheNeeded = true;
+          break;
+        }
+      }
+      if (cacheNeeded) {
+        throw new IllegalArgumentException("The 'stateCache' property must be assigned");
+      }
+      else {
+        // Install a dummy cache (it won't be needed, but we don't want any NPE's).
+        this.stateCache = new InMemoryIntegrationServiceStateCache();
+      }
+    }
   }
 }
