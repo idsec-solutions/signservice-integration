@@ -15,9 +15,12 @@
  */
 package se.idsec.signservice.integration.config.impl;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import org.springframework.util.StringUtils;
 
 import se.idsec.signservice.integration.config.ConfigurationManager;
 import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
@@ -47,6 +50,38 @@ public class DefaultConfigurationManager implements ConfigurationManager {
     }
     if (!this.policies.containsKey(IntegrationServiceDefaultConfiguration.DEFAULT_POLICY_NAME)) {
       throw new IllegalArgumentException("There must be a policy named 'default'");
+    }
+    
+    // Go through all policies and make sure that are complete.
+    // 
+    if (this.policies.size() > 1) {            
+      for (IntegrationServiceConfiguration policy : this.policies.values()) {
+        this.mergePolicies(policy, new ArrayList<>());
+      }
+    }
+  }
+  
+  private void mergePolicies(IntegrationServiceConfiguration policy, List<String> policiesForMerge) {
+    final String parentPolicy = policy.getParentPolicy();
+    if (!StringUtils.hasText(parentPolicy)) {
+      return;
+    }
+    IntegrationServiceConfiguration parent = this.policies.get(parentPolicy);
+    if (parent == null) {
+      throw new IllegalArgumentException(
+        String.format("Policy '%s' states parentPolicy '%s' - This policy can not be found", policy.getPolicy(), parentPolicy));
+    }
+    if (StringUtils.hasText(parent.getParentPolicy())) {
+      // Oops, the parent policy also has a parent. First check so that we don't have a circular dependency.
+      //
+      if (policiesForMerge.contains(parentPolicy)) {
+        throw new IllegalArgumentException(String.format("Circular parent policy for policy '%s'", policy.getPolicy()));
+      }
+      policiesForMerge.add(policy.getPolicy());
+      this.mergePolicies(parent, policiesForMerge);
+    }
+    else {
+      policy.mergeConfiguration(parent);
     }
   }
 

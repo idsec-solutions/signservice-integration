@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 IDsec Solutions AB
+ * Copyright 2019-2020 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,8 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
+
+import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -66,6 +68,16 @@ public class DefaultIntegrationServiceConfiguration implements IntegrationServic
   @Getter
   @Setter
   private String policy;
+
+  /**
+   * If several policies are created where most settings are the same, the {@code parentPolicy} can be used to inherit
+   * values from. In this way, only the values that should be overridden needs to be supplied.
+   * 
+   * @param parentPolicy
+   *          the name of the parent policy
+   */
+  @Setter
+  private String parentPolicy;
 
   /**
    * The default ID of the entity that requests a signature. If SAML is used as the authentication protocol, this is the
@@ -184,9 +196,8 @@ public class DefaultIntegrationServiceConfiguration implements IntegrationServic
    * @param stateless
    *          stateless mode
    */
-  @Getter
   @Setter
-  private boolean stateless;
+  private Boolean stateless;
 
   /**
    * The default encryption parameters (algorithms) that is used by the SignService Integration Service when encrypting
@@ -246,6 +257,29 @@ public class DefaultIntegrationServiceConfiguration implements IntegrationServic
   @Getter
   @Setter
   private Extension extension;
+
+  /**
+   * Copy constructor.
+   * 
+   * @param config
+   *          the config object to initialize this object from
+   */
+  public DefaultIntegrationServiceConfiguration(final IntegrationServiceConfiguration config) {
+    this.parentPolicy = config.getPolicy();
+    this.mergeConfiguration(config);
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public String getParentPolicy() {
+    return this.parentPolicy;
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public boolean isStateless() {
+    return this.stateless != null ? this.stateless.booleanValue() : false;
+  }
 
   /**
    * Assigns the signing credential that the SignService Integration Service policy instance uses to sign SignRequest
@@ -322,7 +356,72 @@ public class DefaultIntegrationServiceConfiguration implements IntegrationServic
   public IntegrationServiceDefaultConfiguration getPublicConfiguration() {
     DefaultIntegrationServiceConfigurationBuilder builder = this.toBuilder();
     builder.signingCredential(null);
+    builder.parentPolicy(null);
     return builder.build();
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public void mergeConfiguration(final IntegrationServiceConfiguration parent) {
+
+    if (!parent.getPolicy().equals(this.parentPolicy)) {
+      throw new IllegalArgumentException("Invalid policy merge");
+    }
+
+    if (!StringUtils.hasText(this.defaultSignRequesterID)) {
+      this.defaultSignRequesterID = parent.getDefaultSignRequesterID();
+    }
+    if (!StringUtils.hasText(this.defaultReturnUrl)) {
+      this.defaultReturnUrl = parent.getDefaultReturnUrl();
+    }
+    if (!StringUtils.hasText(this.defaultSignatureAlgorithm)) {
+      this.defaultSignatureAlgorithm = parent.getDefaultSignatureAlgorithm();
+    }
+    if (!StringUtils.hasText(this.signServiceID)) {
+      this.signServiceID = parent.getSignServiceID();
+    }
+    if (!StringUtils.hasText(this.defaultDestinationUrl)) {
+      this.defaultDestinationUrl = parent.getDefaultDestinationUrl();
+    }
+    if (!StringUtils.hasText(this.defaultAuthnServiceID)) {
+      this.defaultAuthnServiceID = parent.getDefaultAuthnServiceID();
+    }
+    if (!StringUtils.hasText(this.defaultAuthnContextRef)) {
+      this.defaultAuthnContextRef = parent.getDefaultAuthnContextRef();
+    }
+    if (this.defaultCertificateRequirements == null) {
+      this.defaultCertificateRequirements = parent.getDefaultCertificateRequirements();
+    }
+    if (this.defaultVisiblePdfSignatureRequirement == null) {
+      this.defaultVisiblePdfSignatureRequirement = parent.getDefaultVisiblePdfSignatureRequirement();
+    }
+    if (this.pdfSignatureImageTemplates == null || this.pdfSignatureImageTemplates.isEmpty()) {
+      this.pdfSignatureImageTemplates = parent.getPdfSignatureImageTemplates();
+    }
+    if (this.stateless == null) {
+      this.stateless = parent.isStateless();
+    }
+    if (this.defaultEncryptionParameters == null) {
+      this.defaultEncryptionParameters = parent.getDefaultEncryptionParameters();
+    }
+    if (this.signingCredential == null) {
+      this.signingCredential = parent.getSigningCredential();
+    }
+    if (this.signServiceCertificates == null) {
+      this.signServiceCertificates = parent.getSignServiceCertificatesInternal();
+    }
+    if (this.trustAnchors == null) {
+      this.trustAnchors = parent.getTrustAnchorsInternal();
+    }
+    if (this.extension == null) {
+      this.extension = parent.getExtension();
+    }
+    else {
+      parent.getExtension().entrySet().stream().forEach(e -> this.extension.put(e.getKey(), e.getValue()));
+    }
+
+    // OK, merge is done. We no longer have a parent.
+    this.parentPolicy = null;
   }
 
   /**

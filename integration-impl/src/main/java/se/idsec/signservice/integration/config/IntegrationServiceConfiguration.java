@@ -18,8 +18,6 @@ package se.idsec.signservice.integration.config;
 import java.security.cert.X509Certificate;
 import java.util.List;
 
-import javax.annotation.Nonnull;
-
 import se.idsec.signservice.integration.SignServiceIntegrationService;
 import se.idsec.signservice.security.sign.SigningCredential;
 
@@ -37,7 +35,6 @@ public interface IntegrationServiceConfiguration extends IntegrationServiceDefau
    * 
    * @return the signing credential for the SignService Integration Service policy
    */
-  @Nonnull
   SigningCredential getSigningCredential();
 
   /**
@@ -45,7 +42,6 @@ public interface IntegrationServiceConfiguration extends IntegrationServiceDefau
    * 
    * @return the signature service signing certificate(s)
    */
-  @Nonnull
   List<X509Certificate> getSignServiceCertificatesInternal();
 
   /**
@@ -53,7 +49,6 @@ public interface IntegrationServiceConfiguration extends IntegrationServiceDefau
    * 
    * @return the SignService CA root certificate(s)
    */
-  @Nonnull
   List<X509Certificate> getTrustAnchorsInternal();
 
   /**
@@ -63,7 +58,24 @@ public interface IntegrationServiceConfiguration extends IntegrationServiceDefau
    * 
    * @return an IntegrationServiceDefaultConfiguration instance
    */
-  @Nonnull
   IntegrationServiceDefaultConfiguration getPublicConfiguration();
+
+  /**
+   * If several policies are created where most settings are the same, the {@code parentPolicy} can be used to inherit
+   * values from. In this way, only the values that should be overridden needs to be supplied.
+   * 
+   * @return the policy to inherit from, or null
+   * @see #mergeConfiguration(IntegrationServiceConfiguration)
+   */
+  String getParentPolicy();
+
+  /**
+   * If {@link #getParentPolicy()} is set, this method is used to merge the parent policy configuration into this
+   * object. After the merge has been performed the parent policy is unset.
+   * 
+   * @param parent
+   *          the policy to merge from
+   */
+  void mergeConfiguration(final IntegrationServiceConfiguration parent);
 
 }
