@@ -35,7 +35,7 @@ import se.idsec.signservice.integration.config.IntegrationServiceDefaultConfigur
 public class DefaultConfigurationManager implements ConfigurationManager {
   
   /** The policies that this service supports. */
-  private final Map<String, IntegrationServiceConfiguration> policies;
+  private final Map<String, ? extends IntegrationServiceConfiguration> policies;
 
   /**
    * Constructor.
@@ -43,7 +43,7 @@ public class DefaultConfigurationManager implements ConfigurationManager {
    * @param policies
    *          a mapping between policy names and service configuration objects
    */
-  public DefaultConfigurationManager(final Map<String, IntegrationServiceConfiguration> policies) {
+  public DefaultConfigurationManager(final Map<String, ? extends IntegrationServiceConfiguration> policies) {
     this.policies = policies;
     if (this.policies.isEmpty()) {
       throw new IllegalArgumentException("At least one policy must be configured");

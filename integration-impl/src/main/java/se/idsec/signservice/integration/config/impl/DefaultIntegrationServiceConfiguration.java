@@ -56,7 +56,7 @@ import se.idsec.signservice.security.sign.SigningCredential;
 @Builder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
-@ToString(exclude = { "signingCredential" })
+@ToString(exclude = { "signingCredential", "signServiceCertificates", "trustAnchors" })
 public class DefaultIntegrationServiceConfiguration implements IntegrationServiceConfiguration {
 
   /**
