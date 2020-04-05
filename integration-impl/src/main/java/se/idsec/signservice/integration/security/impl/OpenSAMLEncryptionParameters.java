@@ -68,4 +68,12 @@ public class OpenSAMLEncryptionParameters implements EncryptionParameters {
     return this.systemConfiguration;
   }
 
+  /** {@inheritDoc} */
+  @Override
+  public String toString() {
+    return "dataEncryptionAlgorithm='" + this.getDataEncryptionAlgorithm()
+        + "', keyTransportEncryptionAlgorithm='" + this.getKeyTransportEncryptionAlgorithm() + "', rsaOaepParameters='"
+        + this.getRsaOaepParameters() + "']";
+  }
+
 }
