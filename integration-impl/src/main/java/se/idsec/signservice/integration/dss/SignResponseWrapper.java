@@ -41,8 +41,7 @@ import se.swedenconnect.schemas.dss_1_0.SignatureObject;
 public class SignResponseWrapper extends SignResponse {
 
   /** Object factory for DSS objects. */
-  private static se.swedenconnect.schemas.dss_1_0.ObjectFactory dssObjectFactory =
-      new se.swedenconnect.schemas.dss_1_0.ObjectFactory();
+  private static se.swedenconnect.schemas.dss_1_0.ObjectFactory dssObjectFactory = new se.swedenconnect.schemas.dss_1_0.ObjectFactory();
 
   /** The wrapped SignResponse. */
   private final SignResponse signResponse;
@@ -52,6 +51,13 @@ public class SignResponseWrapper extends SignResponse {
 
   /** The SignResponseExtension (stored in OptionalOutputs). */
   private SignResponseExtension signResponseExtension;
+
+  /**
+   * Constructor setting up an empty {@code SignResponse}.
+   */
+  public SignResponseWrapper() {
+    this.signResponse = dssObjectFactory.createSignResponse();
+  }
 
   /**
    * Constructor.
@@ -105,7 +111,10 @@ public class SignResponseWrapper extends SignResponse {
     if (this.signResponse.getSignatureObject() == null || this.signResponse.getSignatureObject().getOther() == null) {
       return null;
     }
-    final Element signTasksElement = this.signResponse.getSignatureObject().getOther().getAnies().stream()
+    final Element signTasksElement = this.signResponse.getSignatureObject()
+      .getOther()
+      .getAnies()
+      .stream()
       .filter(e -> "SignTasks".equals(e.getLocalName()))
       .filter(e -> DssUtils.DSS_EXT_NAMESPACE.equals(e.getNamespaceURI()))
       .findFirst()
@@ -174,7 +183,9 @@ public class SignResponseWrapper extends SignResponse {
     if (this.signResponse.getOptionalOutputs() == null || !this.signResponse.getOptionalOutputs().isSetAnies()) {
       return null;
     }
-    final Element signResponseExtensionElement = this.signResponse.getOptionalOutputs().getAnies().stream()
+    final Element signResponseExtensionElement = this.signResponse.getOptionalOutputs()
+      .getAnies()
+      .stream()
       .filter(e -> "SignResponseExtension".equals(e.getLocalName()))
       .filter(e -> DssUtils.DSS_EXT_NAMESPACE.equals(e.getNamespaceURI()))
       .findFirst()

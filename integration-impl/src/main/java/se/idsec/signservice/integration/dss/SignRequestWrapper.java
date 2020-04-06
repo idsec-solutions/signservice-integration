@@ -39,8 +39,7 @@ import se.swedenconnect.schemas.dss_1_0.SignRequest;
 public class SignRequestWrapper extends SignRequest {
 
   /** Object factory for DSS objects. */
-  private static se.swedenconnect.schemas.dss_1_0.ObjectFactory dssObjectFactory =
-      new se.swedenconnect.schemas.dss_1_0.ObjectFactory();
+  private static se.swedenconnect.schemas.dss_1_0.ObjectFactory dssObjectFactory = new se.swedenconnect.schemas.dss_1_0.ObjectFactory();
 
   /** The wrapped SignRequest. */
   private final SignRequest signRequest;
@@ -50,6 +49,13 @@ public class SignRequestWrapper extends SignRequest {
 
   /** The SignTasks element (stored in InputDocuments). */
   private SignTasks signTasks;
+
+  /**
+   * Constructor setting up an empty {@code SignRequest}.
+   */
+  public SignRequestWrapper() {
+    this.signRequest = dssObjectFactory.createSignRequest();
+  }
 
   /**
    * Constructor.
@@ -84,7 +90,9 @@ public class SignRequestWrapper extends SignRequest {
     if (!this.signRequest.isSetOptionalInputs()) {
       return null;
     }
-    Element signRequestExtensionElement = this.signRequest.getOptionalInputs().getAnies().stream()
+    Element signRequestExtensionElement = this.signRequest.getOptionalInputs()
+      .getAnies()
+      .stream()
       .filter(e -> "SignRequestExtension".equals(e.getLocalName()))
       .filter(e -> DssUtils.DSS_EXT_NAMESPACE.equals(e.getNamespaceURI()))
       .findFirst()
@@ -181,7 +189,8 @@ public class SignRequestWrapper extends SignRequest {
     }
     for (Object o : this.signRequest.getInputDocuments().getDocumentsAndTransformedDatasAndDocumentHashes()) {
       if (o instanceof AnyType) {
-        Element signTasksElement = ((AnyType) o).getAnies().stream()
+        Element signTasksElement = ((AnyType) o).getAnies()
+          .stream()
           .filter(e -> "SignTasks".equals(e.getLocalName()))
           .filter(e -> DssUtils.DSS_EXT_NAMESPACE.equals(e.getNamespaceURI()))
           .findFirst()
