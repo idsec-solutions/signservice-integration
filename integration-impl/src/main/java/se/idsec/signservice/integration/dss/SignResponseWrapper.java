@@ -22,6 +22,7 @@ import org.w3c.dom.Element;
 import lombok.extern.slf4j.Slf4j;
 import se.idsec.signservice.integration.core.error.impl.SignServiceProtocolException;
 import se.idsec.signservice.integration.core.impl.CorrelationID;
+import se.idsec.signservice.xml.JAXBMarshaller;
 import se.idsec.signservice.xml.JAXBUnmarshaller;
 import se.swedenconnect.schemas.csig.dssext_1_1.SignResponseExtension;
 import se.swedenconnect.schemas.csig.dssext_1_1.SignTasks;
@@ -38,6 +39,10 @@ import se.swedenconnect.schemas.dss_1_0.SignatureObject;
  */
 @Slf4j
 public class SignResponseWrapper extends SignResponse {
+
+  /** Object factory for DSS objects. */
+  private static se.swedenconnect.schemas.dss_1_0.ObjectFactory dssObjectFactory =
+      new se.swedenconnect.schemas.dss_1_0.ObjectFactory();
 
   /** The wrapped SignResponse. */
   private final SignResponse signResponse;
@@ -184,6 +189,36 @@ public class SignResponseWrapper extends SignResponse {
       }
     }
     return this.signResponseExtension;
+  }
+
+  /**
+   * Assigns the SignResponseExtension by adding it to OptionalOutputs.
+   * <p>
+   * Note: If the OptionalOutputs already contains data it is overwritten.
+   * </p>
+   * 
+   * @param signResponseExtension
+   *          the extension to add
+   * @throws SignServiceProtocolException
+   *           for JAXB errors
+   */
+  public void setSignResponseExtension(final SignResponseExtension signResponseExtension) throws SignServiceProtocolException {
+    if (signResponseExtension == null) {
+      this.signResponse.setOptionalOutputs(null);
+      this.signResponseExtension = null;
+      return;
+    }
+
+    try {
+      AnyType optionalOutputs = dssObjectFactory.createAnyType();
+      optionalOutputs.getAnies().add(JAXBMarshaller.marshall(signResponseExtension).getDocumentElement());
+      this.signResponse.setOptionalOutputs(optionalOutputs);
+      this.signResponseExtension = signResponseExtension;
+    }
+    catch (JAXBException e) {
+      log.error("Failed to marshall SignResponseExtension - {}", e.getMessage(), e);
+      throw new SignServiceProtocolException("Failed to marshall SignResponseExtension", e);
+    }
   }
 
   /** {@inheritDoc} */
