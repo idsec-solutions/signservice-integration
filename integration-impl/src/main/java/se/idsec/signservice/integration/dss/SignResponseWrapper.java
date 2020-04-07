@@ -131,6 +131,44 @@ public class SignResponseWrapper extends SignResponse {
     return this.signTasks;
   }
 
+  /**
+   * Utility method that add a SignTasks object to {@code Other} object of the {@code SignatureObject}. Any previous
+   * sign tasks set in {@code Other} will be overwritten.
+   * 
+   * @param signTasks
+   *          the object to add
+   * @throws SignServiceProtocolException
+   *           for marshalling errors
+   */
+  public void setSignTasks(final SignTasks signTasks) throws SignServiceProtocolException {
+    this.signTasks = signTasks;
+    if (this.signResponse.getSignatureObject() == null) {
+      this.signResponse.setSignatureObject(dssObjectFactory.createSignatureObject());
+    }
+    if (this.signResponse.getSignatureObject().getOther() == null) {
+      this.signResponse.getSignatureObject().setOther(dssObjectFactory.createAnyType());
+    }
+    
+    Element signTasksElement;
+    try {
+      signTasksElement = JAXBMarshaller.marshall(this.signTasks).getDocumentElement();
+    }
+    catch (JAXBException e) {
+      log.error("Failed to marshall SignTasks - {}", e.getMessage(), e);
+      throw new SignServiceProtocolException("Failed to marshall SignTasks", e);
+    }
+    for (int i = 0; i < this.signResponse.getSignatureObject().getOther().getAnies().size(); i++) {
+      Element elm = this.signResponse.getSignatureObject().getOther().getAnies().get(i);
+      if (elm.getLocalName().equals("SignTasks")) {
+        // Overwrite this ...
+        this.signResponse.getSignatureObject().getOther().getAnies().set(i, signTasksElement);
+        return;
+      }
+    }
+    // We didn't have to overwrite. Add it.
+    this.signResponse.getSignatureObject().getOther().getAnies().add(signTasksElement);
+  }
+
   /** {@inheritDoc} */
   @Override
   public Result getResult() {

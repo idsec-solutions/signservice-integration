@@ -169,6 +169,7 @@ public class SignRequestWrapper extends SignRequest {
   @Override
   public void setInputDocuments(InputDocuments value) {
     // Reset the signTasks variable. It may be set as an any type in the supplied value.
+    this.signTasks = null;
     this.signRequest.setInputDocuments(value);
   }
 
