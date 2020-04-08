@@ -363,7 +363,9 @@ public class DefaultSignRequestProcessor implements SignRequestProcessor, Initia
 
     // SignMessage
     //
-    signRequestExtension.setSignMessage(this.signMessageProcessor.create(signRequestInput.getSignMessageParameters(), config));
+    if (signRequestInput.getSignMessageParameters() != null) {
+      signRequestExtension.setSignMessage(this.signMessageProcessor.create(signRequestInput.getSignMessageParameters(), config));
+    }
 
     // Install the sign request extension ...
     //
