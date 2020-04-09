@@ -191,27 +191,8 @@ public class SignServiceIntegrationConfiguration {
     config.setDefaultReturnUrl(this.signIntegrationBaseUrl + "/sign/response");
     config.setDefaultEncryptionParameters(new OpenSAMLEncryptionParameters());
     config.setSigningCredential(new OpenSAMLSigningCredential(this.signIntegrationCredential().getCredential()));
-//    config.setSignServiceCertificates(Arrays.asList(this.signServiceSigningCertificate));
-    //config.setTrustAnchors(this.trustAnchors);
     return config;
   }
-
-//  @Bean("signServiceSigningCertificate")
-//  public X509Certificate signServiceSigningCertificate(
-//      @Value("${signservice.config.sign-service-certificate}") Resource cert) throws Exception {
-//    return X509CertificateUtils.decodeCertificate(cert.getInputStream());
-//  }
-
-//  @Bean("trustAnchors")
-//  public List<X509Certificate> trustAnchors(
-//      @Value("${signservice.config.trust-anchors}") List<Resource> certs) throws Exception {
-//
-//    List<X509Certificate> anchors = new ArrayList<>();
-//    for (Resource r : certs) {
-//      anchors.add(X509CertificateUtils.decodeCertificate(r.getInputStream()));
-//    }
-//    return anchors;
-//  }
 
   @Bean("debugReturnUrl")
   public String debugReturnUrl(@Value("${server.servlet.context-path}") String contextPath) {
