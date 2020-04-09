@@ -203,8 +203,8 @@ public class DssUtils {
    * @throws SignServiceProtocolException
    *           for protocol errors
    */
-  public static CertRequestProperties toCertRequestProperties(@Nonnull final SigningCertificateRequirements certReqs,
-      @Nonnull final String authnContextRef) throws SignServiceProtocolException {
+  public static CertRequestProperties toCertRequestProperties(final SigningCertificateRequirements certReqs,
+      final String authnContextRef) throws SignServiceProtocolException {
 
     CertRequestProperties crp = (new se.swedenconnect.schemas.csig.dssext_1_1.ObjectFactory()).createCertRequestProperties();
     crp.setCertType(certReqs.getCertificateType().getType());

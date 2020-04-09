@@ -119,7 +119,7 @@ public class DefaultSignRequestProcessor implements SignRequestProcessor, Initia
     //
     this.signRequestInputValidator.validateObject(signRequestInput, "signRequestInput", config);
 
-    // The apply default values ...
+    // Then apply default values ...
     //
     SignRequestInput.SignRequestInputBuilder inputBuilder = signRequestInput.toBuilder();
 
