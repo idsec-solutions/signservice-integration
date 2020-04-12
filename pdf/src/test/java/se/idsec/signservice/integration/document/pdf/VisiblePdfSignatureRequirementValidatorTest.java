@@ -21,6 +21,7 @@ import org.junit.Test;
 import se.idsec.signservice.integration.authentication.SignerIdentityAttribute;
 import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
 import se.idsec.signservice.integration.config.impl.DefaultIntegrationServiceConfiguration;
+import se.idsec.signservice.integration.config.impl.PdfSignatureImageTemplateExt;
 import se.idsec.signservice.integration.core.validation.ValidationResult;
 
 /**
@@ -44,19 +45,19 @@ public class VisiblePdfSignatureRequirementValidatorTest {
         DefaultIntegrationServiceConfiguration.builder()
           .defaultVisiblePdfSignatureRequirement(null)
           .pdfSignatureImageTemplate(
-            PdfSignatureImageTemplate.builder()
+            PdfSignatureImageTemplateExt.createBuilder()
               .reference("ref1").image("DUMMY").height(100).width(100)
               .includeSignerName(false)
               .includeSigningTime(false)
               .build())
           .pdfSignatureImageTemplate(
-            PdfSignatureImageTemplate.builder()
+            PdfSignatureImageTemplateExt.createBuilder()
             .reference("ref2").image("DUMMY").height(100).width(100)
             .includeSignerName(true)
             .includeSigningTime(false)
             .build())
           .pdfSignatureImageTemplate(
-            PdfSignatureImageTemplate.builder()
+            PdfSignatureImageTemplateExt.createBuilder()
             .reference("ref3").image("DUMMY").height(100).width(100)
             .includeSignerName(false)
             .includeSigningTime(false)

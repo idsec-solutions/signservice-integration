@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 IDsec Solutions AB
+ * Copyright 2019-2020 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 package se.idsec.signservice.integration.config.impl;
 
 import java.util.Arrays;
-import java.util.Base64;
 
 import org.junit.Test;
 import org.springframework.core.io.ClassPathResource;
@@ -92,9 +91,9 @@ public class DefaultIntegrationServiceConfigurationTest {
         .xPosition(100)
         .yPosition(100)
         .build())
-      .pdfSignatureImageTemplate(PdfSignatureImageTemplate.builder()
+      .pdfSignatureImageTemplate(PdfSignatureImageTemplateExt.createBuilder()
         .reference("companylogo")
-        .image(Base64.getEncoder().encodeToString("mumbojumbo".getBytes()))
+        .image("<svg>dummy</svg>")
         .width(300)
         .height(300)
         .includeSignerName(true)
