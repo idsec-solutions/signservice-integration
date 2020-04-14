@@ -19,18 +19,18 @@ import se.idsec.signservice.integration.document.ades.AdesObject;
 import se.idsec.signservice.integration.document.ades.AdesSigningCertificateDigest;
 
 /**
- * PAdES object for PDF signing.
+ * Null AdesObject for PDF signing. This maps to the AdesObject in the SignTaskData structure.
+ * These objects are used in XML to carry signed attributes such as signed certificate hash.
+ * These objects are however never used in PDF signing where all signed attributes are placed within CMS
+ * SignedAttributes.
  * 
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
-public class PadesObject implements AdesObject {
+public class NullAdesObject implements AdesObject {
   
-  /*
-   * TODO: Implement support for PAdES object. See XadesQualifyingProperties for a reference...
-   */
 
-  /** {@inheritDoc} */
+  /** This method always returns null. Signed signing certificate digest is found in CMS signed attributes */
   @Override
   public AdesSigningCertificateDigest getSigningCertificateDigest() {
     return null;

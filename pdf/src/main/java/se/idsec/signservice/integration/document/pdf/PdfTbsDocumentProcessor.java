@@ -15,24 +15,30 @@
  */
 package se.idsec.signservice.integration.document.pdf;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.springframework.util.StringUtils;
-
-import lombok.extern.slf4j.Slf4j;
 import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
+import se.idsec.signservice.integration.core.Extension;
+import se.idsec.signservice.integration.core.error.ErrorCode;
 import se.idsec.signservice.integration.core.error.InputValidationException;
 import se.idsec.signservice.integration.core.impl.CorrelationID;
 import se.idsec.signservice.integration.core.validation.ValidationResult;
-import se.idsec.signservice.integration.document.DocumentDecoder;
-import se.idsec.signservice.integration.document.DocumentEncoder;
-import se.idsec.signservice.integration.document.DocumentProcessingException;
-import se.idsec.signservice.integration.document.DocumentType;
-import se.idsec.signservice.integration.document.ProcessedTbsDocument;
-import se.idsec.signservice.integration.document.TbsDocument;
+import se.idsec.signservice.integration.document.*;
 import se.idsec.signservice.integration.document.TbsDocument.EtsiAdesRequirement;
 import se.idsec.signservice.integration.document.impl.AbstractTbsDocumentProcessor;
 import se.idsec.signservice.integration.document.impl.EtsiAdesRequirementValidator;
 import se.idsec.signservice.integration.document.impl.TbsCalculationResult;
+import se.idsec.signservice.pdf.sign.PDFSignTaskDocument;
+import se.idsec.signservice.pdf.utils.PdfBoxSigUtil;
+import se.idsec.signservice.security.sign.impl.StaticCredentials;
+import se.idsec.signservice.security.sign.pdf.PDFSignerResult;
+import se.idsec.signservice.security.sign.pdf.impl.DefaultPDFSigner;
+
+import java.security.NoSuchAlgorithmException;
+import java.security.SignatureException;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * PDF TBS-document processor.
@@ -41,14 +47,17 @@ import se.idsec.signservice.integration.document.impl.TbsCalculationResult;
  * @author Stefan Santesson (stefan@idsec.se)
  */
 @Slf4j
-public class PdfTbsDocumentProcessor extends AbstractTbsDocumentProcessor<PDDocument> {
+public class PdfTbsDocumentProcessor extends AbstractTbsDocumentProcessor<PDFSignTaskDocument> {
+
+  /** We need to use dummy keys when creating the to-be-signed bytes. */
+  private final StaticCredentials staticKeys = new StaticCredentials();
 
   /** Validator for visible PDF signature requirements. */
   protected final VisiblePdfSignatureRequirementValidator visiblePdfSignatureRequirementValidator =
       new VisiblePdfSignatureRequirementValidator();
 
   /** Document decoder. */
-  protected final static PdfDocumentEncoderDecoder documentEncoderDecoder = new PdfDocumentEncoderDecoder();
+  protected final static PdfSignTaskDocumentEncoderDecoder documentEncoderDecoder = new PdfSignTaskDocumentEncoderDecoder();
 
   /** {@inheritDoc} */
   @Override
@@ -108,8 +117,22 @@ public class PdfTbsDocumentProcessor extends AbstractTbsDocumentProcessor<PDDocu
         tbsDocument.getVisiblePdfSignatureRequirement().setPage(0);
       }
     }
-    
-    // TODO: Do anything with AdES?
+
+    EtsiAdesRequirement requestedAdes = document.getAdesRequirement();
+    String ades = PDFSignTaskDocument.ADES_PROFILE_NONE;
+    if (requestedAdes != null){
+      TbsDocument.AdesType adesType = requestedAdes.getAdesFormat();
+      if (adesType.equals(TbsDocument.AdesType.BES)){
+        ades = PDFSignTaskDocument.ADES_PROFILE_BES;
+      }
+      if (adesType.equals(TbsDocument.AdesType.EPES)){
+        ades = PDFSignTaskDocument.ADES_PROFILE_EPES;
+      }
+    }
+    PDFSignTaskDocument signTaskDocument = processedTbsDocument.getDocumentObject(PDFSignTaskDocument.class);
+    signTaskDocument.setAdesType(ades);
+
+    //TODO Set visible signature object
 
     return processedTbsDocument;
   }
@@ -119,19 +142,39 @@ public class PdfTbsDocumentProcessor extends AbstractTbsDocumentProcessor<PDDocu
   protected TbsCalculationResult calculateToBeSigned(final ProcessedTbsDocument document, final String signatureAlgorithm,
       IntegrationServiceConfiguration config) throws DocumentProcessingException {
 
-    // TODO
-    return null;
+    try {
+      DefaultPDFSigner signer = new DefaultPDFSigner(staticKeys.getSigningCredential(signatureAlgorithm), signatureAlgorithm);
+      PDFSignTaskDocument signTaskDocument = document.getDocumentObject(PDFSignTaskDocument.class);
+      signer.setIncludeCertificateChain(false);
+      PDFSignerResult pdfSignerResult = signer.sign(signTaskDocument);
+      TbsCalculationResult tbsResult = TbsCalculationResult.builder()
+        .toBeSignedBytes(pdfSignerResult.getSignedAttributes())
+        .sigType("PDF")
+        .build();
+
+      //Set extension in TbsDocument with the PDF signature ID and time
+      Extension extension = Extension.builder().build();
+      extension.putIfAbsent("signTimeAndId", String.valueOf(pdfSignerResult.getSigningTime()));
+      document.getTbsDocument().setExtension(extension);
+      return tbsResult;
+
+    }
+    catch (NoSuchAlgorithmException | SignatureException e) {
+      final String msg = String.format("Error while calculating signed attributes for PDF document '%s' - %s", document.getTbsDocument().getId(), e.getMessage());
+      log.error("{}: {}", CorrelationID.id(), msg, e);
+      throw new DocumentProcessingException(new ErrorCode.Code("sign"), msg, e);
+    }
   }
 
   /** {@inheritDoc} */
   @Override
-  public DocumentDecoder<PDDocument> getDocumentDecoder() {
+  public DocumentDecoder<PDFSignTaskDocument> getDocumentDecoder() {
     return documentEncoderDecoder;
   }
 
   /** {@inheritDoc} */
   @Override
-  public DocumentEncoder<PDDocument> getDocumentEncoder() {
+  public DocumentEncoder<PDFSignTaskDocument> getDocumentEncoder() {
     return documentEncoderDecoder;
   }
 

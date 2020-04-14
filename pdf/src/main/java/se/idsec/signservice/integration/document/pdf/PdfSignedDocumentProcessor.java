@@ -41,7 +41,7 @@ import se.swedenconnect.schemas.csig.dssext_1_1.SignTaskData;
  * @author Stefan Santesson (stefan@idsec.se)
  */
 @Slf4j
-public class PdfSignedDocumentProcessor extends AbstractSignedDocumentProcessor<PDDocument, PadesObject> {
+public class PdfSignedDocumentProcessor extends AbstractSignedDocumentProcessor<PDDocument, NullAdesObject> {
 
   /** The document decoder. */
   private static final PdfDocumentEncoderDecoder documentEncoderDecoder = new PdfDocumentEncoderDecoder();
@@ -54,7 +54,7 @@ public class PdfSignedDocumentProcessor extends AbstractSignedDocumentProcessor<
 
   /** {@inheritDoc} */
   @Override
-  public CompiledSignedDocument<PDDocument, PadesObject> buildSignedDocument(
+  public CompiledSignedDocument<PDDocument, NullAdesObject> buildSignedDocument(
       final TbsDocument tbsDocument, 
       final SignTaskData signedData,
       final List<X509Certificate> signerCertificateChain, 
@@ -71,10 +71,10 @@ public class PdfSignedDocumentProcessor extends AbstractSignedDocumentProcessor<
     // TODO: insert the signature and everything that is needed ...    
     // TODO: Check if we received a Pades object ...
     //
-    PadesObject padesObject = null;
+    NullAdesObject nullAdesObject = null;
     
-    return new DefaultCompiledSignedDocument<PDDocument, PadesObject>(
-        signedData.getSignTaskId(), document, DocumentType.PDF.getMimeType(), this.getDocumentEncoder(), padesObject);
+    return new DefaultCompiledSignedDocument<PDDocument, NullAdesObject>(
+        signedData.getSignTaskId(), document, DocumentType.PDF.getMimeType(), this.getDocumentEncoder(), nullAdesObject);
   }
 
   /** {@inheritDoc} */
