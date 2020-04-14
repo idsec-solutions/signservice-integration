@@ -91,7 +91,7 @@ public class DefaultIntegrationServiceConfigurationTest {
         .xPosition(100)
         .yPosition(100)
         .build())
-      .pdfSignatureImageTemplate(PdfSignatureImageTemplateExt.createBuilder()
+      .pdfSignatureImageTemplate(PdfSignatureImageTemplate.builder()
         .reference("companylogo")
         .image("<svg>dummy</svg>")
         .width(300)
