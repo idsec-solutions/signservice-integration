@@ -34,10 +34,10 @@ import se.idsec.signservice.integration.document.pdf.utils.PdfIntegrationUtils;
 import se.idsec.signservice.integration.dss.SignRequestWrapper;
 import se.idsec.signservice.integration.process.impl.SignResponseProcessingException;
 import se.idsec.signservice.pdf.general.PDFAlgoRegistry;
-import se.idsec.signservice.pdf.sign.PDFCompleteSigner;
 import se.idsec.signservice.pdf.sign.PDFSignTaskDocument;
 import se.idsec.signservice.pdf.utils.PdfBoxSigUtil;
 import se.idsec.signservice.security.sign.pdf.PDFSignerResult;
+import se.idsec.signservice.security.sign.pdf.impl.PDFCompleteSigner;
 import se.swedenconnect.schemas.csig.dssext_1_1.SignTaskData;
 
 /**
