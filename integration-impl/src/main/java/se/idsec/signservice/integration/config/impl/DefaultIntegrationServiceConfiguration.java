@@ -21,7 +21,6 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.springframework.util.StringUtils;
 
@@ -186,9 +185,10 @@ public class DefaultIntegrationServiceConfiguration implements IntegrationServic
    * @param pdfSignatureImageTemplates
    *          a list of image templates for visible PDF signatures
    */
+  @Getter
   @Setter
   @Singular
-  private List<PdfSignatureImageTemplateExt> pdfSignatureImageTemplates;
+  private List<? extends PdfSignatureImageTemplate> pdfSignatureImageTemplates;
 
   /**
    * Tells whether the SignService Integration Service is running in stateless mode or not.
@@ -281,15 +281,6 @@ public class DefaultIntegrationServiceConfiguration implements IntegrationServic
     return this.stateless != null ? this.stateless.booleanValue() : false;
   }
   
-  /** {@inheritDoc} */
-  @Override
-  public List<PdfSignatureImageTemplate> getPdfSignatureImageTemplates() {
-    if (this.pdfSignatureImageTemplates == null) {
-      return null;
-    }
-    return this.pdfSignatureImageTemplates.stream().collect(Collectors.toList());
-  }
-
   /**
    * Assigns the signing credential that the SignService Integration Service policy instance uses to sign SignRequest
    * messages.
@@ -405,8 +396,7 @@ public class DefaultIntegrationServiceConfiguration implements IntegrationServic
       this.defaultVisiblePdfSignatureRequirement = parent.getDefaultVisiblePdfSignatureRequirement();
     }
     if (this.pdfSignatureImageTemplates == null || this.pdfSignatureImageTemplates.isEmpty()) {
-      this.pdfSignatureImageTemplates = parent.getPdfSignatureImageTemplates()
-          .stream().map(p -> new PdfSignatureImageTemplateExt(p)).collect(Collectors.toList()); 
+      this.pdfSignatureImageTemplates = parent.getPdfSignatureImageTemplates(); 
     }
     if (this.stateless == null) {
       this.stateless = parent.isStateless();

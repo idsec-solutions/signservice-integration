@@ -43,7 +43,7 @@ public class VisiblePdfSignatureRequirementValidator extends
     if (object == null) {
       return result;
     }
-    final List<PdfSignatureImageTemplate> templates = hint.getPdfSignatureImageTemplates();
+    final List<? extends PdfSignatureImageTemplate> templates = hint.getPdfSignatureImageTemplates();
 
     final PdfSignatureImageTemplate template = object.getTemplateImageRef() != null
         ? templates != null

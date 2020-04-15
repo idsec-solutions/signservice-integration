@@ -36,6 +36,10 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.w3c.dom.Document;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import se.idsec.signservice.integration.SignRequestInput;
 import se.idsec.signservice.integration.authentication.AuthnRequirements;
@@ -87,12 +91,10 @@ public class DefaultSignRequestProcessor implements SignRequestProcessor, Initia
   private SignMessageProcessor signMessageProcessor;
 
   /** Object factory for DSS objects. */
-  private static se.swedenconnect.schemas.dss_1_0.ObjectFactory dssObjectFactory =
-      new se.swedenconnect.schemas.dss_1_0.ObjectFactory();
+  private static se.swedenconnect.schemas.dss_1_0.ObjectFactory dssObjectFactory = new se.swedenconnect.schemas.dss_1_0.ObjectFactory();
 
   /** Object factory for DSS-Ext objects. */
-  private static se.swedenconnect.schemas.csig.dssext_1_1.ObjectFactory dssExtObjectFactory =
-      new se.swedenconnect.schemas.csig.dssext_1_1.ObjectFactory();
+  private static se.swedenconnect.schemas.csig.dssext_1_1.ObjectFactory dssExtObjectFactory = new se.swedenconnect.schemas.csig.dssext_1_1.ObjectFactory();
 
   /** Needed when signing the sign request. */
   private XMLSignatureLocation xmlSignatureLocation;
@@ -205,12 +207,10 @@ public class DefaultSignRequestProcessor implements SignRequestProcessor, Initia
       final ProcessedTbsDocument processedTbsDocument = processor.preProcess(doc, config, fieldName);
       if (processedTbsDocument.getDocumentObject() != null) {
         if (processedTbsDocument.getDocumentObject() != null) {
-          Extension ext = processedTbsDocument.getTbsDocument().getExtension();
-          if (ext == null) {
-            ext = new Extension();
-          }
-          ext.put("cachedDocument", processedTbsDocument.getDocumentObject());
-          processedTbsDocument.getTbsDocument().setExtension(ext);
+          final Extension ext = processedTbsDocument.getTbsDocument().getExtension();
+          final DocumentExtension docExt = ext == null ? new DocumentExtension() : new DocumentExtension(ext);
+          docExt.setDocument(processedTbsDocument.getDocumentObject());
+          processedTbsDocument.getTbsDocument().setExtension(docExt);
         }
       }
 
@@ -274,14 +274,13 @@ public class DefaultSignRequestProcessor implements SignRequestProcessor, Initia
     //
     if (updatedInput.getSignMessageParameters() != null) {
       if (config.getExtension() != null && config.getExtension().get("send-sigmessage-uri") != null) {
-        Boolean ccWorkaround = config.getExtension().get("send-sigmessage-uri", Boolean.class);
+        Boolean ccWorkaround = Boolean.parseBoolean(config.getExtension().get("send-sigmessage-uri"));
         if (ccWorkaround) {
           final String loa = updatedInput.getAuthnRequirements().getAuthnContextRef();
-          LevelofAssuranceAuthenticationContextURI.LoaEnum loaEnum =
-              LevelofAssuranceAuthenticationContextURI.LoaEnum.parse(loa);
+          LevelofAssuranceAuthenticationContextURI.LoaEnum loaEnum = LevelofAssuranceAuthenticationContextURI.LoaEnum.parse(loa);
           if (loaEnum != null) {
-            LevelofAssuranceAuthenticationContextURI.LoaEnum updatedLoaEnum =
-                LevelofAssuranceAuthenticationContextURI.LoaEnum.plusSigMessage(loaEnum);
+            LevelofAssuranceAuthenticationContextURI.LoaEnum updatedLoaEnum = LevelofAssuranceAuthenticationContextURI.LoaEnum
+              .plusSigMessage(loaEnum);
             if (updatedLoaEnum != null) {
               log.info("{}: Applying workaround for Cybercom sigmessage URI bug. Changing AuthnContextRef from '{}' to '{}'",
                 CorrelationID.id(), loa, updatedLoaEnum.getUri());
@@ -380,17 +379,21 @@ public class DefaultSignRequestProcessor implements SignRequestProcessor, Initia
         .findFirst()
         .orElseThrow(() -> new InternalSignServiceIntegrationException(new ErrorCode.Code("config"), "Could not find document processor"));
 
-      final Object cachedDocument = doc.getExtension() != null ? doc.getExtension().get("cachedDocument") : null;
-      if (doc.getExtension() != null) {
-        // Remove the cached object. We don't want to save it to the session ...
-        doc.getExtension().remove("cachedDocument");
+      final Object cachedDocument = doc.getExtension() != null && DocumentExtension.class.isInstance(doc.getExtension())
+          ? DocumentExtension.class.cast(doc.getExtension()).getDocument()
+          : null;
+      if (cachedDocument != null) {
+        // Clean up cached object. We don't want to save it to the session ...
         if (doc.getExtension().isEmpty()) {
           doc.setExtension(null);
         }
+        else {
+          doc.setExtension(new Extension(doc.getExtension()));
+        }
       }
 
-      final SignTaskData signTaskData =
-          processor.process(new ProcessedTbsDocument(doc, cachedDocument), signRequestInput.getSignatureAlgorithm(), config);
+      final SignTaskData signTaskData = processor.process(new ProcessedTbsDocument(doc, cachedDocument), signRequestInput
+        .getSignatureAlgorithm(), config);
       signTasks.getSignTaskDatas().add(signTaskData);
     }
 
@@ -499,6 +502,42 @@ public class DefaultSignRequestProcessor implements SignRequestProcessor, Initia
   public void afterPropertiesSet() throws Exception {
     Assert.notEmpty(this.tbsDocumentProcessors, "At least one TBS document processor must be configured");
     Assert.notNull(this.signMessageProcessor, "Missing 'signMessageProcessor'");
+  }
+
+  /**
+   * We extend the {@link Extension} class so that we can save a non-string object as an extension during the
+   * processing.
+   * 
+   * @author Martin Lindström (martin@idsec.se)
+   * @author Stefan Santesson (stefan@idsec.se)
+   */
+  private static class DocumentExtension extends Extension {
+
+    private static final long serialVersionUID = -7525964206819771980L;
+
+    /** The non-string document object that is stored. */
+    @JsonIgnore
+    @Getter
+    @Setter
+    private Object document;
+
+    /**
+     * Default constructor.
+     */
+    public DocumentExtension() {
+      super();
+    }
+
+    /**
+     * Copy constructor.
+     * 
+     * @param m
+     *          the map to initialize the object with
+     */
+    public DocumentExtension(final Extension extension) {
+      super(extension);
+    }
+
   }
 
 }
