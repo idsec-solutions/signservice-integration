@@ -36,7 +36,7 @@ public class PdfSignTaskDocumentEncoderDecoder implements DocumentDecoder<PDFSig
   public PDFSignTaskDocument decodeDocument(final String content) throws DocumentProcessingException {
     try {
       return PDFSignTaskDocument.builder()
-        .pdfDocumentBytes(Base64.getDecoder().decode(content))
+        .pdfDocument(Base64.getDecoder().decode(content))
         .build();
     }
     catch (Exception e) {
@@ -48,7 +48,7 @@ public class PdfSignTaskDocumentEncoderDecoder implements DocumentDecoder<PDFSig
   @Override
   public String encodeDocument(final PDFSignTaskDocument document) throws DocumentProcessingException {
     try {
-      return Base64.getEncoder().encodeToString(document.getPdfDocumentBytes());
+      return Base64.getEncoder().encodeToString(document.getPdfDocument());
     }
     catch (Exception e) {
       throw new DocumentProcessingException(new ErrorCode.Code("encode"), "Failed to encode PDF object", e);

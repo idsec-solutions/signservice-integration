@@ -21,17 +21,23 @@ import java.util.List;
 import org.apache.pdfbox.pdmodel.PDDocument;
 
 import lombok.extern.slf4j.Slf4j;
+import org.bouncycastle.util.encoders.Base64;
 import se.idsec.signservice.integration.SignResponseProcessingParameters;
+import se.idsec.signservice.integration.core.Extension;
+import se.idsec.signservice.integration.core.error.ErrorCode;
 import se.idsec.signservice.integration.core.error.SignServiceIntegrationException;
 import se.idsec.signservice.integration.core.impl.CorrelationID;
-import se.idsec.signservice.integration.document.CompiledSignedDocument;
-import se.idsec.signservice.integration.document.DocumentDecoder;
-import se.idsec.signservice.integration.document.DocumentEncoder;
-import se.idsec.signservice.integration.document.DocumentType;
-import se.idsec.signservice.integration.document.TbsDocument;
+import se.idsec.signservice.integration.document.*;
 import se.idsec.signservice.integration.document.impl.AbstractSignedDocumentProcessor;
 import se.idsec.signservice.integration.document.impl.DefaultCompiledSignedDocument;
+import se.idsec.signservice.integration.document.pdf.utils.PdfIntegrationUtils;
 import se.idsec.signservice.integration.dss.SignRequestWrapper;
+import se.idsec.signservice.integration.process.impl.SignResponseProcessingException;
+import se.idsec.signservice.pdf.general.PDFAlgoRegistry;
+import se.idsec.signservice.pdf.sign.PDFCompleteSigner;
+import se.idsec.signservice.pdf.sign.PDFSignTaskDocument;
+import se.idsec.signservice.pdf.utils.PdfBoxSigUtil;
+import se.idsec.signservice.security.sign.pdf.PDFSignerResult;
 import se.swedenconnect.schemas.csig.dssext_1_1.SignTaskData;
 
 /**
@@ -41,10 +47,10 @@ import se.swedenconnect.schemas.csig.dssext_1_1.SignTaskData;
  * @author Stefan Santesson (stefan@idsec.se)
  */
 @Slf4j
-public class PdfSignedDocumentProcessor extends AbstractSignedDocumentProcessor<PDDocument, NullAdesObject> {
+public class PdfSignedDocumentProcessor extends AbstractSignedDocumentProcessor<PDFSignTaskDocument, PAdESData> {
 
   /** The document decoder. */
-  private static final PdfDocumentEncoderDecoder documentEncoderDecoder = new PdfDocumentEncoderDecoder();
+  private static final PdfSignTaskDocumentEncoderDecoder documentEncoderDecoder = new PdfSignTaskDocumentEncoderDecoder();
 
   /** {@inheritDoc} */
   @Override
@@ -54,38 +60,75 @@ public class PdfSignedDocumentProcessor extends AbstractSignedDocumentProcessor<
 
   /** {@inheritDoc} */
   @Override
-  public CompiledSignedDocument<PDDocument, NullAdesObject> buildSignedDocument(
+  public CompiledSignedDocument<PDFSignTaskDocument, PAdESData> buildSignedDocument(
       final TbsDocument tbsDocument, 
       final SignTaskData signedData,
       final List<X509Certificate> signerCertificateChain, 
       final SignRequestWrapper signRequest, 
       final SignResponseProcessingParameters parameters) throws SignServiceIntegrationException {
-    
-    log.debug("{}: Compiling signed PDF document for Sign task '{}' ... [request-id='{}']",
-      CorrelationID.id(), signedData.getSignTaskId(), signRequest.getRequestID());
 
-    // First decode the original input document into a PDDocument object ...
-    //
-    final PDDocument document = this.getDocumentDecoder().decodeDocument(tbsDocument.getContent());
-    
-    // TODO: insert the signature and everything that is needed ...    
-    // TODO: Check if we received a Pades object ...
-    //
-    NullAdesObject nullAdesObject = null;
-    
-    return new DefaultCompiledSignedDocument<PDDocument, NullAdesObject>(
-        signedData.getSignTaskId(), document, DocumentType.PDF.getMimeType(), this.getDocumentEncoder(), nullAdesObject);
+    try {
+      log.debug("{}: Compiling signed PDF document for Sign task '{}' ... [request-id='{}']",
+        CorrelationID.id(), signedData.getSignTaskId(), signRequest.getRequestID());
+
+      // First decode the original input document into a PDFSignTaskDocument object ...
+      //
+      final PDFSignTaskDocument document = this.getDocumentDecoder().decodeDocument(tbsDocument.getContent());
+      // Add the PDF signingTimeAndId
+      try {
+        Extension extension = tbsDocument.getExtension();
+        Long signTimeAndId = Long.valueOf((String) extension.get(PDFExtensionParams.signTimeAndId.name()));
+        byte[] cmsSignedData = Base64.decode(extension.get(PDFExtensionParams.cmsSignedData.name()));
+        document.setSignTimeAndId(signTimeAndId);
+        document.setCmsSignedData(cmsSignedData);
+      } catch (Exception ex){
+        log.debug("Failed to process sign response. PDF document does not store the pre-sign signing time needed to complete the signed document assembly");
+        throw new SignResponseProcessingException(new ErrorCode.Code("complete-sign"),"PDF document does not store the pre-sign signing time", ex);
+      }
+      // Set visible signature and pades requirements
+      document.setAdesType(PdfIntegrationUtils.getPadesRequirementString(tbsDocument.getAdesRequirement()));
+      // TODO Repeat visible signature requirement to VisibleSignature object
+      document.setVisibleSigImage(null);
+
+      // Create complete signer and swap signature data
+      PDFCompleteSigner completeSigner = new PDFCompleteSigner();
+      PDFSignerResult pdfSignerResult = completeSigner.completeSign(document, signedData.getToBeSignedBytes(),
+        signedData.getBase64Signature().getValue(), signerCertificateChain);
+
+      //Check if we have PAdES data
+      PAdESData padesData = null;
+      PdfBoxSigUtil.SignedCertRef signedCertRefAttribute = PdfBoxSigUtil.getSignedCertRefAttribute(pdfSignerResult.getSignedAttributes());
+      if (signedCertRefAttribute != null){
+        PDFAlgoRegistry.PDFSignatureAlgorithmProperties algorithmProperties = PDFAlgoRegistry.getAlgorithmProperties(
+          signedData.getBase64Signature().getType());
+        if (!algorithmProperties.getDigestAlgoOID().equals(signedCertRefAttribute.getHashAlgorithm())){
+          log.debug("PAdES object hash algorithm does not match signature algorithm");
+          throw new SignResponseProcessingException(new ErrorCode.Code("complete-sign"),"PAdES object hash algorithm does not match signature algorithm");
+        }
+        padesData = new PAdESData(algorithmProperties.getDigestAlgoId(), signedCertRefAttribute.getSignedCertHash());
+      }
+
+      //Finally get the result signed pdf document
+      PDFSignTaskDocument completeSignedDocument = pdfSignerResult.getSignedDocument();
+
+      return new DefaultCompiledSignedDocument<PDFSignTaskDocument, PAdESData>(
+        signedData.getSignTaskId(), completeSignedDocument, DocumentType.PDF.getMimeType(), this.getDocumentEncoder(), padesData);
+    } catch (Exception ex){
+      log.debug("Failed to assemble the final signed PDF document: {}", ex);
+      throw new SignResponseProcessingException(new ErrorCode.Code("complete-sign"),"Failed to assemble the final signed PDF document", ex);
+    }
+
   }
 
   /** {@inheritDoc} */
   @Override
-  public void validateSignedDocument(final PDDocument signedDocument, 
+  public void validateSignedDocument(final PDFSignTaskDocument signedDocument,
       final X509Certificate signerCertificate, 
       final SignTaskData signTaskData,
       final SignResponseProcessingParameters parameters, 
       final String requestID) throws SignServiceIntegrationException {
     
-    log.debug("{}: Validating signed XML document for Sign task '{}' ... [request-id='{}']",
+    log.debug("{}: Validating signed PDF document for Sign task '{}' ... [request-id='{}']",
       CorrelationID.id(), signTaskData.getSignTaskId(), requestID);
     
     // TODO
@@ -93,13 +136,13 @@ public class PdfSignedDocumentProcessor extends AbstractSignedDocumentProcessor<
 
   /** {@inheritDoc} */
   @Override
-  public DocumentDecoder<PDDocument> getDocumentDecoder() {
+  public DocumentDecoder<PDFSignTaskDocument> getDocumentDecoder() {
     return documentEncoderDecoder;
   }
 
   /** {@inheritDoc} */
   @Override
-  public DocumentEncoder<PDDocument> getDocumentEncoder() {
+  public DocumentEncoder<PDFSignTaskDocument> getDocumentEncoder() {
     return documentEncoderDecoder;
   }
 

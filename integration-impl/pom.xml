@@ -87,7 +87,7 @@
     <dependency>
       <groupId>se.idsec.signservice.commons</groupId>
       <artifactId>signservice-xml-commons</artifactId>
-    </dependency>    
+    </dependency>
     
     <!-- Jackson -->
     <dependency>

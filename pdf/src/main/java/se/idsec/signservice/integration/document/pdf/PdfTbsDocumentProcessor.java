@@ -17,6 +17,8 @@ package se.idsec.signservice.integration.document.pdf;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.pdfbox.pdmodel.PDDocument;
+import org.bouncycastle.asn1.ASN1Encoding;
+import org.bouncycastle.util.encoders.Base64;
 import org.springframework.util.StringUtils;
 import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
 import se.idsec.signservice.integration.core.Extension;
@@ -29,12 +31,14 @@ import se.idsec.signservice.integration.document.TbsDocument.EtsiAdesRequirement
 import se.idsec.signservice.integration.document.impl.AbstractTbsDocumentProcessor;
 import se.idsec.signservice.integration.document.impl.EtsiAdesRequirementValidator;
 import se.idsec.signservice.integration.document.impl.TbsCalculationResult;
+import se.idsec.signservice.integration.document.pdf.utils.PdfIntegrationUtils;
 import se.idsec.signservice.pdf.sign.PDFSignTaskDocument;
 import se.idsec.signservice.pdf.utils.PdfBoxSigUtil;
 import se.idsec.signservice.security.sign.impl.StaticCredentials;
 import se.idsec.signservice.security.sign.pdf.PDFSignerResult;
 import se.idsec.signservice.security.sign.pdf.impl.DefaultPDFSigner;
 
+import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
 import java.util.HashMap;
@@ -119,16 +123,7 @@ public class PdfTbsDocumentProcessor extends AbstractTbsDocumentProcessor<PDFSig
     }
 
     EtsiAdesRequirement requestedAdes = document.getAdesRequirement();
-    String ades = PDFSignTaskDocument.ADES_PROFILE_NONE;
-    if (requestedAdes != null){
-      TbsDocument.AdesType adesType = requestedAdes.getAdesFormat();
-      if (adesType.equals(TbsDocument.AdesType.BES)){
-        ades = PDFSignTaskDocument.ADES_PROFILE_BES;
-      }
-      if (adesType.equals(TbsDocument.AdesType.EPES)){
-        ades = PDFSignTaskDocument.ADES_PROFILE_EPES;
-      }
-    }
+    String ades = PdfIntegrationUtils.getPadesRequirementString(requestedAdes);
     PDFSignTaskDocument signTaskDocument = processedTbsDocument.getDocumentObject(PDFSignTaskDocument.class);
     signTaskDocument.setAdesType(ades);
 
@@ -154,7 +149,8 @@ public class PdfTbsDocumentProcessor extends AbstractTbsDocumentProcessor<PDFSig
 
       //Set extension in TbsDocument with the PDF signature ID and time
       Extension extension = Extension.builder().build();
-      extension.putIfAbsent("signTimeAndId", String.valueOf(pdfSignerResult.getSigningTime()));
+      extension.putIfAbsent(PDFExtensionParams.signTimeAndId.name(), String.valueOf(pdfSignerResult.getSigningTime()));
+      extension.putIfAbsent(PDFExtensionParams.cmsSignedData.name(), Base64.toBase64String(pdfSignerResult.getSignedDocument().getCmsSignedData()));
       document.getTbsDocument().setExtension(extension);
       return tbsResult;
 
