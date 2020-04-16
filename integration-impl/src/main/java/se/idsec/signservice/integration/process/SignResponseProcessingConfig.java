@@ -18,8 +18,6 @@ package se.idsec.signservice.integration.process;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.springframework.beans.factory.InitializingBean;
-
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -36,7 +34,7 @@ import se.litsec.swedisheid.opensaml.saml2.authentication.LevelofAssuranceAuthen
  */
 @ToString
 @Slf4j
-public class SignResponseProcessingConfig implements InitializingBean {
+public class SignResponseProcessingConfig {
 
   /** The default for the maximum allowed age for a response given in milliseconds. 3 minutes. */
   public final static long DEFAULT_MAXIMUM_ALLOWED_RESPONSE_AGE = 180000L;
@@ -142,20 +140,10 @@ public class SignResponseProcessingConfig implements InitializingBean {
    */
   public Map<String, String> getSigMessageUriMap() {
     if (this.allowSigMessageUris && this.sigMessageUriMap == null) {
-      return getDefaultAuthnContextMappings();
+      log.info("No AuthnContext URI mapping assigned. Using sigMessageUriMap: {}", this.sigMessageUriMap);
+      this.sigMessageUriMap = getDefaultAuthnContextMappings();
     }
     return this.sigMessageUriMap;
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public void afterPropertiesSet() throws Exception {
-    if (this.allowSigMessageUris) {
-      if (this.sigMessageUriMap == null) {
-        this.sigMessageUriMap = getDefaultAuthnContextMappings();
-        log.info("No AuthnContext URI mapping assigned. Using sigMessageUriMap: {}", this.sigMessageUriMap);
-      }
-    }
   }
 
   /**

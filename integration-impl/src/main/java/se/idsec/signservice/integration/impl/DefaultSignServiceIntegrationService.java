@@ -19,7 +19,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
-import org.springframework.beans.factory.InitializingBean;
+import javax.annotation.PostConstruct;
+
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -54,7 +55,7 @@ import se.idsec.signservice.integration.state.SignatureStateProcessor;
  * @author Stefan Santesson (stefan@idsec.se)
  */
 @Slf4j
-public class DefaultSignServiceIntegrationService implements SignServiceIntegrationService, InitializingBean {
+public class DefaultSignServiceIntegrationService implements SignServiceIntegrationService {
 
   /** The default version. */
   public static final String VERSION = "1.0.0";
@@ -70,7 +71,7 @@ public class DefaultSignServiceIntegrationService implements SignServiceIntegrat
 
   /** The sign request processor. */
   private SignRequestProcessor signRequestProcessor;
-  
+
   /** The sign response processor. */
   private SignResponseProcessor signResponseProcessor;
 
@@ -154,7 +155,7 @@ public class DefaultSignServiceIntegrationService implements SignServiceIntegrat
       log.error("{}: {}", CorrelationID.id(), msg);
       throw new BadRequestException(new ErrorCode.Code("session"), msg);
     }
-    
+
     // Get the policy configuration for this operation ...
     //
     final IntegrationServiceConfiguration config = this.configurationManager.getConfiguration(sessionState.getPolicy());
@@ -167,7 +168,7 @@ public class DefaultSignServiceIntegrationService implements SignServiceIntegrat
     // Invoke the processor ...
     //
     final SignatureResult result = this.signResponseProcessor.processSignResponse(signResponse, sessionState, config, parameters);
-    
+
     // TODO: log
 
     return result;
@@ -241,17 +242,29 @@ public class DefaultSignServiceIntegrationService implements SignServiceIntegrat
   public void setSignRequestProcessor(final SignRequestProcessor signRequestProcessor) {
     this.signRequestProcessor = signRequestProcessor;
   }
-  
+
   /**
    * Sets the sign response processor.
-   * @param signResponseProcessor the sign response processor
+   * 
+   * @param signResponseProcessor
+   *          the sign response processor
    */
   public void setSignResponseProcessor(final SignResponseProcessor signResponseProcessor) {
     this.signResponseProcessor = signResponseProcessor;
   }
 
-  /** {@inheritDoc} */
-  @Override
+  /**
+   * Ensures that all required properties have been assigned.
+   * 
+   * <p>
+   * Note: If executing in a Spring Framework environment this method is automatically invoked after all properties have
+   * been assigned. Otherwise it should be explicitly invoked.
+   * </p>
+   * 
+   * @throws Exception
+   *           if not all settings are correct
+   */
+  @PostConstruct
   public void afterPropertiesSet() throws Exception {
     if (!StringUtils.hasText(this.version)) {
       this.version = VERSION;

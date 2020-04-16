@@ -23,11 +23,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.PostConstruct;
 import javax.xml.bind.JAXBException;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.xpath.XPathExpressionException;
 
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.Assert;
 import org.w3c.dom.Document;
 
@@ -79,7 +79,7 @@ import se.swedenconnect.schemas.dss_1_0.SignResponse;
  * @author Stefan Santesson (stefan@idsec.se)
  */
 @Slf4j
-public class DefaultSignResponseProcessor implements SignResponseProcessor, InitializingBean {
+public class DefaultSignResponseProcessor implements SignResponseProcessor {
 
   /** For validating signatures on SignResponse messages. */
   private XMLMessageSignatureValidator signResponseSignatureValidator = new DefaultXMLMessageSignatureValidator();
@@ -279,7 +279,8 @@ public class DefaultSignResponseProcessor implements SignResponseProcessor, Init
         .orElseThrow(() -> new InternalSignServiceIntegrationException(new ErrorCode.Code("config"), "Could not find document processor"));
 
       // Process the document ...
-      final SignedDocument signedDocument = processDocument(processor, signTaskData, signerCertificateChain, sessionState, response, parameters);
+      final SignedDocument signedDocument =
+          processDocument(processor, signTaskData, signerCertificateChain, sessionState, response, parameters);
 
       // Add it to the result ...
       resultBuilder.signedDocument(signedDocument);
@@ -356,10 +357,12 @@ public class DefaultSignResponseProcessor implements SignResponseProcessor, Init
 
     // Has the response expired?
     //
-    if ((now - responseTimeMillis - this.processingConfiguration.getAllowedClockSkew()) > this.processingConfiguration.getMaximumAllowedResponseAge()) {
+    if ((now - responseTimeMillis - this.processingConfiguration.getAllowedClockSkew()) > this.processingConfiguration
+      .getMaximumAllowedResponseAge()) {
       final String msg = String.format("SignResponse is too old. response-time:%d - current-time:%d - max-allowed-age:%d - " +
           "allowed-clock-skew:%d [request-id='%s']",
-        responseTimeMillis, now, this.processingConfiguration.getMaximumAllowedResponseAge(), this.processingConfiguration.getAllowedClockSkew(),
+        responseTimeMillis, now, this.processingConfiguration.getMaximumAllowedResponseAge(),
+        this.processingConfiguration.getAllowedClockSkew(),
         requestID);
       log.error("{}: {}", CorrelationID.id(), msg);
       throw new SignResponseProcessingException(new ErrorCode.Code("expired-response"), msg);
@@ -579,7 +582,7 @@ public class DefaultSignResponseProcessor implements SignResponseProcessor, Init
   public void setProcessingConfiguration(final SignResponseProcessingConfig processingConfiguration) {
     this.processingConfiguration = processingConfiguration;
   }
-  
+
   /** {@inheritDoc} */
   @Override
   public SignResponseProcessingConfig getProcessingConfiguration() {
@@ -601,8 +604,21 @@ public class DefaultSignResponseProcessor implements SignResponseProcessor, Init
     this.certificateValidators = certificateValidators;
   }
 
-  /** {@inheritDoc} */
-  @Override
+  /**
+   * Ensures that all required properties have been assigned. The method also makes sure that the
+   * {@code processingConfiguration} property is assigned (by default
+   * {@link SignResponseProcessingConfig#defaultSignResponseProcessingConfig()} is used) and that
+   * {@code signerAssertionInfoProcessor} is set (by default a {@link DefaultSignerAssertionInfoProcessor} is used).
+   * 
+   * <p>
+   * Note: If executing in a Spring Framework environment this method is automatically invoked after all properties have
+   * been assigned. Otherwise it should be explicitly invoked.
+   * </p>
+   * 
+   * @throws Exception
+   *           if not all settings are correct
+   */
+  @PostConstruct
   public void afterPropertiesSet() throws Exception {
     Assert.notEmpty(this.signedDocumentProcessors, "At least one document processor must be configured");
     if (this.processingConfiguration == null) {
@@ -611,7 +627,6 @@ public class DefaultSignResponseProcessor implements SignResponseProcessor, Init
     if (this.signerAssertionInfoProcessor == null) {
       DefaultSignerAssertionInfoProcessor p = new DefaultSignerAssertionInfoProcessor();
       p.setProcessingConfig(this.processingConfiguration);
-      p.afterPropertiesSet();
       this.signerAssertionInfoProcessor = p;
     }
   }

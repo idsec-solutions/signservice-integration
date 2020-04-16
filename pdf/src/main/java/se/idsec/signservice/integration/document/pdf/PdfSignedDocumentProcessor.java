@@ -18,6 +18,8 @@ package se.idsec.signservice.integration.document.pdf;
 import java.security.cert.X509Certificate;
 import java.util.List;
 
+import javax.annotation.PostConstruct;
+
 import org.apache.pdfbox.pdmodel.PDDocument;
 
 import lombok.extern.slf4j.Slf4j;
@@ -105,6 +107,7 @@ public class PdfSignedDocumentProcessor extends AbstractSignedDocumentProcessor<
 
   /** {@inheritDoc} */
   @Override
+  @PostConstruct
   public void afterPropertiesSet() throws Exception {
     super.afterPropertiesSet();
     

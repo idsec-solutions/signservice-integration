@@ -19,9 +19,10 @@ import java.io.ByteArrayInputStream;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import javax.annotation.PostConstruct;
+
 import org.opensaml.core.xml.io.UnmarshallingException;
 import org.opensaml.saml.saml2.core.Assertion;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.StringUtils;
 
 import lombok.extern.slf4j.Slf4j;
@@ -54,10 +55,10 @@ import se.swedenconnect.schemas.csig.dssext_1_1.SignerAssertionInfo;
  * @author Stefan Santesson (stefan@idsec.se)
  */
 @Slf4j
-public class DefaultSignerAssertionInfoProcessor implements SignerAssertionInfoProcessor, InitializingBean {
+public class DefaultSignerAssertionInfoProcessor implements SignerAssertionInfoProcessor {
 
   /** Processing config. */
-  protected SignResponseProcessingConfig processingConfig;
+  protected SignResponseProcessingConfig processingConfig = SignResponseProcessingConfig.defaultSignResponseProcessingConfig();
 
   /** {@inheritDoc} */
   @Override
@@ -412,9 +413,17 @@ public class DefaultSignerAssertionInfoProcessor implements SignerAssertionInfoP
     this.processingConfig = processingConfig;
   }
 
-  /** {@inheritDoc} */
-  @Override
-  public void afterPropertiesSet() throws Exception {
+  /**
+   * Ensures that the {@code processingConfig} property is assigned. By default
+   * {@link SignResponseProcessingConfig#defaultSignResponseProcessingConfig()} is used.
+   * 
+   * <p>
+   * Note: If executing in a Spring Framework environment this method is automatically invoked after all properties have
+   * been assigned. Otherwise it should be explicitly invoked.
+   * </p>
+   */
+  @PostConstruct
+  public void afterPropertiesSet() {
     if (this.processingConfig == null) {
       this.processingConfig = SignResponseProcessingConfig.defaultSignResponseProcessingConfig();
     }

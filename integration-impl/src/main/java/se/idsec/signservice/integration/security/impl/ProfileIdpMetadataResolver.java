@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 IDsec Solutions AB
+ * Copyright 2019-2020 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,9 @@ package se.idsec.signservice.integration.security.impl;
 
 import java.util.Map;
 
+import javax.annotation.PostConstruct;
+
 import org.opensaml.saml.saml2.metadata.EntityDescriptor;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.Assert;
 
 import lombok.extern.slf4j.Slf4j;
@@ -34,7 +35,7 @@ import se.idsec.signservice.integration.security.MetadataException;
  * @author Stefan Santesson (stefan@idsec.se)
  */
 @Slf4j
-public class ProfileIdpMetadataResolver implements IdpMetadataResolver, InitializingBean {
+public class ProfileIdpMetadataResolver implements IdpMetadataResolver {
 
   /** A map holding metadata resolvers for each profile. */
   private Map<String, IdpMetadataResolver> resolvers;
@@ -78,9 +79,17 @@ public class ProfileIdpMetadataResolver implements IdpMetadataResolver, Initiali
   }
 
   /**
-   * {@inheritDoc}
+   * Ensures that all required properties have been assigned.
+   * 
+   * <p>
+   * Note: If executing in a Spring Framework environment this method is automatically invoked after all properties have
+   * been assigned. Otherwise it should be explicitly invoked.
+   * </p>
+   * 
+   * @throws Exception
+   *           if not all settings are correct
    */
-  @Override
+  @PostConstruct
   public void afterPropertiesSet() throws Exception {
     Assert.isTrue((this.resolvers != null && !this.resolvers.isEmpty()) || this.defaultResolver != null,
       "No resolvers have been configured");

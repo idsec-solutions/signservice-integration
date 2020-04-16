@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 IDsec Solutions AB
+ * Copyright 2019-2020 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 package se.idsec.signservice.integration.signmessage.impl;
+
+import javax.annotation.PostConstruct;
 
 import org.opensaml.core.xml.util.XMLObjectSupport;
 import org.opensaml.saml.criterion.RoleDescriptorCriterion;
@@ -30,7 +32,6 @@ import org.opensaml.xmlsec.encryption.support.DataEncryptionParameters;
 import org.opensaml.xmlsec.encryption.support.Encrypter;
 import org.opensaml.xmlsec.encryption.support.EncryptionException;
 import org.opensaml.xmlsec.encryption.support.KeyEncryptionParameters;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.Assert;
 
 import lombok.extern.slf4j.Slf4j;
@@ -64,7 +65,7 @@ import se.swedenconnect.schemas.csig.dssext_1_1.SignMessage;
  * @author Stefan Santesson (stefan@idsec.se)
  */
 @Slf4j
-public class DefaultSignMessageProcessor implements SignMessageProcessor, InitializingBean {
+public class DefaultSignMessageProcessor implements SignMessageProcessor {
 
   /** The metadata resolver. */
   protected IdpMetadataResolver idpMetadataResolver;
@@ -187,14 +188,24 @@ public class DefaultSignMessageProcessor implements SignMessageProcessor, Initia
    * @param encrypter
    *          the encrypter
    */
-  public void setEncrypter(Encrypter encrypter) {
+  public void setEncrypter(final Encrypter encrypter) {
     if (encrypter != null) {
       this.encrypter = encrypter;
     }
   }
 
-  /** {@inheritDoc} */
-  @Override
+  /**
+   * Ensures that all required properties have been assigned.
+   * 
+   * <p>
+   * Note: If executing in a Spring Framework environment this method is automatically invoked after all properties have
+   * been assigned. Otherwise it should be explicitly invoked.
+   * </p>
+   * 
+   * @throws Exception
+   *           if not all settings are correct
+   */
+  @PostConstruct
   public void afterPropertiesSet() throws Exception {
     Assert.notNull(this.idpMetadataResolver, "'idpMetadataResolver' must be assigned");
   }
