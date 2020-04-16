@@ -16,8 +16,6 @@
 package se.idsec.signservice.integration.document.pdf;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.bouncycastle.asn1.ASN1Encoding;
 import org.bouncycastle.util.encoders.Base64;
 import org.springframework.util.StringUtils;
 import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
@@ -33,20 +31,16 @@ import se.idsec.signservice.integration.document.impl.EtsiAdesRequirementValidat
 import se.idsec.signservice.integration.document.impl.TbsCalculationResult;
 import se.idsec.signservice.integration.document.pdf.utils.PdfIntegrationUtils;
 import se.idsec.signservice.pdf.sign.PDFSignTaskDocument;
-import se.idsec.signservice.pdf.utils.PdfBoxSigUtil;
 import se.idsec.signservice.security.sign.impl.StaticCredentials;
 import se.idsec.signservice.security.sign.pdf.PDFSignerResult;
 import se.idsec.signservice.security.sign.pdf.impl.DefaultPDFSigner;
 
-import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * PDF TBS-document processor.
- * 
+ *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
@@ -58,7 +52,7 @@ public class PdfTbsDocumentProcessor extends AbstractTbsDocumentProcessor<PDFSig
 
   /** Validator for visible PDF signature requirements. */
   protected final VisiblePdfSignatureRequirementValidator visiblePdfSignatureRequirementValidator =
-      new VisiblePdfSignatureRequirementValidator();
+    new VisiblePdfSignatureRequirementValidator();
 
   /** Document decoder. */
   protected final static PdfSignTaskDocumentEncoderDecoder documentEncoderDecoder = new PdfSignTaskDocumentEncoderDecoder();
@@ -79,7 +73,7 @@ public class PdfTbsDocumentProcessor extends AbstractTbsDocumentProcessor<PDFSig
    */
   @Override
   public ProcessedTbsDocument preProcess(final TbsDocument document, final IntegrationServiceConfiguration config, final String fieldName)
-      throws InputValidationException {
+    throws InputValidationException {
 
     final ProcessedTbsDocument processedTbsDocument = super.preProcess(document, config, fieldName);
     final TbsDocument tbsDocument = processedTbsDocument.getTbsDocument();
@@ -135,8 +129,9 @@ public class PdfTbsDocumentProcessor extends AbstractTbsDocumentProcessor<PDFSig
   /** {@inheritDoc} */
   @Override
   protected TbsCalculationResult calculateToBeSigned(final ProcessedTbsDocument document, final String signatureAlgorithm,
-      IntegrationServiceConfiguration config) throws DocumentProcessingException {
+    IntegrationServiceConfiguration config) throws DocumentProcessingException {
 
+    TbsDocument tbsDocument = document.getTbsDocument();
     try {
       DefaultPDFSigner signer = new DefaultPDFSigner(staticKeys.getSigningCredential(signatureAlgorithm), signatureAlgorithm);
       PDFSignTaskDocument signTaskDocument = document.getDocumentObject(PDFSignTaskDocument.class);
@@ -148,15 +143,21 @@ public class PdfTbsDocumentProcessor extends AbstractTbsDocumentProcessor<PDFSig
         .build();
 
       //Set extension in TbsDocument with the PDF signature ID and time
-      Extension extension = Extension.builder().build();
+      Extension extension = tbsDocument.getExtension();
+      if (extension == null) {
+        extension = Extension.builder().build();
+        tbsDocument.setExtension(extension);
+      }
       extension.putIfAbsent(PDFExtensionParams.signTimeAndId.name(), String.valueOf(pdfSignerResult.getSigningTime()));
-      extension.putIfAbsent(PDFExtensionParams.cmsSignedData.name(), Base64.toBase64String(pdfSignerResult.getSignedDocument().getCmsSignedData()));
-      document.getTbsDocument().setExtension(extension);
+      extension.putIfAbsent(PDFExtensionParams.cmsSignedData.name(),
+        Base64.toBase64String(pdfSignerResult.getSignedDocument().getCmsSignedData()));
+
       return tbsResult;
 
     }
     catch (NoSuchAlgorithmException | SignatureException e) {
-      final String msg = String.format("Error while calculating signed attributes for PDF document '%s' - %s", document.getTbsDocument().getId(), e.getMessage());
+      final String msg = String.format("Error while calculating signed attributes for PDF document '%s' - %s",
+        tbsDocument.getId(), e.getMessage());
       log.error("{}: {}", CorrelationID.id(), msg, e);
       throw new DocumentProcessingException(new ErrorCode.Code("sign"), msg, e);
     }
