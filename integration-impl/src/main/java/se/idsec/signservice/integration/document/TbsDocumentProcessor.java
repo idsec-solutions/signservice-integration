@@ -17,6 +17,7 @@ package se.idsec.signservice.integration.document;
 
 import javax.annotation.Nonnull;
 
+import se.idsec.signservice.integration.SignRequestInput;
 import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
 import se.idsec.signservice.integration.core.error.InputValidationException;
 import se.swedenconnect.schemas.csig.dssext_1_1.SignTaskData;
@@ -47,6 +48,8 @@ public interface TbsDocumentProcessor<T> extends DocumentProcessor<T> {
    * 
    * @param document
    *          the document to process
+   * @param signRequestInput
+   *          the sign request input
    * @param config
    *          the current policy configuration
    * @param fieldName
@@ -56,7 +59,7 @@ public interface TbsDocumentProcessor<T> extends DocumentProcessor<T> {
    *           for validation errors
    */
   ProcessedTbsDocument preProcess(
-      @Nonnull final TbsDocument document, @Nonnull final IntegrationServiceConfiguration config, @Nonnull final String fieldName)
+      final TbsDocument document, final SignRequestInput signRequestInput, final IntegrationServiceConfiguration config, final String fieldName)
       throws InputValidationException;
 
   /**

@@ -18,6 +18,7 @@ package se.idsec.signservice.integration.document.pdf;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.util.encoders.Base64;
 import org.springframework.util.StringUtils;
+import se.idsec.signservice.integration.SignRequestInput;
 import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
 import se.idsec.signservice.integration.core.Extension;
 import se.idsec.signservice.integration.core.error.ErrorCode;
@@ -72,10 +73,10 @@ public class PdfTbsDocumentProcessor extends AbstractTbsDocumentProcessor<PDFSig
    * Handles settings for PDF visible signatures.
    */
   @Override
-  public ProcessedTbsDocument preProcess(final TbsDocument document, final IntegrationServiceConfiguration config, final String fieldName)
+  public ProcessedTbsDocument preProcess(final TbsDocument document, final SignRequestInput signRequestInput, final IntegrationServiceConfiguration config, final String fieldName)
     throws InputValidationException {
 
-    final ProcessedTbsDocument processedTbsDocument = super.preProcess(document, config, fieldName);
+    final ProcessedTbsDocument processedTbsDocument = super.preProcess(document, signRequestInput, config, fieldName);
     final TbsDocument tbsDocument = processedTbsDocument.getTbsDocument();
 
     if (tbsDocument.getVisiblePdfSignatureRequirement() == null) {
