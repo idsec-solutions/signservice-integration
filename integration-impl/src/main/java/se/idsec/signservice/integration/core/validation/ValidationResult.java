@@ -18,8 +18,6 @@ package se.idsec.signservice.integration.core.validation;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.springframework.validation.Errors;
-
 /**
  * Class holding validation results (errors).
  * 
