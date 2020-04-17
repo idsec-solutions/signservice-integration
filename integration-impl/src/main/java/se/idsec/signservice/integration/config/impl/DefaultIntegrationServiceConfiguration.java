@@ -22,7 +22,7 @@ import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
 
-import org.springframework.util.StringUtils;
+import org.apache.commons.lang.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -368,25 +368,25 @@ public class DefaultIntegrationServiceConfiguration implements IntegrationServic
       throw new IllegalArgumentException("Invalid policy merge");
     }
 
-    if (!StringUtils.hasText(this.defaultSignRequesterID)) {
+    if (StringUtils.isBlank(this.defaultSignRequesterID)) {
       this.defaultSignRequesterID = parent.getDefaultSignRequesterID();
     }
-    if (!StringUtils.hasText(this.defaultReturnUrl)) {
+    if (StringUtils.isBlank(this.defaultReturnUrl)) {
       this.defaultReturnUrl = parent.getDefaultReturnUrl();
     }
-    if (!StringUtils.hasText(this.defaultSignatureAlgorithm)) {
+    if (StringUtils.isBlank(this.defaultSignatureAlgorithm)) {
       this.defaultSignatureAlgorithm = parent.getDefaultSignatureAlgorithm();
     }
-    if (!StringUtils.hasText(this.signServiceID)) {
+    if (StringUtils.isBlank(this.signServiceID)) {
       this.signServiceID = parent.getSignServiceID();
     }
-    if (!StringUtils.hasText(this.defaultDestinationUrl)) {
+    if (StringUtils.isBlank(this.defaultDestinationUrl)) {
       this.defaultDestinationUrl = parent.getDefaultDestinationUrl();
     }
-    if (!StringUtils.hasText(this.defaultAuthnServiceID)) {
+    if (StringUtils.isBlank(this.defaultAuthnServiceID)) {
       this.defaultAuthnServiceID = parent.getDefaultAuthnServiceID();
     }
-    if (!StringUtils.hasText(this.defaultAuthnContextRef)) {
+    if (StringUtils.isBlank(this.defaultAuthnContextRef)) {
       this.defaultAuthnContextRef = parent.getDefaultAuthnContextRef();
     }
     if (this.defaultCertificateRequirements == null) {

@@ -28,7 +28,6 @@ import javax.xml.bind.JAXBException;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.xpath.XPathExpressionException;
 
-import org.springframework.util.Assert;
 import org.w3c.dom.Document;
 
 import lombok.extern.slf4j.Slf4j;
@@ -63,6 +62,7 @@ import se.idsec.signservice.security.sign.xml.XMLMessageSignatureValidator;
 import se.idsec.signservice.security.sign.xml.XMLSignatureLocation;
 import se.idsec.signservice.security.sign.xml.XMLSignatureLocation.ChildPosition;
 import se.idsec.signservice.security.sign.xml.impl.DefaultXMLMessageSignatureValidator;
+import se.idsec.signservice.utils.AssertThat;
 import se.idsec.signservice.xml.DOMUtils;
 import se.idsec.signservice.xml.InternalXMLException;
 import se.idsec.signservice.xml.JAXBUnmarshaller;
@@ -620,7 +620,7 @@ public class DefaultSignResponseProcessor implements SignResponseProcessor {
    */
   @PostConstruct
   public void afterPropertiesSet() throws Exception {
-    Assert.notEmpty(this.signedDocumentProcessors, "At least one document processor must be configured");
+    AssertThat.isNotEmpty(this.signedDocumentProcessors, "At least one document processor must be configured");
     if (this.processingConfiguration == null) {
       this.processingConfiguration = SignResponseProcessingConfig.defaultSignResponseProcessingConfig();
     }

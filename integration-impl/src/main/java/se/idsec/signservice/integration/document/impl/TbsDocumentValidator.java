@@ -15,7 +15,7 @@
  */
 package se.idsec.signservice.integration.document.impl;
 
-import org.springframework.util.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import se.idsec.signservice.integration.core.validation.AbstractInputValidator;
 import se.idsec.signservice.integration.core.validation.ValidationResult;
@@ -49,10 +49,10 @@ public class TbsDocumentValidator extends AbstractInputValidator<TbsDocument, Vo
     if (object == null) {
       return result;
     }
-    if (!StringUtils.hasText(object.getContent())) {
+    if (StringUtils.isBlank(object.getContent())) {
       result.rejectValue("content", "No document content set in TbsDocument");
     }
-    if (!StringUtils.hasText(object.getMimeType())) {
+    if (StringUtils.isBlank(object.getMimeType())) {
       result.rejectValue("mimeType", "No mimeType set in TbsDocument");
     }
     result.setFieldErrors(

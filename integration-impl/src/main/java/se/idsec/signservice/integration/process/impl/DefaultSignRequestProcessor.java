@@ -27,13 +27,12 @@ import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.xpath.XPathExpressionException;
 
+import org.apache.commons.lang.StringUtils;
 import org.joda.time.DateTime;
 import org.opensaml.core.xml.util.XMLObjectSupport;
 import org.opensaml.saml.saml2.core.Audience;
 import org.opensaml.saml.saml2.core.AudienceRestriction;
 import org.opensaml.saml.saml2.core.Conditions;
-import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 import org.w3c.dom.Document;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -65,6 +64,7 @@ import se.idsec.signservice.security.sign.xml.XMLSignatureLocation;
 import se.idsec.signservice.security.sign.xml.XMLSignatureLocation.ChildPosition;
 import se.idsec.signservice.security.sign.xml.XMLSignerResult;
 import se.idsec.signservice.security.sign.xml.impl.DefaultXMLSigner;
+import se.idsec.signservice.utils.AssertThat;
 import se.idsec.signservice.xml.DOMUtils;
 import se.idsec.signservice.xml.JAXBMarshaller;
 import se.litsec.swedisheid.opensaml.saml2.authentication.LevelofAssuranceAuthenticationContextURI;
@@ -125,7 +125,7 @@ public class DefaultSignRequestProcessor implements SignRequestProcessor {
     //
     SignRequestInput.SignRequestInputBuilder inputBuilder = signRequestInput.toBuilder();
 
-    if (!StringUtils.hasText(signRequestInput.getCorrelationId())) {
+    if (StringUtils.isBlank(signRequestInput.getCorrelationId())) {
       log.debug("No correlation ID provided in SignRequestInput, using '{}'", CorrelationID.id());
       inputBuilder.correlationId(CorrelationID.id());
     }
@@ -510,16 +510,13 @@ public class DefaultSignRequestProcessor implements SignRequestProcessor {
    */
   @PostConstruct
   public void afterPropertiesSet() throws Exception {
-    Assert.notEmpty(this.tbsDocumentProcessors, "At least one TBS document processor must be configured");
-    Assert.notNull(this.signMessageProcessor, "Missing 'signMessageProcessor'");
+    AssertThat.isNotEmpty(this.tbsDocumentProcessors, "At least one TBS document processor must be configured");
+    AssertThat.isNotNull(this.signMessageProcessor, "Missing 'signMessageProcessor'");
   }
 
   /**
    * We extend the {@link Extension} class so that we can save a non-string object as an extension during the
    * processing.
-   * 
-   * @author Martin Lindström (martin@idsec.se)
-   * @author Stefan Santesson (stefan@idsec.se)
    */
   private static class DocumentExtension extends Extension {
 

@@ -18,8 +18,6 @@ package se.idsec.signservice.integration.state.impl;
 import javax.annotation.PostConstruct;
 import javax.xml.bind.JAXBException;
 
-import org.springframework.util.Assert;
-
 import lombok.extern.slf4j.Slf4j;
 import se.idsec.signservice.integration.SignRequestInput;
 import se.idsec.signservice.integration.config.ConfigurationManager;
@@ -31,6 +29,7 @@ import se.idsec.signservice.integration.state.IntegrationServiceStateCache;
 import se.idsec.signservice.integration.state.SignatureSessionState;
 import se.idsec.signservice.integration.state.SignatureStateProcessor;
 import se.idsec.signservice.integration.state.StateException;
+import se.idsec.signservice.utils.AssertThat;
 import se.idsec.signservice.xml.DOMUtils;
 import se.idsec.signservice.xml.InternalXMLException;
 import se.idsec.signservice.xml.JAXBMarshaller;
@@ -201,7 +200,7 @@ public class DefaultSignatureStateProcessor implements SignatureStateProcessor {
    */
   @PostConstruct
   public void afterPropertiesSet() throws Exception {    
-    Assert.notNull(this.configurationManager, "The 'configurationManager' property must be assigned");
+    AssertThat.isNotNull(this.configurationManager, "The 'configurationManager' property must be assigned");
 
     // If all policies are stateless, we don't need a cache ...
     //

@@ -20,13 +20,13 @@ import java.util.Map;
 import javax.annotation.PostConstruct;
 
 import org.opensaml.saml.saml2.metadata.EntityDescriptor;
-import org.springframework.util.Assert;
 
 import lombok.extern.slf4j.Slf4j;
 import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
 import se.idsec.signservice.integration.core.impl.CorrelationID;
 import se.idsec.signservice.integration.security.IdpMetadataResolver;
 import se.idsec.signservice.integration.security.MetadataException;
+import se.idsec.signservice.utils.AssertThat;
 
 /**
  * An {@link IdpMetadataResolver} that offers the possibility to use different resolvers for different profiles.
@@ -91,7 +91,7 @@ public class ProfileIdpMetadataResolver implements IdpMetadataResolver {
    */
   @PostConstruct
   public void afterPropertiesSet() throws Exception {
-    Assert.isTrue((this.resolvers != null && !this.resolvers.isEmpty()) || this.defaultResolver != null,
+    AssertThat.isTrue((this.resolvers != null && !this.resolvers.isEmpty()) || this.defaultResolver != null,
       "No resolvers have been configured");
   }
 

@@ -21,8 +21,8 @@ import java.util.Base64;
 
 import javax.xml.bind.JAXBException;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.xml.security.utils.Constants;
-import org.springframework.util.StringUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -228,11 +228,11 @@ public class XmlTbsDocumentProcessor extends AbstractTbsDocumentProcessor<Docume
       if (TbsDocument.AdesType.EPES.equals(object.getAdesFormat())) {
         // The signature policy must be given. Either directly or as an element in the AdES object.
         //
-        if (!StringUtils.hasText(object.getSignaturePolicy()) || xadesObject == null) {
+        if (StringUtils.isBlank(object.getSignaturePolicy()) || xadesObject == null) {
           result.rejectValue("signaturePolicy",
             "AdES requirement states Extended Policy Electronic Signature but no signature policy has been given");
         }
-        else if (!StringUtils.hasText(object.getSignaturePolicy())) {
+        else if (StringUtils.isBlank(object.getSignaturePolicy())) {
           // Ensure that the SignaturePolicyIdentifier element is present.
           //
           if (xadesObject.getSignaturePolicyIdentifier() == null) {
@@ -240,7 +240,7 @@ public class XmlTbsDocumentProcessor extends AbstractTbsDocumentProcessor<Docume
               "AdES requirement states Extended Policy Electronic Signature but no signature policy has been given");
           }
         }
-        else if (StringUtils.hasText(object.getSignaturePolicy()) && xadesObject != null) {
+        else if (StringUtils.isNotBlank(object.getSignaturePolicy()) && xadesObject != null) {
           final SignaturePolicyIdentifier signaturePolicyIdentifier = xadesObject.getSignaturePolicyIdentifier();
           if (signaturePolicyIdentifier != null) {
             // Ensure that the signature policy parameter and the contents of the SignaturePolicyIdentifier corresponds

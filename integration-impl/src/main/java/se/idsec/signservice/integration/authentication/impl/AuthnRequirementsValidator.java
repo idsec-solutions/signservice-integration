@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 IDsec Solutions AB
+ * Copyright 2019-2020 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  */
 package se.idsec.signservice.integration.authentication.impl;
 
-import org.springframework.util.StringUtils;
+import org.apache.commons.lang.StringUtils;
 
 import se.idsec.signservice.integration.authentication.AuthnRequirements;
 import se.idsec.signservice.integration.authentication.SignerIdentityAttribute;
@@ -39,13 +39,13 @@ public class AuthnRequirementsValidator extends AbstractInputValidator<AuthnRequ
     
     final ValidationResult result = new ValidationResult(objectName);
 
-    if ((object == null || !StringUtils.hasText(object.getAuthnServiceID()))
-        && !StringUtils.hasText(hint.getDefaultAuthnServiceID())) {
+    if ((object == null || StringUtils.isBlank(object.getAuthnServiceID()))
+        && StringUtils.isBlank(hint.getDefaultAuthnServiceID())) {
       result.rejectValue("authnServiceID", String.format(
         "Request does not contain an authnServiceID and policy '%s' has no default value", hint.getPolicy()));
     }
-    if ((object == null || !StringUtils.hasText(object.getAuthnContextRef()))
-        && !StringUtils.hasText(hint.getDefaultAuthnContextRef())) {
+    if ((object == null || StringUtils.isBlank(object.getAuthnContextRef()))
+        && StringUtils.isBlank(hint.getDefaultAuthnContextRef())) {
       result.rejectValue("authnContextRef", String.format(
         "Request does not contain an authnContextRef and policy '%s' has no default value", hint.getPolicy()));
     }
@@ -55,10 +55,10 @@ public class AuthnRequirementsValidator extends AbstractInputValidator<AuthnRequ
         if (a.getType() != null && !SignerIdentityAttribute.SAML_TYPE.equalsIgnoreCase(a.getType())) {
           result.rejectValue("requestedSignerAttributes[" + pos + "].type", "The only supported attribute type is 'saml'");
         }
-        if (!StringUtils.hasText(a.getName())) {
+        if (StringUtils.isBlank(a.getName())) {
           result.rejectValue("requestedSignerAttributes[" + pos + "].name", "Missing attribute name");          
         }
-        if (!StringUtils.hasText(a.getValue())) {
+        if (StringUtils.isBlank(a.getValue())) {
           result.rejectValue("requestedSignerAttributes[" + pos + "].value", "Missing attribute value");
         }
         pos++;

@@ -32,7 +32,6 @@ import org.opensaml.xmlsec.encryption.support.DataEncryptionParameters;
 import org.opensaml.xmlsec.encryption.support.Encrypter;
 import org.opensaml.xmlsec.encryption.support.EncryptionException;
 import org.opensaml.xmlsec.encryption.support.KeyEncryptionParameters;
-import org.springframework.util.Assert;
 
 import lombok.extern.slf4j.Slf4j;
 import net.shibboleth.utilities.java.support.component.ComponentInitializationException;
@@ -50,6 +49,7 @@ import se.idsec.signservice.integration.security.impl.EncryptionConfigurationWra
 import se.idsec.signservice.integration.security.impl.OpenSAMLEncryptionParameters;
 import se.idsec.signservice.integration.signmessage.SignMessageParameters;
 import se.idsec.signservice.integration.signmessage.SignMessageProcessor;
+import se.idsec.signservice.utils.AssertThat;
 import se.litsec.opensaml.saml2.metadata.MetadataUtils;
 import se.litsec.swedisheid.opensaml.saml2.signservice.SignMessageBuilder;
 import se.litsec.swedisheid.opensaml.saml2.signservice.dss.EncryptedMessage;
@@ -207,7 +207,7 @@ public class DefaultSignMessageProcessor implements SignMessageProcessor {
    */
   @PostConstruct
   public void afterPropertiesSet() throws Exception {
-    Assert.notNull(this.idpMetadataResolver, "'idpMetadataResolver' must be assigned");
+    AssertThat.isNotNull(this.idpMetadataResolver, "'idpMetadataResolver' must be assigned");
   }
 
 }

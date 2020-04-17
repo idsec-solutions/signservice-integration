@@ -21,8 +21,7 @@ import java.util.UUID;
 
 import javax.annotation.PostConstruct;
 
-import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
+import org.apache.commons.lang.StringUtils;
 
 import lombok.extern.slf4j.Slf4j;
 import se.idsec.signservice.integration.SignRequestData;
@@ -47,6 +46,7 @@ import se.idsec.signservice.integration.process.SignRequestProcessor;
 import se.idsec.signservice.integration.process.SignResponseProcessor;
 import se.idsec.signservice.integration.state.SignatureSessionState;
 import se.idsec.signservice.integration.state.SignatureStateProcessor;
+import se.idsec.signservice.utils.AssertThat;
 
 /**
  * Implementation of the SignService Integration Service.
@@ -266,13 +266,13 @@ public class DefaultSignServiceIntegrationService implements SignServiceIntegrat
    */
   @PostConstruct
   public void afterPropertiesSet() throws Exception {
-    if (!StringUtils.hasText(this.version)) {
+    if (StringUtils.isBlank(this.version)) {
       this.version = VERSION;
     }
-    Assert.notNull(this.configurationManager, "The 'configurationManager' must be assigned");
-    Assert.notNull(this.signatureStateProcessor, "The property 'signatureStateProcessor' must be assigned");
-    Assert.notNull(this.signRequestProcessor, "The property 'signRequestProcessor' must be assigned");
-    Assert.notNull(this.signResponseProcessor, "The property 'signResponseProcessor' must be assigned");
+    AssertThat.isNotNull(this.configurationManager, "The 'configurationManager' must be assigned");
+    AssertThat.isNotNull(this.signatureStateProcessor, "The property 'signatureStateProcessor' must be assigned");
+    AssertThat.isNotNull(this.signRequestProcessor, "The property 'signRequestProcessor' must be assigned");
+    AssertThat.isNotNull(this.signResponseProcessor, "The property 'signResponseProcessor' must be assigned");
   }
 
 }
