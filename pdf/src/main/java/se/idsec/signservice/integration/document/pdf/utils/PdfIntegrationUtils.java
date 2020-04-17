@@ -1,19 +1,7 @@
 package se.idsec.signservice.integration.document.pdf.utils;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.bouncycastle.util.encoders.Base64;
 import se.idsec.signservice.integration.document.TbsDocument;
-import se.idsec.signservice.pdf.sign.PDFSignTaskDocument;
-import se.idsec.signservice.pdf.sign.VisibleSigImage;
-
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.logging.Logger;
-import java.util.zip.DataFormatException;
-import java.util.zip.Deflater;
-import java.util.zip.Inflater;
+import se.idsec.signservice.security.sign.pdf.document.PDFSignTaskDocument;
 
 public class PdfIntegrationUtils {
 

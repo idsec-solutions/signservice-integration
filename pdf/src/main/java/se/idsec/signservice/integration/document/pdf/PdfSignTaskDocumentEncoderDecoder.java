@@ -19,7 +19,7 @@ import se.idsec.signservice.integration.core.error.ErrorCode;
 import se.idsec.signservice.integration.document.DocumentDecoder;
 import se.idsec.signservice.integration.document.DocumentEncoder;
 import se.idsec.signservice.integration.document.DocumentProcessingException;
-import se.idsec.signservice.pdf.sign.PDFSignTaskDocument;
+import se.idsec.signservice.security.sign.pdf.document.PDFSignTaskDocument;
 
 import java.util.Base64;
 

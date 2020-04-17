@@ -32,19 +32,18 @@ import se.idsec.signservice.integration.document.impl.AbstractTbsDocumentProcess
 import se.idsec.signservice.integration.document.impl.EtsiAdesRequirementValidator;
 import se.idsec.signservice.integration.document.impl.TbsCalculationResult;
 import se.idsec.signservice.integration.document.pdf.utils.PdfIntegrationUtils;
-import se.idsec.signservice.integration.document.pdf.utils.VisibleImageFactory;
-import se.idsec.signservice.integration.document.pdf.visiblesig.VisibleSignatureSerializer;
-import se.idsec.signservice.pdf.sign.PDFSignTaskDocument;
-import se.idsec.signservice.pdf.sign.VisibleSigImage;
+import se.idsec.signservice.integration.document.pdf.visiblesig.VisibleSigImageFactory;
+import se.idsec.signservice.integration.document.pdf.visiblesig.VisibleSigImageSerializer;
 import se.idsec.signservice.security.sign.impl.StaticCredentials;
 import se.idsec.signservice.security.sign.pdf.PDFSignerResult;
+import se.idsec.signservice.security.sign.pdf.document.PDFSignTaskDocument;
+import se.idsec.signservice.security.sign.pdf.document.VisibleSigImage;
 import se.idsec.signservice.security.sign.pdf.impl.DefaultPDFSigner;
 
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
 import java.util.List;
-import java.util.zip.DataFormatException;
 
 /**
  * PDF TBS-document processor.
@@ -59,7 +58,7 @@ public class PdfTbsDocumentProcessor extends AbstractTbsDocumentProcessor<PDFSig
   private final StaticCredentials staticKeys = new StaticCredentials();
 
   /** Serializer to serialize and compress a VisibleSigImage object to and from a String value */
-  private final VisibleSignatureSerializer visibleSignatureSerializer = new VisibleSignatureSerializer();
+  private final VisibleSigImageSerializer visibleSigImageSerializer = new VisibleSigImageSerializer();
 
   /** Validator for visible PDF signature requirements. */
   protected final VisiblePdfSignatureRequirementValidator visiblePdfSignatureRequirementValidator =
@@ -138,7 +137,7 @@ public class PdfTbsDocumentProcessor extends AbstractTbsDocumentProcessor<PDFSig
     if (visiblePdfSignatureRequirement != null){
       List<? extends PdfSignatureImageTemplate> pdfSignatureImageTemplates = config.getPdfSignatureImageTemplates();
       List<SignerIdentityAttributeValue> requestedSignerAttributes = signRequestInput.getAuthnRequirements().getRequestedSignerAttributes();
-      VisibleImageFactory factory = new VisibleImageFactory(pdfSignatureImageTemplates);
+      VisibleSigImageFactory factory = new VisibleSigImageFactory(pdfSignatureImageTemplates);
       VisibleSigImage visibleSignImage = factory.getVisibleSignImage(visiblePdfSignatureRequirement, requestedSignerAttributes);
       signTaskDocument.setVisibleSigImage(visibleSignImage);
     }
@@ -175,7 +174,7 @@ public class PdfTbsDocumentProcessor extends AbstractTbsDocumentProcessor<PDFSig
       // Add serialized Visible sign image
       VisibleSigImage visibleSigImage = signTaskDocument.getVisibleSigImage();
       if (visibleSigImage != null){
-          String serializedVisibleSig = visibleSignatureSerializer.serializeVisibleSignatureObject(visibleSigImage);
+          String serializedVisibleSig = visibleSigImageSerializer.serializeVisibleSignatureObject(visibleSigImage);
           extension.putIfAbsent(PDFExtensionParams.visibleSignImage.name(), serializedVisibleSig);
       }
 

@@ -1,10 +1,10 @@
-package se.idsec.signservice.integration.document.pdf.utils;
+package se.idsec.signservice.integration.document.pdf.visiblesig;
 
 import se.idsec.signservice.integration.authentication.SignerIdentityAttribute;
 import se.idsec.signservice.integration.authentication.SignerIdentityAttributeValue;
 import se.idsec.signservice.integration.document.pdf.PdfSignatureImageTemplate;
 import se.idsec.signservice.integration.document.pdf.VisiblePdfSignatureRequirement;
-import se.idsec.signservice.pdf.sign.VisibleSigImage;
+import se.idsec.signservice.security.sign.pdf.document.VisibleSigImage;
 
 import java.util.HashMap;
 import java.util.List;
@@ -12,11 +12,11 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Logger;
 
-public class VisibleImageFactory {
+public class VisibleSigImageFactory {
 
   private List<? extends PdfSignatureImageTemplate> pdfSignatureImageTemplates;
 
-  public VisibleImageFactory(List<? extends PdfSignatureImageTemplate> pdfSignatureImageTemplates) {
+  public VisibleSigImageFactory(List<? extends PdfSignatureImageTemplate> pdfSignatureImageTemplates) {
     this.pdfSignatureImageTemplates = pdfSignatureImageTemplates;
   }
 
@@ -60,7 +60,7 @@ public class VisibleImageFactory {
           name = name.replaceAll("%" + String.valueOf(i + 1), signerAttr.get().getValue());
         }
         else {
-          Logger.getLogger(VisibleImageFactory.class.getName())
+          Logger.getLogger(VisibleSigImageFactory.class.getName())
             .warning("Illegal request for sign image. Required name attributes are not provided");
           return null;
         }

@@ -18,8 +18,6 @@ package se.idsec.signservice.integration.document.pdf;
 import java.security.cert.X509Certificate;
 import java.util.List;
 
-import org.apache.pdfbox.pdmodel.PDDocument;
-
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.util.encoders.Base64;
 import se.idsec.signservice.integration.SignResponseProcessingParameters;
@@ -31,15 +29,15 @@ import se.idsec.signservice.integration.document.*;
 import se.idsec.signservice.integration.document.impl.AbstractSignedDocumentProcessor;
 import se.idsec.signservice.integration.document.impl.DefaultCompiledSignedDocument;
 import se.idsec.signservice.integration.document.pdf.utils.PdfIntegrationUtils;
-import se.idsec.signservice.integration.document.pdf.visiblesig.VisibleSignatureSerializer;
+import se.idsec.signservice.integration.document.pdf.visiblesig.VisibleSigImageSerializer;
 import se.idsec.signservice.integration.dss.SignRequestWrapper;
 import se.idsec.signservice.integration.process.impl.SignResponseProcessingException;
-import se.idsec.signservice.pdf.general.PDFAlgoRegistry;
-import se.idsec.signservice.pdf.sign.PDFSignTaskDocument;
-import se.idsec.signservice.pdf.sign.VisibleSigImage;
-import se.idsec.signservice.pdf.utils.PdfBoxSigUtil;
+import se.idsec.signservice.security.sign.pdf.PDFCompleteSigner;
 import se.idsec.signservice.security.sign.pdf.PDFSignerResult;
-import se.idsec.signservice.security.sign.pdf.impl.PDFCompleteSigner;
+import se.idsec.signservice.security.sign.pdf.configuration.PDFAlgoRegistry;
+import se.idsec.signservice.security.sign.pdf.document.PDFSignTaskDocument;
+import se.idsec.signservice.security.sign.pdf.document.VisibleSigImage;
+import se.idsec.signservice.security.sign.pdf.signprocess.PdfBoxSigUtil;
 import se.swedenconnect.schemas.csig.dssext_1_1.SignTaskData;
 
 /**
@@ -52,7 +50,7 @@ import se.swedenconnect.schemas.csig.dssext_1_1.SignTaskData;
 public class PdfSignedDocumentProcessor extends AbstractSignedDocumentProcessor<PDFSignTaskDocument, PAdESData> {
 
   /** Serializer to serialize and compress a VisibleSigImage object to and from a String value */
-  private final VisibleSignatureSerializer visibleSignatureSerializer = new VisibleSignatureSerializer();
+  private final VisibleSigImageSerializer visibleSigImageSerializer = new VisibleSigImageSerializer();
 
   /** The document decoder. */
   private static final PdfSignTaskDocumentEncoderDecoder documentEncoderDecoder = new PdfSignTaskDocumentEncoderDecoder();
@@ -87,7 +85,7 @@ public class PdfSignedDocumentProcessor extends AbstractSignedDocumentProcessor<
         document.setSignTimeAndId(signTimeAndId);
         document.setCmsSignedData(cmsSignedData);
         if (extension.containsKey(PDFExtensionParams.visibleSignImage.name())){
-          VisibleSigImage visibleSigImage = visibleSignatureSerializer.deserializeVisibleSignImage(
+          VisibleSigImage visibleSigImage = visibleSigImageSerializer.deserializeVisibleSignImage(
             extension.get(PDFExtensionParams.visibleSignImage.name()));
           document.setVisibleSigImage(visibleSigImage);
         }

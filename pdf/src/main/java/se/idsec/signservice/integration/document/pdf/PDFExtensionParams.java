@@ -1,5 +1,7 @@
 package se.idsec.signservice.integration.document.pdf;
 
+import se.idsec.signservice.integration.document.pdf.visiblesig.VisibleSigImageSerializer;
+
 /**
  * Extension parameters for {@link se.idsec.signservice.integration.document.TbsDocument} extensions
  */
@@ -8,6 +10,6 @@ public enum PDFExtensionParams {
   signTimeAndId,
   /** Base64Encoded bytes of CMS Content Info holding the SignedData from the pre-sign process */
   cmsSignedData,
-  /** Serialized {@link se.idsec.signservice.pdf.sign.VisibleSigImage} using the {@link se.idsec.signservice.integration.document.pdf.visiblesig.VisibleSignatureSerializer} */
+  /** Serialized {@link se.idsec.signservice.security.sign.pdf.document.VisibleSigImage} using the {@link VisibleSigImageSerializer} */
   visibleSignImage;
 }

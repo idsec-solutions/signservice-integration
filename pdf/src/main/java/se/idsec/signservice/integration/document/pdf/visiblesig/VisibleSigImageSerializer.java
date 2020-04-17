@@ -3,7 +3,7 @@ package se.idsec.signservice.integration.document.pdf.visiblesig;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.NoArgsConstructor;
 import org.bouncycastle.util.encoders.Base64;
-import se.idsec.signservice.pdf.sign.VisibleSigImage;
+import se.idsec.signservice.security.sign.pdf.document.VisibleSigImage;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -13,7 +13,7 @@ import java.util.zip.Deflater;
 import java.util.zip.Inflater;
 
 @NoArgsConstructor
-public class VisibleSignatureSerializer {
+public class VisibleSigImageSerializer {
 
   public String serializeVisibleSignatureObject(VisibleSigImage sigImage) throws IOException {
     ObjectMapper objectMapper = new ObjectMapper();
