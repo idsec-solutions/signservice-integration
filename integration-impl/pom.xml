@@ -57,15 +57,12 @@
   <dependencies>
   
     <!-- Spring --> 
+    <!-- Optional - Only needed for PdfSignatureImageTemplateExt -->
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-core</artifactId>
+      <optional>true</optional>
     </dependency>
-
-    <dependency>
-      <groupId>org.springframework</groupId>
-      <artifactId>spring-beans</artifactId>
-    </dependency>  
 
     <!-- The API -->
     <dependency>

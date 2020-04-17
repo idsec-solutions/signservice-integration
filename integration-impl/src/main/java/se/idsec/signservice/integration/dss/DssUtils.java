@@ -22,6 +22,7 @@ import javax.annotation.Nonnull;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 
+import org.apache.commons.lang.StringUtils;
 import org.joda.time.DateTime;
 import org.opensaml.core.xml.XMLObject;
 import org.opensaml.core.xml.io.MarshallingException;
@@ -36,7 +37,6 @@ import org.opensaml.core.xml.schema.XSString;
 import org.opensaml.core.xml.util.XMLObjectSupport;
 import org.opensaml.saml.saml2.core.Attribute;
 import org.opensaml.saml.saml2.core.NameID;
-import org.springframework.util.StringUtils;
 import org.w3c.dom.Element;
 
 import lombok.extern.slf4j.Slf4j;
@@ -216,10 +216,10 @@ public class DssUtils {
         MappedAttributeType certAttr = new MappedAttributeType();
         certAttr.setCertAttributeRef(mapping.getDestination().getName());
         certAttr.setCertNameType(mapping.getDestination().getType());
-        if (StringUtils.hasText(mapping.getDestination().getFriendlyName())) {
+        if (StringUtils.isNotBlank(mapping.getDestination().getFriendlyName())) {
           certAttr.setFriendlyName(mapping.getDestination().getFriendlyName());
         }
-        if (StringUtils.hasText(mapping.getDestination().getDefaultValue())) {
+        if (StringUtils.isNotBlank(mapping.getDestination().getDefaultValue())) {
           certAttr.setDefaultValue(mapping.getDestination().getDefaultValue());
         }
         certAttr.setRequired(mapping.getDestination().getRequired() != null
@@ -258,11 +258,11 @@ public class DssUtils {
       throws SignServiceProtocolException {
     try {
       AttributeBuilder builder = new AttributeBuilder(attributeValue.getName());
-      if (!StringUtils.hasText(attributeValue.getNameFormat())) {
+      if (StringUtils.isBlank(attributeValue.getNameFormat())) {
         builder.nameFormat(AttributeBuilder.DEFAULT_NAME_FORMAT);
       }
       String type = attributeValue.getAttributeValueType();
-      if (!StringUtils.hasText(type)) {
+      if (StringUtils.isBlank(type)) {
         type = SignerIdentityAttributeValue.DEFAULT_ATTRIBUTE_VALUE_TYPE;
       }
       builder.value(getValueObject(type, attributeValue.getValue()));

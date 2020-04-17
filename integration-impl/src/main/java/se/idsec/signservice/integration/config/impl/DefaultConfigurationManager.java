@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.springframework.util.StringUtils;
+import org.apache.commons.lang.StringUtils;
 
 import se.idsec.signservice.integration.config.ConfigurationManager;
 import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
@@ -63,7 +63,7 @@ public class DefaultConfigurationManager implements ConfigurationManager {
   
   private void mergePolicies(IntegrationServiceConfiguration policy, List<String> policiesForMerge) {
     final String parentPolicy = policy.getParentPolicy();
-    if (!StringUtils.hasText(parentPolicy)) {
+    if (StringUtils.isBlank(parentPolicy)) {
       return;
     }
     IntegrationServiceConfiguration parent = this.policies.get(parentPolicy);
@@ -71,7 +71,7 @@ public class DefaultConfigurationManager implements ConfigurationManager {
       throw new IllegalArgumentException(
         String.format("Policy '%s' states parentPolicy '%s' - This policy can not be found", policy.getPolicy(), parentPolicy));
     }
-    if (StringUtils.hasText(parent.getParentPolicy())) {
+    if (StringUtils.isNotEmpty(parent.getParentPolicy())) {
       // Oops, the parent policy also has a parent. First check so that we don't have a circular dependency.
       //
       if (policiesForMerge.contains(parentPolicy)) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 IDsec Solutions AB
+ * Copyright 2019-2020 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  */
 package se.idsec.signservice.integration.signmessage.impl;
 
-import org.springframework.util.StringUtils;
+import org.apache.commons.lang.StringUtils;
 
 import se.idsec.signservice.integration.core.validation.AbstractInputValidator;
 import se.idsec.signservice.integration.core.validation.ValidationResult;
@@ -38,7 +38,7 @@ public class SignMessageParametersValidator extends AbstractInputValidator<SignM
     if (object == null) {
       return result;
     }
-    if (!StringUtils.hasText(object.getSignMessage())) {
+    if (StringUtils.isBlank(object.getSignMessage())) {
       result.rejectValue("signMessage", "Missing sign message");
     }
     if (object.getMimeType() != null) {

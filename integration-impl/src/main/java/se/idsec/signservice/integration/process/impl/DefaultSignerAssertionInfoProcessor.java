@@ -19,10 +19,11 @@ import java.io.ByteArrayInputStream;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import javax.annotation.PostConstruct;
+
+import org.apache.commons.lang.StringUtils;
 import org.opensaml.core.xml.io.UnmarshallingException;
 import org.opensaml.saml.saml2.core.Assertion;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.util.StringUtils;
 
 import lombok.extern.slf4j.Slf4j;
 import net.shibboleth.utilities.java.support.xml.XMLParserException;
@@ -54,10 +55,10 @@ import se.swedenconnect.schemas.csig.dssext_1_1.SignerAssertionInfo;
  * @author Stefan Santesson (stefan@idsec.se)
  */
 @Slf4j
-public class DefaultSignerAssertionInfoProcessor implements SignerAssertionInfoProcessor, InitializingBean {
+public class DefaultSignerAssertionInfoProcessor implements SignerAssertionInfoProcessor {
 
   /** Processing config. */
-  protected SignResponseProcessingConfig processingConfig;
+  protected SignResponseProcessingConfig processingConfig = SignResponseProcessingConfig.defaultSignResponseProcessingConfig();
 
   /** {@inheritDoc} */
   @Override
@@ -93,7 +94,7 @@ public class DefaultSignerAssertionInfoProcessor implements SignerAssertionInfoP
 
     // IdentityProvider
     //
-    if (contextInfo.getIdentityProvider() == null || !StringUtils.hasText(contextInfo.getIdentityProvider().getValue())) {
+    if (contextInfo.getIdentityProvider() == null || StringUtils.isBlank(contextInfo.getIdentityProvider().getValue())) {
       final String msg = String.format("No SignerAssertionInfo/ContextInfo/IdentityProvider available in SignResponse [request-id='%s']",
         signRequest.getRequestID());
       log.error("{}: {}", CorrelationID.id(), msg);
@@ -121,7 +122,7 @@ public class DefaultSignerAssertionInfoProcessor implements SignerAssertionInfoP
     // AuthnContextClassRef
     //
     final String authnContextClassRef = contextInfo.getAuthnContextClassRef();
-    if (!StringUtils.hasText(authnContextClassRef)) {
+    if (StringUtils.isBlank(authnContextClassRef)) {
       final String msg = String.format(
         "No SignerAssertionInfo/ContextInfo/AuthnContextClassRef available in SignResponse [request-id='%s']", signRequest.getRequestID());
       log.error("{}: {}", CorrelationID.id(), msg);
@@ -143,7 +144,7 @@ public class DefaultSignerAssertionInfoProcessor implements SignerAssertionInfoP
           .findFirst()
           .orElse(null);
 
-        if (!StringUtils.hasText(signMessageDigest)) {
+        if (StringUtils.isBlank(signMessageDigest)) {
           final String msg = String.format(
             "Missing proof for displayed sign message (no signMessageDigest and no sigmessage authnContext) [request-id='%s']",
             signRequest.getRequestID());
@@ -196,7 +197,7 @@ public class DefaultSignerAssertionInfoProcessor implements SignerAssertionInfoP
     // AssertionRef
     //
     final String assertionRef = contextInfo.getAssertionRef();
-    if (!StringUtils.hasText(assertionRef)) {
+    if (StringUtils.isBlank(assertionRef)) {
       final String msg = String.format(
         "No SignerAssertionInfo/ContextInfo/AssertionRef available in SignResponse [request-id='%s']", signRequest.getRequestID());
       log.error("{}: {}", CorrelationID.id(), msg);
@@ -302,7 +303,7 @@ public class DefaultSignerAssertionInfoProcessor implements SignerAssertionInfoP
       final RequestedCertAttributes requestedAttributes =
           signRequest.getSignRequestExtension().getCertRequestProperties().getRequestedCertAttributes();
       for (MappedAttributeType mat : requestedAttributes.getRequestedCertAttributes()) {
-        if (!mat.isRequired() || StringUtils.hasText(mat.getDefaultValue())) {
+        if (!mat.isRequired() || StringUtils.isNotBlank(mat.getDefaultValue())) {
           // For non required attributes or those having a default value there is no requirement to
           // get it from the IdP or AA.
           continue;
@@ -374,7 +375,7 @@ public class DefaultSignerAssertionInfoProcessor implements SignerAssertionInfoP
       throws SignServiceIntegrationException {
 
     final String authnContextClassRef = contextInfo.getAuthnContextClassRef();
-    if (!StringUtils.hasText(authnContextClassRef)) {
+    if (StringUtils.isBlank(authnContextClassRef)) {
       final String msg = String.format(
         "No SignerAssertionInfo/ContextInfo/AuthnContextClassRef available in SignResponse [request-id='%s']", signRequest.getRequestID());
       log.error("{}: {}", CorrelationID.id(), msg);
@@ -412,9 +413,17 @@ public class DefaultSignerAssertionInfoProcessor implements SignerAssertionInfoP
     this.processingConfig = processingConfig;
   }
 
-  /** {@inheritDoc} */
-  @Override
-  public void afterPropertiesSet() throws Exception {
+  /**
+   * Ensures that the {@code processingConfig} property is assigned. By default
+   * {@link SignResponseProcessingConfig#defaultSignResponseProcessingConfig()} is used.
+   * 
+   * <p>
+   * Note: If executing in a Spring Framework environment this method is automatically invoked after all properties have
+   * been assigned. Otherwise it should be explicitly invoked.
+   * </p>
+   */
+  @PostConstruct
+  public void afterPropertiesSet() {
     if (this.processingConfig == null) {
       this.processingConfig = SignResponseProcessingConfig.defaultSignResponseProcessingConfig();
     }

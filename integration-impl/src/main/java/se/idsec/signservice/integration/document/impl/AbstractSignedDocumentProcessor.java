@@ -21,8 +21,9 @@ import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
 
+import javax.annotation.PostConstruct;
+
 import org.opensaml.xmlsec.algorithm.AlgorithmSupport;
-import org.springframework.beans.factory.InitializingBean;
 
 import lombok.extern.slf4j.Slf4j;
 import se.idsec.signservice.integration.SignResponseProcessingParameters;
@@ -46,10 +47,10 @@ import se.swedenconnect.schemas.csig.dssext_1_1.SignTaskData;
  * @author Stefan Santesson (stefan@idsec.se)
  */
 @Slf4j
-public abstract class AbstractSignedDocumentProcessor<T, X extends AdesObject> implements SignedDocumentProcessor<T, X>, InitializingBean {
-  
+public abstract class AbstractSignedDocumentProcessor<T, X extends AdesObject> implements SignedDocumentProcessor<T, X> {
+
   /** Processing configuration. */
-  private SignResponseProcessingConfig processingConfiguration;
+  private SignResponseProcessingConfig processingConfiguration = SignResponseProcessingConfig.defaultSignResponseProcessingConfig();
 
   /** {@inheritDoc} */
   @Override
@@ -138,18 +139,29 @@ public abstract class AbstractSignedDocumentProcessor<T, X extends AdesObject> i
   public SignResponseProcessingConfig getProcessingConfiguration() {
     return this.processingConfiguration;
   }
-  
+
   /**
    * Assigns the processing configuration.
    * 
-   * @param processingConfiguration processing configuration
+   * @param processingConfiguration
+   *          processing configuration
    */
   public void setProcessingConfiguration(final SignResponseProcessingConfig processingConfiguration) {
     this.processingConfiguration = processingConfiguration;
   }
 
-  /** {@inheritDoc} */
-  @Override
+  /**
+   * Ensures that the {@code processingConfiguration} property is assigned. By default
+   * {@link SignResponseProcessingConfig#defaultSignResponseProcessingConfig()} is used.
+   * 
+   * <p>
+   * Note: If executing in a Spring Framework environment this method is automatically invoked after all properties have
+   * been assigned. Otherwise it should be explicitly invoked.
+   * </p>
+   * 
+   * @throws Exception for init errors
+   */
+  @PostConstruct
   public void afterPropertiesSet() throws Exception {
     if (this.processingConfiguration == null) {
       this.processingConfiguration = SignResponseProcessingConfig.defaultSignResponseProcessingConfig();

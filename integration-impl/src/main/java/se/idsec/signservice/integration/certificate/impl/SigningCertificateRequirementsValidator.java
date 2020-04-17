@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 IDsec Solutions AB
+ * Copyright 2019-2020 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  */
 package se.idsec.signservice.integration.certificate.impl;
 
-import org.springframework.util.StringUtils;
+import org.apache.commons.lang.StringUtils;
 
 import se.idsec.signservice.integration.authentication.SignerIdentityAttribute;
 import se.idsec.signservice.integration.certificate.CertificateAttributeMapping;
@@ -59,7 +59,7 @@ public class SigningCertificateRequirementsValidator extends
         result.rejectValue("attributeMappings[" + pos + "].destination", "Missing destination for mapping");
       }
       else {
-        if (!StringUtils.hasText(mapping.getDestination().getType())) {
+        if (StringUtils.isBlank(mapping.getDestination().getType())) {
           result.rejectValue("attributeMappings[" + pos + "].destination.type", "Missing type for destination attribute");
         }
         else {
@@ -70,7 +70,7 @@ public class SigningCertificateRequirementsValidator extends
             result.rejectValue("attributeMappings[" + pos + "].destination.type", e.getMessage());
           }
         }
-        if (!StringUtils.hasText(mapping.getDestination().getName())) {
+        if (StringUtils.isBlank(mapping.getDestination().getName())) {
           result.rejectValue("attributeMappings[" + pos + "].destination.name", "Missing name for destination attribute");
         }
       }
@@ -88,7 +88,7 @@ public class SigningCertificateRequirementsValidator extends
             result.rejectValue("attributeMappings[" + pos + "].sources[" + spos + "].type",
               String.format("Unsupported attribute type - %s", source.getType()));
           }
-          if (!StringUtils.hasText(source.getName())) {
+          if (StringUtils.isBlank(source.getName())) {
             result.rejectValue("attributeMappings[" + pos + "].sources[" + spos + "].name", "Missing attribute name");
           }
           spos++;
