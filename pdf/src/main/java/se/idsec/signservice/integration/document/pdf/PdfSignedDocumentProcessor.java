@@ -31,10 +31,12 @@ import se.idsec.signservice.integration.document.*;
 import se.idsec.signservice.integration.document.impl.AbstractSignedDocumentProcessor;
 import se.idsec.signservice.integration.document.impl.DefaultCompiledSignedDocument;
 import se.idsec.signservice.integration.document.pdf.utils.PdfIntegrationUtils;
+import se.idsec.signservice.integration.document.pdf.visiblesig.VisibleSignatureSerializer;
 import se.idsec.signservice.integration.dss.SignRequestWrapper;
 import se.idsec.signservice.integration.process.impl.SignResponseProcessingException;
 import se.idsec.signservice.pdf.general.PDFAlgoRegistry;
 import se.idsec.signservice.pdf.sign.PDFSignTaskDocument;
+import se.idsec.signservice.pdf.sign.VisibleSigImage;
 import se.idsec.signservice.pdf.utils.PdfBoxSigUtil;
 import se.idsec.signservice.security.sign.pdf.PDFSignerResult;
 import se.idsec.signservice.security.sign.pdf.impl.PDFCompleteSigner;
@@ -48,6 +50,9 @@ import se.swedenconnect.schemas.csig.dssext_1_1.SignTaskData;
  */
 @Slf4j
 public class PdfSignedDocumentProcessor extends AbstractSignedDocumentProcessor<PDFSignTaskDocument, PAdESData> {
+
+  /** Serializer to serialize and compress a VisibleSigImage object to and from a String value */
+  private final VisibleSignatureSerializer visibleSignatureSerializer = new VisibleSignatureSerializer();
 
   /** The document decoder. */
   private static final PdfSignTaskDocumentEncoderDecoder documentEncoderDecoder = new PdfSignTaskDocumentEncoderDecoder();
@@ -77,18 +82,21 @@ public class PdfSignedDocumentProcessor extends AbstractSignedDocumentProcessor<
       // Add the PDF signingTimeAndId
       try {
         Extension extension = tbsDocument.getExtension();
-        Long signTimeAndId = Long.valueOf((String) extension.get(PDFExtensionParams.signTimeAndId.name()));
+        Long signTimeAndId = Long.valueOf(extension.get(PDFExtensionParams.signTimeAndId.name()));
         byte[] cmsSignedData = Base64.decode(extension.get(PDFExtensionParams.cmsSignedData.name()));
         document.setSignTimeAndId(signTimeAndId);
         document.setCmsSignedData(cmsSignedData);
+        if (extension.containsKey(PDFExtensionParams.visibleSignImage.name())){
+          VisibleSigImage visibleSigImage = visibleSignatureSerializer.deserializeVisibleSignImage(
+            extension.get(PDFExtensionParams.visibleSignImage.name()));
+          document.setVisibleSigImage(visibleSigImage);
+        }
       } catch (Exception ex){
         log.debug("Failed to process sign response. PDF document does not store the pre-sign signing time needed to complete the signed document assembly");
         throw new SignResponseProcessingException(new ErrorCode.Code("complete-sign"),"PDF document does not store the pre-sign signing time", ex);
       }
-      // Set visible signature and pades requirements
+      // Set pades requirements
       document.setAdesType(PdfIntegrationUtils.getPadesRequirementString(tbsDocument.getAdesRequirement()));
-      // TODO Repeat visible signature requirement to VisibleSignature object
-      document.setVisibleSigImage(null);
 
       // Create complete signer and swap signature data
       PDFCompleteSigner completeSigner = new PDFCompleteSigner();

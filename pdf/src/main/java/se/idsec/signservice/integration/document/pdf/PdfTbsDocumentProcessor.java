@@ -19,6 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.util.encoders.Base64;
 import org.springframework.util.StringUtils;
 import se.idsec.signservice.integration.SignRequestInput;
+import se.idsec.signservice.integration.authentication.SignerIdentityAttributeValue;
 import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
 import se.idsec.signservice.integration.core.Extension;
 import se.idsec.signservice.integration.core.error.ErrorCode;
@@ -31,13 +32,19 @@ import se.idsec.signservice.integration.document.impl.AbstractTbsDocumentProcess
 import se.idsec.signservice.integration.document.impl.EtsiAdesRequirementValidator;
 import se.idsec.signservice.integration.document.impl.TbsCalculationResult;
 import se.idsec.signservice.integration.document.pdf.utils.PdfIntegrationUtils;
+import se.idsec.signservice.integration.document.pdf.utils.VisibleImageFactory;
+import se.idsec.signservice.integration.document.pdf.visiblesig.VisibleSignatureSerializer;
 import se.idsec.signservice.pdf.sign.PDFSignTaskDocument;
+import se.idsec.signservice.pdf.sign.VisibleSigImage;
 import se.idsec.signservice.security.sign.impl.StaticCredentials;
 import se.idsec.signservice.security.sign.pdf.PDFSignerResult;
 import se.idsec.signservice.security.sign.pdf.impl.DefaultPDFSigner;
 
+import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
+import java.util.List;
+import java.util.zip.DataFormatException;
 
 /**
  * PDF TBS-document processor.
@@ -50,6 +57,9 @@ public class PdfTbsDocumentProcessor extends AbstractTbsDocumentProcessor<PDFSig
 
   /** We need to use dummy keys when creating the to-be-signed bytes. */
   private final StaticCredentials staticKeys = new StaticCredentials();
+
+  /** Serializer to serialize and compress a VisibleSigImage object to and from a String value */
+  private final VisibleSignatureSerializer visibleSignatureSerializer = new VisibleSignatureSerializer();
 
   /** Validator for visible PDF signature requirements. */
   protected final VisiblePdfSignatureRequirementValidator visiblePdfSignatureRequirementValidator =
@@ -122,7 +132,16 @@ public class PdfTbsDocumentProcessor extends AbstractTbsDocumentProcessor<PDFSig
     PDFSignTaskDocument signTaskDocument = processedTbsDocument.getDocumentObject(PDFSignTaskDocument.class);
     signTaskDocument.setAdesType(ades);
 
-    //TODO Set visible signature object
+    //TODO check that name presence is compatible with image template
+
+    VisiblePdfSignatureRequirement visiblePdfSignatureRequirement = document.getVisiblePdfSignatureRequirement();
+    if (visiblePdfSignatureRequirement != null){
+      List<? extends PdfSignatureImageTemplate> pdfSignatureImageTemplates = config.getPdfSignatureImageTemplates();
+      List<SignerIdentityAttributeValue> requestedSignerAttributes = signRequestInput.getAuthnRequirements().getRequestedSignerAttributes();
+      VisibleImageFactory factory = new VisibleImageFactory(pdfSignatureImageTemplates);
+      VisibleSigImage visibleSignImage = factory.getVisibleSignImage(visiblePdfSignatureRequirement, requestedSignerAttributes);
+      signTaskDocument.setVisibleSigImage(visibleSignImage);
+    }
 
     return processedTbsDocument;
   }
@@ -153,10 +172,17 @@ public class PdfTbsDocumentProcessor extends AbstractTbsDocumentProcessor<PDFSig
       extension.putIfAbsent(PDFExtensionParams.cmsSignedData.name(),
         Base64.toBase64String(pdfSignerResult.getSignedDocument().getCmsSignedData()));
 
+      // Add serialized Visible sign image
+      VisibleSigImage visibleSigImage = signTaskDocument.getVisibleSigImage();
+      if (visibleSigImage != null){
+          String serializedVisibleSig = visibleSignatureSerializer.serializeVisibleSignatureObject(visibleSigImage);
+          extension.putIfAbsent(PDFExtensionParams.visibleSignImage.name(), serializedVisibleSig);
+      }
+
       return tbsResult;
 
     }
-    catch (NoSuchAlgorithmException | SignatureException e) {
+    catch (NoSuchAlgorithmException | SignatureException | IOException e) {
       final String msg = String.format("Error while calculating signed attributes for PDF document '%s' - %s",
         tbsDocument.getId(), e.getMessage());
       log.error("{}: {}", CorrelationID.id(), msg, e);
