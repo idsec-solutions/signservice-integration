@@ -15,6 +15,19 @@
  */
 package se.idsec.signservice.integration.document.pdf.signpage;
 
-public interface SignImagePlacementCalulator {
-  SignImagePlacement getPlacement(int sigCount, SignImagePlacement basePlacement);
+import se.idsec.signservice.integration.authentication.SignerIdentityAttributeValue;
+
+import java.util.List;
+
+public interface SignerNameRequirementProcessor {
+
+  /**
+   * Get the attribute requirements for including a name in the visible sign image
+   * @param signerAttrlist list of name attributes included in the sign request representing the signer identity
+   *
+   *                       <p>Signer name attributes must be among these attributes</p>
+   * @return signer name requirements
+   */
+  SignerNameRequirement getSignerNameRequirements(List<SignerIdentityAttributeValue> signerAttrlist);
+
 }

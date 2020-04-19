@@ -53,7 +53,7 @@ public class PdfSignedDocumentProcessor extends AbstractSignedDocumentProcessor<
   private final VisibleSigImageSerializer visibleSigImageSerializer = new VisibleSigImageSerializer();
 
   /** The document decoder. */
-  private static final PdfSignTaskDocumentEncoderDecoder documentEncoderDecoder = new PdfSignTaskDocumentEncoderDecoder();
+  private static final PdfDocumentEncoderDecoder documentEncoderDecoder = new PdfDocumentEncoderDecoder();
 
   /** {@inheritDoc} */
   @Override

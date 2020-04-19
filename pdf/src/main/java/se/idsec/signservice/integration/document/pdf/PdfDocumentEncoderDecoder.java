@@ -15,19 +15,13 @@
  */
 package se.idsec.signservice.integration.document.pdf;
 
-import java.io.BufferedOutputStream;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Base64;
-
-import org.apache.pdfbox.pdmodel.PDDocument;
-
 import se.idsec.signservice.integration.core.error.ErrorCode;
 import se.idsec.signservice.integration.document.DocumentDecoder;
 import se.idsec.signservice.integration.document.DocumentEncoder;
 import se.idsec.signservice.integration.document.DocumentProcessingException;
+import se.idsec.signservice.security.sign.pdf.document.PDFSignTaskDocument;
+
+import java.util.Base64;
 
 /**
  * Encoder/decoder for PDF documents.
@@ -35,14 +29,15 @@ import se.idsec.signservice.integration.document.DocumentProcessingException;
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
-public class PdfDocumentEncoderDecoder implements DocumentDecoder<PDDocument>, DocumentEncoder<PDDocument> {
+public class PdfDocumentEncoderDecoder implements DocumentDecoder<PDFSignTaskDocument>, DocumentEncoder<PDFSignTaskDocument> {
 
   /** {@inheritDoc} */
   @Override
-  public PDDocument decodeDocument(final String content) throws DocumentProcessingException {
-    try {      
-      InputStream is = new ByteArrayInputStream(Base64.getDecoder().decode(content));
-      return PDDocument.load(is);
+  public PDFSignTaskDocument decodeDocument(final String content) throws DocumentProcessingException {
+    try {
+      return PDFSignTaskDocument.builder()
+        .pdfDocument(Base64.getDecoder().decode(content))
+        .build();
     }
     catch (Exception e) {
       throw new DocumentProcessingException(new ErrorCode.Code("decode"), "Failed to load PDF object", e);
@@ -51,25 +46,12 @@ public class PdfDocumentEncoderDecoder implements DocumentDecoder<PDDocument>, D
 
   /** {@inheritDoc} */
   @Override
-  public String encodeDocument(final PDDocument document) throws DocumentProcessingException {
-    ByteArrayOutputStream os = new ByteArrayOutputStream();
-    BufferedOutputStream bos = new BufferedOutputStream(os);
+  public String encodeDocument(final PDFSignTaskDocument document) throws DocumentProcessingException {
     try {
-      document.save(bos);
-      bos.close();
-      document.close();
-      return Base64.getEncoder().encodeToString(os.toByteArray());
+      return Base64.getEncoder().encodeToString(document.getPdfDocument());
     }
     catch (Exception e) {
       throw new DocumentProcessingException(new ErrorCode.Code("encode"), "Failed to encode PDF object", e);
     }
-    finally {
-      try {
-        bos.close();
-      }
-      catch (IOException e) {        
-      }
-    }
   }
-
 }

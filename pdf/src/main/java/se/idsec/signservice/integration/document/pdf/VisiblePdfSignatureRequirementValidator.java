@@ -94,11 +94,11 @@ public class VisiblePdfSignatureRequirementValidator extends
         }
         if (object.getFieldValues() == null) {
           result.rejectValue("fieldValues", String.format(
-            "The field {0} is required by template, but not given in input", field));
+            "The field %s is required by template, but not given in input", field));
         }
         else if (object.getFieldValues().get(field) == null) {
           result.rejectValue("fieldValues", String.format(
-            "The field {0} is required by template, but not given in input", field));
+            "The field %s is required by template, but not given in input", field));
         }
       }
     }

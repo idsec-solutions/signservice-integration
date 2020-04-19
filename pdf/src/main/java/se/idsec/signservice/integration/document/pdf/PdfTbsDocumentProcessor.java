@@ -65,7 +65,7 @@ public class PdfTbsDocumentProcessor extends AbstractTbsDocumentProcessor<PDFSig
     new VisiblePdfSignatureRequirementValidator();
 
   /** Document decoder. */
-  protected final static PdfSignTaskDocumentEncoderDecoder documentEncoderDecoder = new PdfSignTaskDocumentEncoderDecoder();
+  protected final static PdfDocumentEncoderDecoder documentEncoderDecoder = new PdfDocumentEncoderDecoder();
 
   /** {@inheritDoc} */
   @Override
