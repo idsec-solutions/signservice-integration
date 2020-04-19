@@ -15,6 +15,8 @@
  */
 package se.idsec.signservice.integration.document.pdf;
 
+import java.io.IOException;
+import java.security.SignatureException;
 import java.security.cert.X509Certificate;
 import java.util.List;
 
@@ -38,6 +40,8 @@ import se.idsec.signservice.security.sign.pdf.configuration.PDFAlgoRegistry;
 import se.idsec.signservice.security.sign.pdf.document.PDFSignTaskDocument;
 import se.idsec.signservice.security.sign.pdf.document.VisibleSigImage;
 import se.idsec.signservice.security.sign.pdf.signprocess.PdfBoxSigUtil;
+import se.idsec.signservice.security.sign.pdf.verify.PdfSigVerifyResult;
+import se.idsec.signservice.security.sign.pdf.verify.PdfSignatureVerifier;
 import se.swedenconnect.schemas.csig.dssext_1_1.SignTaskData;
 
 /**
@@ -136,8 +140,24 @@ public class PdfSignedDocumentProcessor extends AbstractSignedDocumentProcessor<
     
     log.debug("{}: Validating signed PDF document for Sign task '{}' ... [request-id='{}']",
       CorrelationID.id(), signTaskData.getSignTaskId(), requestID);
-    
-    // TODO
+
+    try {
+      PdfSigVerifyResult pdfSigVerifyResult = PdfSignatureVerifier.verifyPdfSignatures(signedDocument.getPdfDocument());
+      if (!pdfSigVerifyResult.isAllSigsValid()){
+        if (pdfSigVerifyResult.isLastSigValid()){
+          log.debug("Generated signature validates, but document contains invalid signatures");
+          throw new SignResponseProcessingException(new ErrorCode.Code("complete-sign"),"Generated signature validates, but document contains invalid signatures");
+        } else {
+          log.debug("Generated signature fails signature validation");
+          throw new SignResponseProcessingException(new ErrorCode.Code("complete-sign"),"Generated signature fails signature validation");
+        }
+      }
+    }
+    catch (Exception e) {
+      log.debug("Signature validation fails with exception", e);
+      throw new SignResponseProcessingException(new ErrorCode.Code("complete-sign"),"Generated signature fails signature validation", e);
+    }
+    log.debug("Signature validation success");
   }
 
   /** {@inheritDoc} */
