@@ -15,11 +15,6 @@
  */
 package se.idsec.signservice.integration.document.pdf;
 
-import java.io.IOException;
-import java.security.SignatureException;
-import java.security.cert.X509Certificate;
-import java.util.List;
-
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.util.encoders.Base64;
 import se.idsec.signservice.integration.SignResponseProcessingParameters;
@@ -43,6 +38,9 @@ import se.idsec.signservice.security.sign.pdf.signprocess.PdfBoxSigUtil;
 import se.idsec.signservice.security.sign.pdf.verify.PdfSigVerifyResult;
 import se.idsec.signservice.security.sign.pdf.verify.PdfSignatureVerifier;
 import se.swedenconnect.schemas.csig.dssext_1_1.SignTaskData;
+
+import java.security.cert.X509Certificate;
+import java.util.List;
 
 /**
  * Signed document processor for PDF documents.
@@ -176,9 +174,6 @@ public class PdfSignedDocumentProcessor extends AbstractSignedDocumentProcessor<
   @Override
   public void afterPropertiesSet() throws Exception {
     super.afterPropertiesSet();
-    
-    // TODO: Any checks of required properties ... Use org.springframework.util.Assert
-    
   }
   
   
