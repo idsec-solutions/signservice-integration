@@ -156,6 +156,12 @@ public class PdfTbsDocumentProcessor extends AbstractTbsDocumentProcessor<PDFSig
       PDFSignTaskDocument signTaskDocument = document.getDocumentObject(PDFSignTaskDocument.class);
       signer.setIncludeCertificateChain(false);
       PDFSignerResult pdfSignerResult = signer.sign(signTaskDocument);
+      if (!pdfSignerResult.isSuccess()){
+        final String msg = String.format("Error while pre-signing the PDF document '%s' - %s",
+          tbsDocument.getId(), pdfSignerResult.getException().getMessage());
+        throw new DocumentProcessingException(new ErrorCode.Code("sign"), msg, pdfSignerResult.getException());
+
+      }
       TbsCalculationResult tbsResult = TbsCalculationResult.builder()
         .toBeSignedBytes(pdfSignerResult.getSignedAttributes())
         .sigType("PDF")
@@ -181,7 +187,7 @@ public class PdfTbsDocumentProcessor extends AbstractTbsDocumentProcessor<PDFSig
       return tbsResult;
 
     }
-    catch (NoSuchAlgorithmException | SignatureException | IOException e) {
+    catch (NoSuchAlgorithmException | SignatureException | IOException | NullPointerException e) {
       final String msg = String.format("Error while calculating signed attributes for PDF document '%s' - %s",
         tbsDocument.getId(), e.getMessage());
       log.error("{}: {}", CorrelationID.id(), msg, e);
