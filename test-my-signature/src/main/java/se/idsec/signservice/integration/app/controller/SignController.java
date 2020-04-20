@@ -131,7 +131,7 @@ public class SignController extends BaseController {
           : this.messageSource.getMessage("sp.msg.sigm-message-noname", null, LocaleContextHolder.getLocale()))
       .performEncryption(/*true*/false)
       .mimeType(SignMessageMimeType.TEXT)
-      .mustShow(/*true*/false)
+      .mustShow(true)
       .build();
 
     session.setAttribute("sign-message", signMessageParameters.getSignMessage());

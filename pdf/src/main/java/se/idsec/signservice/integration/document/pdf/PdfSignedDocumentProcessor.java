@@ -15,6 +15,13 @@
  */
 package se.idsec.signservice.integration.document.pdf;
 
+import java.security.cert.X509Certificate;
+import java.util.List;
+
+import javax.annotation.PostConstruct;
+
+import org.apache.pdfbox.pdmodel.PDDocument;
+
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.util.encoders.Base64;
 import se.idsec.signservice.integration.SignResponseProcessingParameters;
@@ -44,7 +51,7 @@ import java.util.List;
 
 /**
  * Signed document processor for PDF documents.
- * 
+ *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
@@ -66,10 +73,10 @@ public class PdfSignedDocumentProcessor extends AbstractSignedDocumentProcessor<
   /** {@inheritDoc} */
   @Override
   public CompiledSignedDocument<PDFSignTaskDocument, PAdESData> buildSignedDocument(
-      final TbsDocument tbsDocument, 
+      final TbsDocument tbsDocument,
       final SignTaskData signedData,
-      final List<X509Certificate> signerCertificateChain, 
-      final SignRequestWrapper signRequest, 
+      final List<X509Certificate> signerCertificateChain,
+      final SignRequestWrapper signRequest,
       final SignResponseProcessingParameters parameters) throws SignServiceIntegrationException {
 
     try {
@@ -131,11 +138,11 @@ public class PdfSignedDocumentProcessor extends AbstractSignedDocumentProcessor<
   /** {@inheritDoc} */
   @Override
   public void validateSignedDocument(final PDFSignTaskDocument signedDocument,
-      final X509Certificate signerCertificate, 
+      final X509Certificate signerCertificate,
       final SignTaskData signTaskData,
-      final SignResponseProcessingParameters parameters, 
+      final SignResponseProcessingParameters parameters,
       final String requestID) throws SignServiceIntegrationException {
-    
+
     log.debug("{}: Validating signed PDF document for Sign task '{}' ... [request-id='{}']",
       CorrelationID.id(), signTaskData.getSignTaskId(), requestID);
 
@@ -172,9 +179,10 @@ public class PdfSignedDocumentProcessor extends AbstractSignedDocumentProcessor<
 
   /** {@inheritDoc} */
   @Override
+  @PostConstruct
   public void afterPropertiesSet() throws Exception {
     super.afterPropertiesSet();
   }
-  
-  
+
+
 }

@@ -15,10 +15,8 @@
  */
 package se.idsec.signservice.integration.state.impl;
 
+import javax.annotation.PostConstruct;
 import javax.xml.bind.JAXBException;
-
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.util.Assert;
 
 import lombok.extern.slf4j.Slf4j;
 import se.idsec.signservice.integration.SignRequestInput;
@@ -31,6 +29,7 @@ import se.idsec.signservice.integration.state.IntegrationServiceStateCache;
 import se.idsec.signservice.integration.state.SignatureSessionState;
 import se.idsec.signservice.integration.state.SignatureStateProcessor;
 import se.idsec.signservice.integration.state.StateException;
+import se.idsec.signservice.utils.AssertThat;
 import se.idsec.signservice.xml.DOMUtils;
 import se.idsec.signservice.xml.InternalXMLException;
 import se.idsec.signservice.xml.JAXBMarshaller;
@@ -42,7 +41,7 @@ import se.idsec.signservice.xml.JAXBMarshaller;
  * @author Stefan Santesson (stefan@idsec.se)
  */
 @Slf4j
-public class DefaultSignatureStateProcessor implements SignatureStateProcessor, InitializingBean {
+public class DefaultSignatureStateProcessor implements SignatureStateProcessor {
 
   /** The state cache. */
   private IntegrationServiceStateCache stateCache;
@@ -188,10 +187,20 @@ public class DefaultSignatureStateProcessor implements SignatureStateProcessor, 
     this.configurationManager = configurationManager;
   }
 
-  /** {@inheritDoc} */
-  @Override
+  /**
+   * Ensures that all required properties have been assigned.
+   * 
+   * <p>
+   * Note: If executing in a Spring Framework environment this method is automatically invoked after all properties have
+   * been assigned. Otherwise it should be explicitly invoked.
+   * </p>
+   * 
+   * @throws Exception
+   *           if not all settings are correct
+   */
+  @PostConstruct
   public void afterPropertiesSet() throws Exception {    
-    Assert.notNull(this.configurationManager, "The 'configurationManager' property must be assigned");
+    AssertThat.isNotNull(this.configurationManager, "The 'configurationManager' property must be assigned");
 
     // If all policies are stateless, we don't need a cache ...
     //

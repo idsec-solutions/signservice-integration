@@ -23,9 +23,9 @@ import java.util.List;
 
 import javax.xml.xpath.XPathExpressionException;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.xml.security.signature.XMLSignature;
 import org.apache.xml.security.utils.Constants;
-import org.springframework.util.StringUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -359,7 +359,7 @@ public class XmlSignedDocumentProcessor extends AbstractSignedDocumentProcessor<
               : se.idsec.signservice.security.sign.xml.XMLSignatureLocation.ChildPosition.LAST;
 
       final se.idsec.signservice.security.sign.xml.XMLSignatureLocation sigLoc =
-          StringUtils.hasText(parameters.getXmlSignatureLocation().getXPath())
+          StringUtils.isNotBlank(parameters.getXmlSignatureLocation().getXPath())
               ? new se.idsec.signservice.security.sign.xml.XMLSignatureLocation(parameters.getXmlSignatureLocation().getXPath(), _child)
               : new se.idsec.signservice.security.sign.xml.XMLSignatureLocation(_child);
 

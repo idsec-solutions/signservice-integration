@@ -20,20 +20,19 @@ import java.util.Collections;
 import java.util.GregorianCalendar;
 import java.util.List;
 
+import javax.annotation.PostConstruct;
 import javax.xml.bind.JAXBException;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.xpath.XPathExpressionException;
 
+import org.apache.commons.lang.StringUtils;
 import org.joda.time.DateTime;
 import org.opensaml.core.xml.util.XMLObjectSupport;
 import org.opensaml.saml.saml2.core.Audience;
 import org.opensaml.saml.saml2.core.AudienceRestriction;
 import org.opensaml.saml.saml2.core.Conditions;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 import org.w3c.dom.Document;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -65,6 +64,7 @@ import se.idsec.signservice.security.sign.xml.XMLSignatureLocation;
 import se.idsec.signservice.security.sign.xml.XMLSignatureLocation.ChildPosition;
 import se.idsec.signservice.security.sign.xml.XMLSignerResult;
 import se.idsec.signservice.security.sign.xml.impl.DefaultXMLSigner;
+import se.idsec.signservice.utils.AssertThat;
 import se.idsec.signservice.xml.DOMUtils;
 import se.idsec.signservice.xml.JAXBMarshaller;
 import se.litsec.swedisheid.opensaml.saml2.authentication.LevelofAssuranceAuthenticationContextURI;
@@ -79,7 +79,7 @@ import se.swedenconnect.schemas.csig.dssext_1_1.SignTasks;
  * @author Stefan Santesson (stefan@idsec.se)
  */
 @Slf4j
-public class DefaultSignRequestProcessor implements SignRequestProcessor, InitializingBean {
+public class DefaultSignRequestProcessor implements SignRequestProcessor {
 
   /** Processors for different TBS documents. */
   private List<TbsDocumentProcessor<?>> tbsDocumentProcessors;
@@ -125,7 +125,7 @@ public class DefaultSignRequestProcessor implements SignRequestProcessor, Initia
     //
     SignRequestInput.SignRequestInputBuilder inputBuilder = signRequestInput.toBuilder();
 
-    if (!StringUtils.hasText(signRequestInput.getCorrelationId())) {
+    if (StringUtils.isBlank(signRequestInput.getCorrelationId())) {
       log.debug("No correlation ID provided in SignRequestInput, using '{}'", CorrelationID.id());
       inputBuilder.correlationId(CorrelationID.id());
     }
@@ -497,19 +497,26 @@ public class DefaultSignRequestProcessor implements SignRequestProcessor, Initia
     }
   }
 
-  /** {@inheritDoc} */
-  @Override
+  /**
+   * Ensures that all required properties have been assigned.
+   * 
+   * <p>
+   * Note: If executing in a Spring Framework environment this method is automatically invoked after all properties have
+   * been assigned. Otherwise it should be explicitly invoked.
+   * </p>
+   * 
+   * @throws Exception
+   *           if not all settings are correct
+   */
+  @PostConstruct
   public void afterPropertiesSet() throws Exception {
-    Assert.notEmpty(this.tbsDocumentProcessors, "At least one TBS document processor must be configured");
-    Assert.notNull(this.signMessageProcessor, "Missing 'signMessageProcessor'");
+    AssertThat.isNotEmpty(this.tbsDocumentProcessors, "At least one TBS document processor must be configured");
+    AssertThat.isNotNull(this.signMessageProcessor, "Missing 'signMessageProcessor'");
   }
 
   /**
    * We extend the {@link Extension} class so that we can save a non-string object as an extension during the
    * processing.
-   * 
-   * @author Martin Lindström (martin@idsec.se)
-   * @author Stefan Santesson (stefan@idsec.se)
    */
   private static class DocumentExtension extends Extension {
 
