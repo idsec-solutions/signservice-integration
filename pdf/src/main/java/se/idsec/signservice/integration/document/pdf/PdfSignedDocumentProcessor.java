@@ -15,13 +15,6 @@
  */
 package se.idsec.signservice.integration.document.pdf;
 
-import java.security.cert.X509Certificate;
-import java.util.List;
-
-import javax.annotation.PostConstruct;
-
-import org.apache.pdfbox.pdmodel.PDDocument;
-
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.util.encoders.Base64;
 import se.idsec.signservice.integration.SignResponseProcessingParameters;
@@ -32,7 +25,7 @@ import se.idsec.signservice.integration.core.impl.CorrelationID;
 import se.idsec.signservice.integration.document.*;
 import se.idsec.signservice.integration.document.impl.AbstractSignedDocumentProcessor;
 import se.idsec.signservice.integration.document.impl.DefaultCompiledSignedDocument;
-import se.idsec.signservice.integration.document.pdf.utils.PdfIntegrationUtils;
+import se.idsec.signservice.integration.document.pdf.utils.PDFIntegrationUtils;
 import se.idsec.signservice.integration.document.pdf.visiblesig.VisibleSigImageSerializer;
 import se.idsec.signservice.integration.dss.SignRequestWrapper;
 import se.idsec.signservice.integration.process.impl.SignResponseProcessingException;
@@ -42,10 +35,11 @@ import se.idsec.signservice.security.sign.pdf.configuration.PDFAlgoRegistry;
 import se.idsec.signservice.security.sign.pdf.document.PDFSignTaskDocument;
 import se.idsec.signservice.security.sign.pdf.document.VisibleSigImage;
 import se.idsec.signservice.security.sign.pdf.signprocess.PdfBoxSigUtil;
+import se.idsec.signservice.security.sign.pdf.verify.BasicPdfSignatureVerifier;
 import se.idsec.signservice.security.sign.pdf.verify.PdfSigVerifyResult;
-import se.idsec.signservice.security.sign.pdf.verify.PdfSignatureVerifier;
 import se.swedenconnect.schemas.csig.dssext_1_1.SignTaskData;
 
+import javax.annotation.PostConstruct;
 import java.security.cert.X509Certificate;
 import java.util.List;
 
@@ -103,7 +97,7 @@ public class PdfSignedDocumentProcessor extends AbstractSignedDocumentProcessor<
         throw new SignResponseProcessingException(new ErrorCode.Code("complete-sign"),"PDF document does not store the pre-sign signing time", ex);
       }
       // Set pades requirements
-      document.setAdesType(PdfIntegrationUtils.getPadesRequirementString(tbsDocument.getAdesRequirement()));
+      document.setAdesType(PDFIntegrationUtils.getPadesRequirementString(tbsDocument.getAdesRequirement()));
 
       // Create complete signer and swap signature data
       PDFCompleteSigner completeSigner = new PDFCompleteSigner();
@@ -135,6 +129,7 @@ public class PdfSignedDocumentProcessor extends AbstractSignedDocumentProcessor<
 
   }
 
+
   /** {@inheritDoc} */
   @Override
   public void validateSignedDocument(final PDFSignTaskDocument signedDocument,
@@ -147,7 +142,7 @@ public class PdfSignedDocumentProcessor extends AbstractSignedDocumentProcessor<
       CorrelationID.id(), signTaskData.getSignTaskId(), requestID);
 
     try {
-      PdfSigVerifyResult pdfSigVerifyResult = PdfSignatureVerifier.verifyPdfSignatures(signedDocument.getPdfDocument());
+      PdfSigVerifyResult pdfSigVerifyResult = BasicPdfSignatureVerifier.verifyPdfSignatures(signedDocument.getPdfDocument());
       if (!pdfSigVerifyResult.isAllSigsValid()){
         if (pdfSigVerifyResult.isLastSigValid()){
           log.debug("Generated signature validates, but document contains invalid signatures");

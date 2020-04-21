@@ -31,7 +31,7 @@ import se.idsec.signservice.integration.document.TbsDocument.EtsiAdesRequirement
 import se.idsec.signservice.integration.document.impl.AbstractTbsDocumentProcessor;
 import se.idsec.signservice.integration.document.impl.EtsiAdesRequirementValidator;
 import se.idsec.signservice.integration.document.impl.TbsCalculationResult;
-import se.idsec.signservice.integration.document.pdf.utils.PdfIntegrationUtils;
+import se.idsec.signservice.integration.document.pdf.utils.PDFIntegrationUtils;
 import se.idsec.signservice.integration.document.pdf.visiblesig.VisibleSigImageFactory;
 import se.idsec.signservice.integration.document.pdf.visiblesig.VisibleSigImageSerializer;
 import se.idsec.signservice.security.sign.impl.StaticCredentials;
@@ -127,7 +127,7 @@ public class PdfTbsDocumentProcessor extends AbstractTbsDocumentProcessor<PDFSig
     }
 
     EtsiAdesRequirement requestedAdes = document.getAdesRequirement();
-    String ades = PdfIntegrationUtils.getPadesRequirementString(requestedAdes);
+    String ades = PDFIntegrationUtils.getPadesRequirementString(requestedAdes);
     PDFSignTaskDocument signTaskDocument = processedTbsDocument.getDocumentObject(PDFSignTaskDocument.class);
     signTaskDocument.setAdesType(ades);
 

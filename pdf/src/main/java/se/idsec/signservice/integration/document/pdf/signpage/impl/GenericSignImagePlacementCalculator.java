@@ -20,6 +20,12 @@ import lombok.Data;
 import se.idsec.signservice.integration.document.pdf.signpage.SignImagePlacement;
 import se.idsec.signservice.integration.document.pdf.signpage.SignImagePlacementCalulator;
 
+/**
+ * Implements a generic PDF sign image placement calculator
+ *
+ * @author Martin Lindström (martin@idsec.se)
+ * @author Stefan Santesson (stefan@idsec.se)
+ */
 @Data
 @AllArgsConstructor
 public class GenericSignImagePlacementCalculator implements SignImagePlacementCalulator {
@@ -32,6 +38,13 @@ public class GenericSignImagePlacementCalculator implements SignImagePlacementCa
   private int xIncrement;
   private int yIncrement;
 
+  /**
+   * Default constructor for the sign image calculator
+   * @param cols number of columns used to place sign images
+   * @param rows number of maximum rows to place sign images
+   * @param xIncrement the x axis increment amount between sign images on the same row
+   * @param yIncrement the y (height) axis increment amount between sign image rows
+   */
   public GenericSignImagePlacementCalculator(int cols, int rows, int xIncrement, int yIncrement) {
     this.cols = cols;
     this.rows = rows;
@@ -42,6 +55,7 @@ public class GenericSignImagePlacementCalculator implements SignImagePlacementCa
     this.startYoffset = 0;
   }
 
+  /** {@inheritDoc} */
   @Override public SignImagePlacement getPlacement(int sigCount, SignImagePlacement basePlacement) {
     if (sigCount < start) {
       return basePlacement;

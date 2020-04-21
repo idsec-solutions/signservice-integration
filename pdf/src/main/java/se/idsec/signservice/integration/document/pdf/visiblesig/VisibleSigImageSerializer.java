@@ -27,15 +27,40 @@ import java.util.zip.DataFormatException;
 import java.util.zip.Deflater;
 import java.util.zip.Inflater;
 
+/**
+ * Serializer for {@link VisibleSigImage} objects
+ *
+ * <p>
+ *   This serializer allows serialization and compression of a visible signature object in order for it to be communicated over a REST API.
+ *   This is essential in order to allow stateless services between pre-signing ans complete-signing processes where all state data is
+ *   returned to the requesting services between each sign process.
+ * </p>
+ *
+ * @author Martin Lindström (martin@idsec.se)
+ * @author Stefan Santesson (stefan@idsec.se)
+ */
 @NoArgsConstructor
 public class VisibleSigImageSerializer {
 
+  /**
+   * Serialize a {@link VisibleSigImage} object to a compressed value in a Base64 String
+   * @param sigImage object to serialize
+   * @return serialized object
+   * @throws IOException on invalid input
+   */
   public String serializeVisibleSignatureObject(VisibleSigImage sigImage) throws IOException {
     ObjectMapper objectMapper = new ObjectMapper();
     String json = objectMapper.writeValueAsString(sigImage);
     return Base64.toBase64String(compress(json.getBytes(StandardCharsets.UTF_8)));
   }
 
+  /**
+   * Restores a {@link VisibleSigImage} object from a serialized state
+   * @param serializedSignImage serialized sign image object
+   * @return {@link VisibleSigImage} object
+   * @throws IOException on invalid input
+   * @throws DataFormatException on invalid input
+   */
   public VisibleSigImage deserializeVisibleSignImage(String serializedSignImage) throws IOException, DataFormatException {
     ObjectMapper objectMapper = new ObjectMapper();
     String json = new String(decompress(Base64.decode(serializedSignImage)), StandardCharsets.UTF_8);
@@ -43,6 +68,12 @@ public class VisibleSigImageSerializer {
     return visibleSignatureObject;
   }
 
+  /**
+   * Compression
+   * @param data data to compress
+   * @return compressed data
+   * @throws IOException on invalid input
+   */
   private byte[] compress(byte[] data) throws IOException {
     Deflater deflater = new Deflater();
     deflater.setInput(data);
@@ -58,6 +89,13 @@ public class VisibleSigImageSerializer {
     return output;
   }
 
+  /**
+   * Decompression
+   * @param data data to be inflated
+   * @return inflated data
+   * @throws IOException on invalid input
+   * @throws DataFormatException on invalid input
+   */
   private byte[] decompress(byte[] data) throws IOException, DataFormatException {
     Inflater inflater = new Inflater();
     inflater.setInput(data);

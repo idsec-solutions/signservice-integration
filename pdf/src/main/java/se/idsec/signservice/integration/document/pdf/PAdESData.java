@@ -15,8 +15,10 @@
  */
 package se.idsec.signservice.integration.document.pdf;
 
+import se.idsec.signservice.integration.document.TbsDocument;
 import se.idsec.signservice.integration.document.ades.AdesObject;
 import se.idsec.signservice.integration.document.ades.AdesSigningCertificateDigest;
+import se.idsec.signservice.security.sign.pdf.document.PDFSignTaskDocument;
 
 /**
  * This object holds PAdES specific data that is necessary to perform the extra validation procedures
@@ -45,4 +47,5 @@ public class PAdESData implements AdesObject {
   public AdesSigningCertificateDigest getSigningCertificateDigest() {
     return adesSigningCertificateDigest;
   }
+
 }

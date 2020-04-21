@@ -22,19 +22,25 @@ import se.idsec.signservice.integration.authentication.SignerIdentityAttribute;
 
 import java.util.List;
 
+/**
+ * Holds the signer name requirements for a PDF sign image
+ *
+ * @author Martin Lindström (martin@idsec.se)
+ * @author Stefan Santesson (stefan@idsec.se)
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class SignerNameRequirement {
 
   /**
-   * list of name attributes included in the sign request representing the signer identity
+   * List of name attributes included in the sign request representing the signer identity
    * <p>Signer name attributes must be among these attributes</p>
    */
   private List<SignerIdentityAttribute> signerNameAttributeList;
 
   /**
-   the format string determining the formatting of the signer name in the visible sign image
+   * The format string determining the formatting of the signer name in the visible sign image
    * <p>
    *   Example "%1 %2 (%3)" causes the result "AttributeVal-1 AttriubteVal-2 (AttributeVal-3)"
    * </p>

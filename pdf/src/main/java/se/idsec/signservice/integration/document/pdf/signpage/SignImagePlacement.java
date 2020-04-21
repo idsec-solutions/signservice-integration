@@ -17,6 +17,12 @@ package se.idsec.signservice.integration.document.pdf.signpage;
 
 import lombok.Data;
 
+/**
+ * Holding the sign image placement data for placing a sign image in a PDF document
+ *
+ * @author Martin Lindström (martin@idsec.se)
+ * @author Stefan Santesson (stefan@idsec.se)
+ */
 @Data
 public class SignImagePlacement {
   private int signImageXpos;

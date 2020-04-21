@@ -121,11 +121,10 @@
 
     <plugins>
 
-<!--
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
-        &lt;!&ndash; Temporory here. Just so that Stefan writes correct Javadoc, and Martin doesn't have to fix it afterwards ;-) &ndash;&gt;
+        <!-- Temporory here. Just so that Stefan writes correct Javadoc, and Martin doesn't have to fix it afterwards ;-) -->
         <executions>
           <execution>
             <id>attach-javadoc</id>
@@ -139,7 +138,6 @@
           <windowtitle>SignService Integration API PDF Implementation - ${project.version}</windowtitle>
         </configuration>
       </plugin>
--->
 
     </plugins>
 

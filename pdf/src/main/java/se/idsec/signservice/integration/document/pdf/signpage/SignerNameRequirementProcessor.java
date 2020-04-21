@@ -19,6 +19,12 @@ import se.idsec.signservice.integration.authentication.SignerIdentityAttributeVa
 
 import java.util.List;
 
+/**
+ * Provides the function to determine the signer name requirements for placing a signer name in a sign image in PDF
+ *
+ * @author Martin Lindström (martin@idsec.se)
+ * @author Stefan Santesson (stefan@idsec.se)
+ */
 public interface SignerNameRequirementProcessor {
 
   /**

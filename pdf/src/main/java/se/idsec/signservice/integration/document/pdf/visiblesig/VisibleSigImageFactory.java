@@ -27,36 +27,32 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Logger;
 
+/**
+ * Factory for creating instances of {@link VisibleSigImage} as input to a PDF sign process
+ *
+ * @author Martin Lindström (martin@idsec.se)
+ * @author Stefan Santesson (stefan@idsec.se)
+ */
 public class VisibleSigImageFactory {
 
+  /** List of available PDF signature image templates */
   private List<? extends PdfSignatureImageTemplate> pdfSignatureImageTemplates;
 
+  /**
+   * Constructor
+   *
+   * @param pdfSignatureImageTemplates list of available PDF signature image templates
+   */
   public VisibleSigImageFactory(List<? extends PdfSignatureImageTemplate> pdfSignatureImageTemplates) {
     this.pdfSignatureImageTemplates = pdfSignatureImageTemplates;
   }
 
-  public VisibleSigImage getVisibleSignImage(String imgRef, int page, int xOffset, int yOffset, int zoomPercent,
-    Map<String, String> personalizationParams) throws IllegalArgumentException {
-
-    Optional<? extends PdfSignatureImageTemplate> imageTemplateOptional = pdfSignatureImageTemplates.stream()
-      .filter(template -> template.getReference().equals(imgRef))
-      .findFirst();
-
-    if (!imageTemplateOptional.isPresent()) {
-      throw new IllegalArgumentException("Illegal image reference");
-    }
-
-    PdfSignatureImageTemplate imageTemplate = (PdfSignatureImageTemplate) imageTemplateOptional.get();
-
-    return new VisibleSigImage(
-      page, xOffset, yOffset, zoomPercent, personalizationParams,
-      imageTemplate.getWidth(),
-      imageTemplate.getHeight(),
-      imageTemplate.isIncludeSigningTime(),
-      imageTemplate.getImage()
-      );
-  }
-
+  /**
+   * Obtain an instance of {@link VisibleSigImage}
+   * @param visiblePdfSignatureRequirement the requirements for a visible sign image
+   * @param signerAttributeList the list of attributes that shall be used to form the signers name in the sign image
+   * @return {@link VisibleSigImage} or null if no sign image should be created
+   */
   public VisibleSigImage getVisibleSignImage(VisiblePdfSignatureRequirement visiblePdfSignatureRequirement,
     List<SignerIdentityAttributeValue> signerAttributeList) {
     VisiblePdfSignatureRequirement.SignerName signerName = visiblePdfSignatureRequirement.getSignerName();
@@ -95,5 +91,39 @@ public class VisibleSigImageFactory {
     catch (Exception ex) {
       return null;
     }
+  }
+
+  /**
+   * Obtain an instance of {@link VisibleSigImage}
+   * @param imgRef identifier for the visible signature SVG image
+   * @param page the page where the image is to be included (0 = last page)
+   * @param xOffset the x axis location of the image
+   * @param yOffset the y axis (height) location of the image
+   * @param zoomPercent the zoom percentage. The lowest value is -100 = -100% = infinitely small
+   * @param personalizationParams map of all parameters to be included in the sign image
+   *                              The map key value must be reflected by the capability of the references SVG image.
+   * @return {@link VisibleSigImage}
+   * @throws IllegalArgumentException on illegal input
+   */
+  public VisibleSigImage getVisibleSignImage(String imgRef, int page, int xOffset, int yOffset, int zoomPercent,
+    Map<String, String> personalizationParams) throws IllegalArgumentException {
+
+    Optional<? extends PdfSignatureImageTemplate> imageTemplateOptional = pdfSignatureImageTemplates.stream()
+      .filter(template -> template.getReference().equals(imgRef))
+      .findFirst();
+
+    if (!imageTemplateOptional.isPresent()) {
+      throw new IllegalArgumentException("Illegal image reference");
+    }
+
+    PdfSignatureImageTemplate imageTemplate = (PdfSignatureImageTemplate) imageTemplateOptional.get();
+
+    return new VisibleSigImage(
+      page, xOffset, yOffset, zoomPercent, personalizationParams,
+      imageTemplate.getWidth(),
+      imageTemplate.getHeight(),
+      imageTemplate.isIncludeSigningTime(),
+      imageTemplate.getImage()
+    );
   }
 }
