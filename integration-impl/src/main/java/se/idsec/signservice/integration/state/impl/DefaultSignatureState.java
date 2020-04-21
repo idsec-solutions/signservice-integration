@@ -18,7 +18,9 @@ package se.idsec.signservice.integration.state.impl;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import se.idsec.signservice.integration.SignRequestInput;
@@ -37,6 +39,8 @@ import se.idsec.signservice.integration.state.SignatureSessionState;
 @JsonInclude(Include.NON_NULL)
 @Builder
 @ToString
+@NoArgsConstructor
+@AllArgsConstructor
 public class DefaultSignatureState implements SignatureState {
 
   /**

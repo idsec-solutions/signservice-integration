@@ -21,8 +21,10 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.Singular;
 import lombok.ToString;
@@ -45,6 +47,8 @@ import se.swedenconnect.schemas.dss_1_0.SignRequest;
  */
 @JsonInclude(Include.NON_NULL)
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @ToString(exclude = { "signRequest" })
 @Slf4j
 public class SignatureSessionState {
