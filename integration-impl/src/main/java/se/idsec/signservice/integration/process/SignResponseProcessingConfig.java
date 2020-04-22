@@ -140,8 +140,8 @@ public class SignResponseProcessingConfig {
    */
   public Map<String, String> getSigMessageUriMap() {
     if (this.allowSigMessageUris && this.sigMessageUriMap == null) {
-      log.info("No AuthnContext URI mapping assigned. Using sigMessageUriMap: {}", this.sigMessageUriMap);
       this.sigMessageUriMap = getDefaultAuthnContextMappings();
+      log.info("No AuthnContext URI mapping assigned. Using sigMessageUriMap: {}", this.sigMessageUriMap);      
     }
     return this.sigMessageUriMap;
   }
