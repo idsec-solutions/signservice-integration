@@ -129,7 +129,7 @@ public class SignController extends BaseController {
       .signMessage(givenName != null
           ? this.messageSource.getMessage("sp.msg.sign-message", new Object[] { givenName }, LocaleContextHolder.getLocale())
           : this.messageSource.getMessage("sp.msg.sigm-message-noname", null, LocaleContextHolder.getLocale()))
-      .performEncryption(/*true*/false)
+      .performEncryption(true)
       .mimeType(SignMessageMimeType.TEXT)
       .mustShow(true)
       .build();
@@ -140,10 +140,11 @@ public class SignController extends BaseController {
       .id("sample-1")
       .content(Base64.getEncoder().encodeToString(createSampleXml(signMessageParameters.getSignMessage()).getBytes()))
       .mimeType(DocumentType.XML)
+      /*
       .adesRequirement(
         EtsiAdesRequirement.builder()
           .adesFormat(AdesType.BES)
-          .build())
+          .build())*/
       .build();
 
     final String returnUrl = debug ? this.debugReturnUrl : null;
@@ -155,7 +156,8 @@ public class SignController extends BaseController {
         AuthnRequirements.builder()
           .authnContextRef(lastAuthentication.getAuthnContextUri())
           .authnServiceID(lastAuthentication.getIdp()
-              /*"http://qa.test.swedenconnect.se/idp"*/)
+            // "http://qa.test.swedenconnect.se/idp"
+            )
           .requestedSignerAttributes(requestedAttributes)
           .build())
       .tbsDocument(tbsDocument)
