@@ -16,6 +16,7 @@
 package se.idsec.signservice.integration.process.impl;
 
 import java.io.ByteArrayInputStream;
+import java.util.Base64;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -40,6 +41,7 @@ import se.idsec.signservice.integration.dss.SignRequestWrapper;
 import se.idsec.signservice.integration.dss.SignResponseWrapper;
 import se.idsec.signservice.integration.process.SignResponseProcessingConfig;
 import se.idsec.signservice.integration.state.SignatureSessionState;
+import se.litsec.opensaml.saml2.attribute.AttributeUtils;
 import se.litsec.opensaml.utils.ObjectUtils;
 import se.litsec.swedisheid.opensaml.saml2.attribute.AttributeConstants;
 import se.swedenconnect.schemas.csig.dssext_1_1.ContextInfo;
@@ -110,6 +112,72 @@ public class DefaultSignerAssertionInfoProcessor implements SignerAssertionInfoP
     }
     builder.authnServiceID(contextInfo.getIdentityProvider().getValue());
 
+    // AssertionRef
+    //
+    final String assertionRef = contextInfo.getAssertionRef();
+    if (StringUtils.isBlank(assertionRef)) {
+      final String msg = String.format(
+        "No SignerAssertionInfo/ContextInfo/AssertionRef available in SignResponse [request-id='%s']", signRequest.getRequestID());
+      log.error("{}: {}", CorrelationID.id(), msg);
+      throw new SignServiceProtocolException(msg);
+    }
+    builder.assertionReference(assertionRef);
+
+    // Assertions ...
+    //
+    byte[] idpAssertion = null;
+    if (!signerAssertionInfo.isSetSamlAssertions() || !signerAssertionInfo.getSamlAssertions().isSetAssertions()) {
+      if (this.processingConfig.isRequireAssertion()) {
+        final String msg =
+            String.format("No SignerAssertionInfo/SamlAssertions present in SignResponse. Configuration requires this [request-id='%s']",
+              signRequest.getRequestID());
+        log.error("{}: {}", CorrelationID.id(), msg);
+        throw new SignResponseProcessingException(new ErrorCode.Code("invalid-response"), msg);
+      }
+    }
+    else {
+      if (signerAssertionInfo.getSamlAssertions().getAssertions().size() == 1 && !this.processingConfig.isStrictProcessing()) {
+        // If strict processing is turned off and we only got one assertion we trust that the SignService
+        // included the assertion that corresponds to AssertionRef.
+        //
+        idpAssertion = signerAssertionInfo.getSamlAssertions().getAssertions().get(0);
+        builder.assertion(Base64.getEncoder().encodeToString(idpAssertion));
+      }
+      // Find the assertion matching the AssertionRef ...
+      else {
+        for (byte[] a : signerAssertionInfo.getSamlAssertions().getAssertions()) {
+          try {
+            final Assertion assertion = ObjectUtils.unmarshall(new ByteArrayInputStream(a), Assertion.class);
+            if (assertionRef.equals(assertion.getID())) {
+              idpAssertion = a;
+              break;
+            }
+            else {
+              log.info("{}: Processing assertion with ID '%s' - no match with AssertionRef [request-id='{}']",
+                assertion.getID(), signRequest.getRequestID());
+            }
+          }
+          catch (XMLParserException | UnmarshallingException e) {
+            final String msg =
+                String.format("Invalid SAML assertion found in SignerAssertionInfo/SamlAssertions - %s [request-id='%s']",
+                  e.getMessage(), signRequest.getRequestID());
+            log.error("{}: {}", CorrelationID.id(), msg);
+            throw new SignResponseProcessingException(new ErrorCode.Code("invalid-response"), msg);
+          }
+        }
+        if (idpAssertion != null) {
+          builder.assertion(Base64.getEncoder().encodeToString(idpAssertion));
+        }
+        else {
+          final String msg =
+              String.format("No SAML assertion matching AssertionRef found in SignerAssertionInfo/SamlAssertions [request-id='%s']",
+                signRequest.getRequestID());
+          log.error("{}: {}", CorrelationID.id(), msg);
+          throw new SignResponseProcessingException(new ErrorCode.Code("invalid-response"), msg);
+        }
+      }
+    }
+
     // AuthenticationInstant
     //
     // This validation is essential. We want to ensure that the authentication instant is not too old. It must not be
@@ -138,18 +206,59 @@ public class DefaultSignerAssertionInfoProcessor implements SignerAssertionInfoP
     if (authnContextClassRef.equals(requestedAuthnContextClassRef)) {
       // If display of SignMessage was required, we need the signMessageDigest attribute to be released.
       if (requireDisplaySignMessageProof) {
-        final String signMessageDigest = attributes.stream()
+        String signMessageDigest = attributes.stream()
           .filter(a -> AttributeConstants.ATTRIBUTE_NAME_SIGNMESSAGE_DIGEST.equals(a.getName()))
           .map(a -> a.getValue())
           .findFirst()
           .orElse(null);
 
-        if (StringUtils.isBlank(signMessageDigest)) {
+        // OK, the signMessageDigest wasn't part of the SignerAssertionInfo/AttributeStatement element.
+        // This is not really an error since version 1.3 of "DSS Extension for Federated Central Signing Services"
+        // states the following:
+        //
+        // <saml:AttributeStatement> [Required]
+        // This element of type saml:AttributeStatementType (see [SAML2.0]) holds subject attributes
+        // obtained from the SAML assertion used to authenticate the signer at the Signing Service.
+        // For integrity reasons, this element SHOULD only provide information about SAML attribute
+        // values that maps to subject identity information in the signer's certificate.
+        //
+        // So, lets hope that we have an assertion ...
+        //
+        if (idpAssertion != null) {
+          try {
+            final Assertion assertion = ObjectUtils.unmarshall(new ByteArrayInputStream(idpAssertion), Assertion.class);
+            if (!assertion.getAttributeStatements().isEmpty()) {
+              signMessageDigest = assertion.getAttributeStatements().get(0).getAttributes().stream()
+                .filter(a -> AttributeConstants.ATTRIBUTE_NAME_SIGNMESSAGE_DIGEST.equals(a.getName()))
+                .map(a -> AttributeUtils.getAttributeStringValue(a))
+                .findFirst()
+                .orElse(null);
+            }
+          }
+          catch (XMLParserException | UnmarshallingException e) {
+            final String msg =
+                String.format("Invalid SAML assertion found in SignerAssertionInfo/SamlAssertions - %s [request-id='%s']",
+                  e.getMessage(), signRequest.getRequestID());
+            log.error("{}: {}", CorrelationID.id(), msg);
+            throw new SignResponseProcessingException(new ErrorCode.Code("invalid-response"), msg);
+          }
+        }
+
+        if (signMessageDigest == null) {
           final String msg = String.format(
             "Missing proof for displayed sign message (no signMessageDigest and no sigmessage authnContext) [request-id='%s']",
             signRequest.getRequestID());
-          log.error("{}: {}", CorrelationID.id(), msg);
-          throw new SignResponseProcessingException(new ErrorCode.Code("invalid-authncontext"), msg);
+          
+          if (this.processingConfig.isRequireAssertion()) {
+            log.error("{}: {}", CorrelationID.id(), msg);
+            throw new SignResponseProcessingException(new ErrorCode.Code("invalid-authncontext"), msg);
+          }
+          else {
+            // If we did not require assertions to be delivered, we can't fail here. We have to trust
+            // that the sign service made sure that the signMessageDigest was received.
+            //
+            log.warn("{}: {}", CorrelationID.id(), msg);
+          }
         }
         else if (this.processingConfig.isStrictProcessing()) {
           // Compare hash with our own hash of the sent SignMessage.
@@ -193,71 +302,6 @@ public class DefaultSignerAssertionInfoProcessor implements SignerAssertionInfoP
     // AuthType
     //
     builder.authnType(contextInfo.getAuthType());
-
-    // AssertionRef
-    //
-    final String assertionRef = contextInfo.getAssertionRef();
-    if (StringUtils.isBlank(assertionRef)) {
-      final String msg = String.format(
-        "No SignerAssertionInfo/ContextInfo/AssertionRef available in SignResponse [request-id='%s']", signRequest.getRequestID());
-      log.error("{}: {}", CorrelationID.id(), msg);
-      throw new SignServiceProtocolException(msg);
-    }
-    builder.assertionReference(assertionRef);
-
-    // Assertions ...
-    //
-    if (!signerAssertionInfo.isSetSamlAssertions() || !signerAssertionInfo.getSamlAssertions().isSetAssertions()) {
-      if (this.processingConfig.isRequireAssertion()) {
-        final String msg =
-            String.format("No SignerAssertionInfo/SamlAssertions present in SignResponse. Configuration requires this [request-id='%s']",
-              signRequest.getRequestID());
-        log.error("{}: {}", CorrelationID.id(), msg);
-        throw new SignResponseProcessingException(new ErrorCode.Code("invalid-response"), msg);
-      }
-    }
-    else {
-      if (signerAssertionInfo.getSamlAssertions().getAssertions().size() == 1 && !this.processingConfig.isStrictProcessing()) {
-        // If strict processing is turned off and we only got one assertion we trust that the SignService
-        // included the assertion that corresponds to AssertionRef.
-        //
-        builder.assertion(new String(signerAssertionInfo.getSamlAssertions().getAssertions().get(0)));
-      }
-      // Find the assertion matching the AssertionRef ...
-      else {
-        String userAssertion = null;
-        for (byte[] a : signerAssertionInfo.getSamlAssertions().getAssertions()) {
-          try {
-            final Assertion assertion = ObjectUtils.unmarshall(new ByteArrayInputStream(a), Assertion.class);
-            if (assertionRef.equals(assertion.getID())) {
-              userAssertion = new String(a);
-              break;
-            }
-            else {
-              log.info("{}: Processing assertion with ID '%s' - no match with AssertionRef [request-id='{}']",
-                assertion.getID(), signRequest.getRequestID());
-            }
-          }
-          catch (XMLParserException | UnmarshallingException e) {
-            final String msg =
-                String.format("Invalid SAML assertion found in SignerAssertionInfo/SamlAssertions. %s [request-id='%s']",
-                  e.getMessage(), signRequest.getRequestID());
-            log.error("{}: {}", CorrelationID.id(), msg);
-            throw new SignResponseProcessingException(new ErrorCode.Code("invalid-response"), msg);
-          }
-        }
-        if (userAssertion != null) {
-          builder.assertion(userAssertion);
-        }
-        else {
-          final String msg =
-              String.format("No SAML assertion matching AssertionRef found in SignerAssertionInfo/SamlAssertions [request-id='%s']",
-                signRequest.getRequestID());
-          log.error("{}: {}", CorrelationID.id(), msg);
-          throw new SignResponseProcessingException(new ErrorCode.Code("invalid-response"), msg);
-        }
-      }
-    }
 
     return builder.build();
   }
