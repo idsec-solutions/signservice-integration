@@ -15,13 +15,12 @@
  */
 package se.idsec.signservice.integration.document.pdf;
 
+import java.util.Base64;
+
 import se.idsec.signservice.integration.core.error.ErrorCode;
 import se.idsec.signservice.integration.document.DocumentDecoder;
 import se.idsec.signservice.integration.document.DocumentEncoder;
 import se.idsec.signservice.integration.document.DocumentProcessingException;
-import se.idsec.signservice.security.sign.pdf.document.PDFSignTaskDocument;
-
-import java.util.Base64;
 
 /**
  * Encoder/decoder for PDF documents.
@@ -29,15 +28,13 @@ import java.util.Base64;
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
-public class PdfDocumentEncoderDecoder implements DocumentDecoder<PDFSignTaskDocument>, DocumentEncoder<PDFSignTaskDocument> {
+public class PdfDocumentEncoderDecoder implements DocumentDecoder<byte[]>, DocumentEncoder<byte[]> {
 
   /** {@inheritDoc} */
   @Override
-  public PDFSignTaskDocument decodeDocument(final String content) throws DocumentProcessingException {
+  public byte[] decodeDocument(final String content) throws DocumentProcessingException {
     try {
-      return PDFSignTaskDocument.builder()
-        .pdfDocument(Base64.getDecoder().decode(content))
-        .build();
+      return Base64.getDecoder().decode(content);
     }
     catch (Exception e) {
       throw new DocumentProcessingException(new ErrorCode.Code("decode"), "Failed to load PDF object", e);
@@ -46,12 +43,13 @@ public class PdfDocumentEncoderDecoder implements DocumentDecoder<PDFSignTaskDoc
 
   /** {@inheritDoc} */
   @Override
-  public String encodeDocument(final PDFSignTaskDocument document) throws DocumentProcessingException {
+  public String encodeDocument(final byte[] document) throws DocumentProcessingException {
     try {
-      return Base64.getEncoder().encodeToString(document.getPdfDocument());
+      return Base64.getEncoder().encodeToString(document);
     }
     catch (Exception e) {
       throw new DocumentProcessingException(new ErrorCode.Code("encode"), "Failed to encode PDF object", e);
     }
   }
+  
 }

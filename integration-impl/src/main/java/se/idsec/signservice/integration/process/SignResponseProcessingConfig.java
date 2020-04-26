@@ -45,6 +45,9 @@ public class SignResponseProcessingConfig {
    */
   public static final long DEFAULT_ALLOWED_CLOCK_SKEW = 60000L;
 
+  /** The default time we allow for processing at the server side. Default is 10 minutes. */
+  public static final long DEFAULT_MAXIMUM_ALLOWED_PROCESSING_TIME = 600000L;
+
   /**
    * Flag that tells whether the processing and validation steps should be "extra" strict and look for every little
    * thing that deviates from the specifications. The default is {@code false}. Turning on this setting is mainly
@@ -81,6 +84,18 @@ public class SignResponseProcessingConfig {
   @Getter
   @Setter
   private long allowedClockSkew = DEFAULT_ALLOWED_CLOCK_SKEW;
+
+  /**
+   * The allowed number of milliseconds that we allow processing at the server side to go on, that is, the time from
+   * when we sent the request until we received the response.
+   * 
+   * @param maximumAllowedProcessingTime
+   *          maximum allowed server processing time
+   * @return maximum allowed server processing time
+   */
+  @Getter
+  @Setter
+  private long maximumAllowedProcessingTime = DEFAULT_MAXIMUM_ALLOWED_PROCESSING_TIME;
 
   /**
    * Tells whether the deprecated <a href=

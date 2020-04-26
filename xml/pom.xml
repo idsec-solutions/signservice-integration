@@ -70,7 +70,6 @@
     <dependency>
       <groupId>se.idsec.signservice.commons</groupId>
       <artifactId>signservice-commons</artifactId>
-      <version>1.0.2-SNAPSHOT</version>
     </dependency>
         
     <dependency>

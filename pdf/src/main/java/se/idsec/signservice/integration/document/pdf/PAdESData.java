@@ -15,28 +15,28 @@
  */
 package se.idsec.signservice.integration.document.pdf;
 
-import se.idsec.signservice.integration.document.TbsDocument;
 import se.idsec.signservice.integration.document.ades.AdesObject;
 import se.idsec.signservice.integration.document.ades.AdesSigningCertificateDigest;
-import se.idsec.signservice.security.sign.pdf.document.PDFSignTaskDocument;
 
 /**
- * This object holds PAdES specific data that is necessary to perform the extra validation procedures
- * imposed by a PAdES document such as validation of the signed certificate reference.
+ * This object holds PAdES specific data that is necessary to perform the extra validation procedures imposed by a PAdES
+ * document such as validation of the signed certificate reference.
  * 
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
 public class PAdESData implements AdesObject {
 
-
-  /** The digest value and digest algorithm used to represent the signed certificate digest in PAdES */
+  /** The digest value and digest algorithm used to represent the signed certificate digest in PAdES. */
   private final AdesSigningCertificateDigest adesSigningCertificateDigest;
 
   /**
-   * Constructor for the PAdES data object
-   * @param digestMethod the URI for the digest method used to hash the signer certificate
-   * @param digestValue the digest value
+   * Constructor for the PAdES data object.
+   * 
+   * @param digestMethod
+   *          the URI for the digest method used to hash the signer certificate
+   * @param digestValue
+   *          the digest value
    */
   public PAdESData(String digestMethod, byte[] digestValue) {
     this.adesSigningCertificateDigest = new AdesSigningCertificateDigest(digestMethod, digestValue);
@@ -45,7 +45,7 @@ public class PAdESData implements AdesObject {
   /** {@inheritDoc} */
   @Override
   public AdesSigningCertificateDigest getSigningCertificateDigest() {
-    return adesSigningCertificateDigest;
+    return this.adesSigningCertificateDigest;
   }
 
 }

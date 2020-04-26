@@ -21,7 +21,7 @@ import se.idsec.signservice.integration.document.pdf.signpage.SignImagePlacement
 import se.idsec.signservice.integration.document.pdf.signpage.SignImagePlacementCalulator;
 
 /**
- * Implements a generic PDF sign image placement calculator
+ * Implements a generic PDF sign image placement calculator.
  *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
@@ -40,12 +40,17 @@ public class GenericSignImagePlacementCalculator implements SignImagePlacementCa
 
   /**
    * Default constructor for the sign image calculator
-   * @param cols number of columns used to place sign images
-   * @param rows number of maximum rows to place sign images
-   * @param xIncrement the x axis increment amount between sign images on the same row
-   * @param yIncrement the y (height) axis increment amount between sign image rows
+   *
+   * @param cols
+   *          number of columns used to place sign images
+   * @param rows
+   *          number of maximum rows to place sign images
+   * @param xIncrement
+   *          the x axis increment amount between sign images on the same row
+   * @param yIncrement
+   *          the y (height) axis increment amount between sign image rows
    */
-  public GenericSignImagePlacementCalculator(int cols, int rows, int xIncrement, int yIncrement) {
+  public GenericSignImagePlacementCalculator(final int cols, final int rows, final int xIncrement, final int yIncrement) {
     this.cols = cols;
     this.rows = rows;
     this.xIncrement = xIncrement;
@@ -56,16 +61,17 @@ public class GenericSignImagePlacementCalculator implements SignImagePlacementCa
   }
 
   /** {@inheritDoc} */
-  @Override public SignImagePlacement getPlacement(int sigCount, SignImagePlacement basePlacement) {
-    if (sigCount < start) {
+  @Override
+  public SignImagePlacement getPlacement(final int sigCount, final SignImagePlacement basePlacement) {
+    if (sigCount < this.start) {
       return basePlacement;
     }
-    int col = (sigCount - start) % cols;
-    int row = (sigCount - start) / cols;
+    final int col = (sigCount - this.start) % this.cols;
+    final int row = (sigCount - this.start) / this.cols;
 
-    if (row >= rows) {
+    if (row >= this.rows) {
       return new SignImagePlacement();
     }
-    return new SignImagePlacement(startXoffset + col * xIncrement, startYoffset + row * yIncrement, basePlacement);
+    return new SignImagePlacement(this.startXoffset + col * this.xIncrement, this.startYoffset + row * this.yIncrement, basePlacement);
   }
 }

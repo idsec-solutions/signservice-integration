@@ -18,7 +18,7 @@ package se.idsec.signservice.integration.document.pdf.signpage;
 import lombok.Data;
 
 /**
- * Holding the sign image placement data for placing a sign image in a PDF document
+ * Holding the sign image placement data for placing a sign image in a PDF document.
  *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
@@ -43,13 +43,18 @@ public class SignImagePlacement {
   }
 
   /**
-   * Create sign image placement
-   * @param signImageXpos image X coordinate
-   * @param singImaeYpos image Y coordinate
-   * @param signImageScale zoom percentage
-   * @param signImagePage 1 based page placement. 0 for last page
+   * Create sign image placement.
+   *
+   * @param signImageXpos
+   *          image X coordinate
+   * @param singImaeYpos
+   *          image Y coordinate
+   * @param signImageScale
+   *          zoom percentage
+   * @param signImagePage
+   *          1 based page placement. 0 for last page
    */
-  public SignImagePlacement(int signImageXpos, int singImaeYpos, int signImageScale, int signImagePage) {
+  public SignImagePlacement(final int signImageXpos, final int singImaeYpos, final int signImageScale, final int signImagePage) {
     this.signImageXpos = signImageXpos;
     this.singImaeYpos = singImaeYpos;
     this.signImageScale = signImageScale;
@@ -57,12 +62,16 @@ public class SignImagePlacement {
   }
 
   /**
-   * Get new sign image placement with relative location change
-   * @param addX add placement this number of pixels on the x axis
-   * @param addY add placement this number of pixels on the y axis
-   * @param basePlacement the base placement
+   * Get new sign image placement with relative location change.
+   *
+   * @param addX
+   *          add placement this number of pixels on the x axis
+   * @param addY
+   *          add placement this number of pixels on the y axis
+   * @param basePlacement
+   *          the base placement
    */
-  public SignImagePlacement(int addX, int addY, SignImagePlacement basePlacement) {
+  public SignImagePlacement(final int addX, final int addY, final SignImagePlacement basePlacement) {
     this.signImageXpos = basePlacement.getSignImageXpos() + addX;
     this.singImaeYpos = basePlacement.getSingImaeYpos() + addY;
     this.signImagePage = basePlacement.getSignImagePage();
@@ -70,13 +79,18 @@ public class SignImagePlacement {
   }
 
   /**
-   * Get new sign image placement with relative location change
-   * @param addX add placement this number of pixels on the x axis
-   * @param addY add placement this number of pixels on the y axis
-   * @param signImageScale new scale
-   * @param basePlacement the base placement
+   * Get new sign image placement with relative location change.
+   *
+   * @param addX
+   *          add placement this number of pixels on the x axis
+   * @param addY
+   *          add placement this number of pixels on the y axis
+   * @param signImageScale
+   *          new scale
+   * @param basePlacement
+   *          the base placement
    */
-  public SignImagePlacement(int addX, int addY, int signImageScale, SignImagePlacement basePlacement) {
+  public SignImagePlacement(final int addX, final int addY, final int signImageScale, final SignImagePlacement basePlacement) {
     this.signImageXpos = basePlacement.getSignImageXpos() + addX;
     this.singImaeYpos = basePlacement.getSingImaeYpos() + addY;
     this.signImageScale = signImageScale;

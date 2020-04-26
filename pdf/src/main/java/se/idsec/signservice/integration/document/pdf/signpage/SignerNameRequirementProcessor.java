@@ -15,12 +15,12 @@
  */
 package se.idsec.signservice.integration.document.pdf.signpage;
 
-import se.idsec.signservice.integration.authentication.SignerIdentityAttributeValue;
-
 import java.util.List;
 
+import se.idsec.signservice.integration.authentication.SignerIdentityAttributeValue;
+
 /**
- * Provides the function to determine the signer name requirements for placing a signer name in a sign image in PDF
+ * Provides the function to determine the signer name requirements for placing a signer name in a sign image in PDF.
  *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
@@ -28,12 +28,12 @@ import java.util.List;
 public interface SignerNameRequirementProcessor {
 
   /**
-   * Get the attribute requirements for including a name in the visible sign image
-   * @param signerAttrlist list of name attributes included in the sign request representing the signer identity
-   *
-   *                       <p>Signer name attributes must be among these attributes</p>
+   * Get the attribute requirements for including a name in the visible sign image.
+   * 
+   * @param signerAttrlist
+   *          list of name attributes included in the sign request representing the signer identity
    * @return signer name requirements
    */
-  SignerNameRequirement getSignerNameRequirements(List<SignerIdentityAttributeValue> signerAttrlist);
+  SignerNameRequirement getSignerNameRequirements(final List<SignerIdentityAttributeValue> signerAttrlist);
 
 }

@@ -26,5 +26,7 @@ public enum PDFExtensionParams {
   /** Base64Encoded bytes of CMS Content Info holding the SignedData from the pre-sign process */
   cmsSignedData,
   /** Serialized {@link se.idsec.signservice.security.sign.pdf.document.VisibleSigImage} using the {@link VisibleSigImageSerializer} */
-  visibleSignImage;
+  visibleSignImage,
+  /** ADeS requirement string. */
+  adesRequirement;
 }

@@ -213,7 +213,8 @@ public class DefaultSignResponseProcessor implements SignResponseProcessor {
 
     // Verify that the response is not too old ...
     //
-    this.validateResponseTime(signResponseExtension.getResponseTime(), sessionState.getSignRequest().getRequestID());
+    this.validateResponseTime(signResponseExtension.getResponseTime(),
+      sessionState.getSignRequest().getSignRequestExtension().getRequestTime(), sessionState.getSignRequest().getRequestID());
 
     // Make sure that the request bytes are there ...
     //
@@ -221,8 +222,8 @@ public class DefaultSignResponseProcessor implements SignResponseProcessor {
 
     // Get hold of the signer certificate chain ...
     //
-    final List<X509Certificate> signerCertificateChain =
-        this.getSignerCertificateChain(signResponseExtension.getSignatureCertificateChain(), sessionState.getSignRequest().getRequestID());
+    final List<X509Certificate> signerCertificateChain = this.getSignerCertificateChain(signResponseExtension
+      .getSignatureCertificateChain(), sessionState.getSignRequest().getRequestID());
 
     // Let's validate the signer certificate
     //
@@ -250,8 +251,8 @@ public class DefaultSignResponseProcessor implements SignResponseProcessor {
 
     // Get the signer assertion information (and validate it).
     //
-    final SignerAssertionInformation signerAssertionInformation =
-        this.signerAssertionInfoProcessor.processSignerAssertionInfo(response, sessionState, parameters);
+    final SignerAssertionInformation signerAssertionInformation = this.signerAssertionInfoProcessor.processSignerAssertionInfo(response,
+      sessionState, parameters);
     resultBuilder.signerAssertionInformation(signerAssertionInformation);
 
     // Make sure that we got a sign task data for each TBS document ...
@@ -279,8 +280,8 @@ public class DefaultSignResponseProcessor implements SignResponseProcessor {
         .orElseThrow(() -> new InternalSignServiceIntegrationException(new ErrorCode.Code("config"), "Could not find document processor"));
 
       // Process the document ...
-      final SignedDocument signedDocument =
-          processDocument(processor, signTaskData, signerCertificateChain, sessionState, response, parameters);
+      final SignedDocument signedDocument = processDocument(processor, signTaskData, signerCertificateChain, sessionState, response,
+        parameters);
 
       // Add it to the result ...
       resultBuilder.signedDocument(signedDocument);
@@ -319,8 +320,8 @@ public class DefaultSignResponseProcessor implements SignResponseProcessor {
     final TbsDocument tbsDocument = this.getTbsDocument(signTaskData, state);
 
     // Build the signed document ...
-    final CompiledSignedDocument<T, X> signedDocument =
-        processor.buildSignedDocument(tbsDocument, signTaskData, signerCertificateChain, state.getSignRequest(), parameters);
+    final CompiledSignedDocument<T, X> signedDocument = processor.buildSignedDocument(tbsDocument, signTaskData, signerCertificateChain,
+      state.getSignRequest(), parameters);
 
     // Validate the signature of the document ...
     processor.validateSignedDocument(
@@ -336,17 +337,21 @@ public class DefaultSignResponseProcessor implements SignResponseProcessor {
   }
 
   /**
-   * Validates the the response time from the SignResponse is valid.
+   * Validates the the response time from the SignResponse is valid. The method also ensures that the server processing
+   * time hasn't exceeded or max limit.
    * 
    * @param responseTime
    *          the response time
+   * @param requestTime
+   *          the time when the request was sent
    * @param requestID
    *          the requestID (for logging)
    * @throws SignServiceIntegrationException
    *           for expired responses
    */
-  protected void validateResponseTime(final XMLGregorianCalendar responseTime, final String requestID)
-      throws SignServiceIntegrationException {
+  protected void validateResponseTime(final XMLGregorianCalendar responseTime, final XMLGregorianCalendar requestTime,
+      final String requestID) throws SignServiceIntegrationException {
+
     if (responseTime == null) {
       final String msg = String.format("SignResponse does not contain required ResponseTime [request-id='%s']", requestID);
       log.error("{}: {}", CorrelationID.id(), msg);
@@ -362,8 +367,7 @@ public class DefaultSignResponseProcessor implements SignResponseProcessor {
       final String msg = String.format("SignResponse is too old. response-time:%d - current-time:%d - max-allowed-age:%d - " +
           "allowed-clock-skew:%d [request-id='%s']",
         responseTimeMillis, now, this.processingConfiguration.getMaximumAllowedResponseAge(),
-        this.processingConfiguration.getAllowedClockSkew(),
-        requestID);
+        this.processingConfiguration.getAllowedClockSkew(), requestID);
       log.error("{}: {}", CorrelationID.id(), msg);
       throw new SignResponseProcessingException(new ErrorCode.Code("expired-response"), msg);
     }
@@ -376,6 +380,18 @@ public class DefaultSignResponseProcessor implements SignResponseProcessor {
         responseTimeMillis, now, this.processingConfiguration.getAllowedClockSkew(), requestID);
       log.error("{}: {}", CorrelationID.id(), msg);
       throw new SignResponseProcessingException(new ErrorCode.Code("invalid-response"), msg);
+    }
+
+    // We also want to ensure that the server processing time hasn't exceeded or max limit ...
+    // We don't have to care about clock skew since we were the ones that set the request time.
+    //
+    final long requestTimeMillis = requestTime.toGregorianCalendar().getTimeInMillis();
+    if ((now - requestTimeMillis) > this.processingConfiguration.getMaximumAllowedProcessingTime()) {
+      final String msg = String.format(
+        "Server processing time exceeded allowed limit. request-time:%d - current-time:%d - limit:%d [request-id='%s']",
+        requestTimeMillis, now, this.processingConfiguration.getMaximumAllowedProcessingTime(), requestID);
+      log.error("{}: {}", CorrelationID.id(), msg);
+      throw new SignResponseProcessingException(new ErrorCode.Code("server-processing-time-exceeded-limit"), msg);
     }
   }
 
@@ -393,8 +409,8 @@ public class DefaultSignResponseProcessor implements SignResponseProcessor {
       throws SignServiceIntegrationException {
 
     if (request == null || request.length == 0) {
-      final String msg =
-          String.format("SignResponse does not contain a Request element - this is required [request-id='%s']", sentRequest.getRequestID());
+      final String msg = String.format("SignResponse does not contain a Request element - this is required [request-id='%s']", sentRequest
+        .getRequestID());
       if (this.processingConfiguration.isStrictProcessing()) {
         log.error("{}: {}", CorrelationID.id(), msg);
         throw new SignServiceProtocolException(msg);
@@ -435,8 +451,8 @@ public class DefaultSignResponseProcessor implements SignResponseProcessor {
         certificates.add(CertificateUtils.decodeCertificate(enc));
       }
       catch (CertificateException e) {
-        final String msg =
-            String.format("Failed to decode certificate in SignatureCertificateChain of SignResponse [request-id='%s']", requestID);
+        final String msg = String.format("Failed to decode certificate in SignatureCertificateChain of SignResponse [request-id='%s']",
+          requestID);
         log.error("{}: {}", CorrelationID.id(), msg);
         throw new SignResponseProcessingException(new ErrorCode.Code("invalid-response"), msg);
       }
@@ -495,12 +511,14 @@ public class DefaultSignResponseProcessor implements SignResponseProcessor {
       throw new SignServiceProtocolException(msg);
     }
     if (signTaskData.getBase64Signature().getType() != null) {
-      if (!signTaskData.getBase64Signature().getType().equals(
-        signRequest.getSignRequestExtension().getRequestedSignatureAlgorithm())) {
-        final String msg =
-            String.format("Signature algorithm used for sign task '%s' does not match requested signature '%s' [request-id='%s']",
-              signTaskData.getSignTaskId(), signTaskData.getBase64Signature().getType(),
-              signRequest.getSignRequestExtension().getRequestedSignatureAlgorithm(), signRequest.getRequestID());
+      if (!signTaskData.getBase64Signature()
+        .getType()
+        .equals(
+          signRequest.getSignRequestExtension().getRequestedSignatureAlgorithm())) {
+        final String msg = String.format(
+          "Signature algorithm used for sign task '%s' does not match requested signature '%s' [request-id='%s']",
+          signTaskData.getSignTaskId(), signTaskData.getBase64Signature().getType(),
+          signRequest.getSignRequestExtension().getRequestedSignatureAlgorithm(), signRequest.getRequestID());
         log.error("{}: {}", CorrelationID.id(), msg);
         throw new SignResponseProcessingException(new ErrorCode.Code("invalid-response"), msg);
       }
@@ -523,15 +541,16 @@ public class DefaultSignResponseProcessor implements SignResponseProcessor {
 
     // Locate the matching TBS document from the session state ...
     //
-    final TbsDocument tbsDocument = state.getTbsDocuments().stream()
+    final TbsDocument tbsDocument = state.getTbsDocuments()
+      .stream()
       .filter(d -> d.getId().equals(signTaskData.getSignTaskId()))
       .findFirst()
       .orElse(null);
 
     if (tbsDocument == null) {
-      final String msg =
-          String.format("SignResponse contains SignTask with ID '%s' - This ID does not appear in SignRequest [request-id='%s']",
-            signTaskData.getSignTaskId(), state.getSignRequest().getRequestID());
+      final String msg = String.format(
+        "SignResponse contains SignTask with ID '%s' - This ID does not appear in SignRequest [request-id='%s']",
+        signTaskData.getSignTaskId(), state.getSignRequest().getRequestID());
       log.error("{}: {}", CorrelationID.id(), msg);
       throw new SignResponseProcessingException(new ErrorCode.Code("invalid-response"), msg);
     }

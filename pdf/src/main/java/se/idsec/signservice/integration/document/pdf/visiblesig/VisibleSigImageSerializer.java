@@ -15,99 +15,119 @@
  */
 package se.idsec.signservice.integration.document.pdf.visiblesig;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.NoArgsConstructor;
-import org.bouncycastle.util.encoders.Base64;
-import se.idsec.signservice.security.sign.pdf.document.VisibleSigImage;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.zip.DataFormatException;
 import java.util.zip.Deflater;
 import java.util.zip.Inflater;
 
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import se.idsec.signservice.security.sign.pdf.document.VisibleSigImage;
+
 /**
- * Serializer for {@link VisibleSigImage} objects
+ * Serializer for {@link VisibleSigImage} objects.
  *
  * <p>
- *   This serializer allows serialization and compression of a visible signature object in order for it to be communicated over a REST API.
- *   This is essential in order to allow stateless services between pre-signing ans complete-signing processes where all state data is
- *   returned to the requesting services between each sign process.
+ * This serializer allows serialization and compression of a visible signature object in order for it to be communicated
+ * over a REST API. This is essential in order to allow stateless services between pre-signing ans complete-signing
+ * processes where all state data is returned to the requesting services between each sign process.
  * </p>
  *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
-@NoArgsConstructor
 public class VisibleSigImageSerializer {
 
+  /** JSON object mapper. */
+  private static ObjectMapper objectMapper = new ObjectMapper();
+
+  static {
+    VisibleSigImageSerializer.objectMapper.setSerializationInclusion(Include.NON_NULL);
+  }
+  
+  private VisibleSigImageSerializer() {    
+  }
+
   /**
-   * Serialize a {@link VisibleSigImage} object to a compressed value in a Base64 String
-   * @param sigImage object to serialize
+   * Serialize a {@link VisibleSigImage} object to a compressed value in a Base64 string.
+   *
+   * @param signImage
+   *          object to serialize
    * @return serialized object
-   * @throws IOException on invalid input
+   * @throws IOException
+   *           on invalid input
    */
-  public String serializeVisibleSignatureObject(VisibleSigImage sigImage) throws IOException {
-    ObjectMapper objectMapper = new ObjectMapper();
-    String json = objectMapper.writeValueAsString(sigImage);
-    return Base64.toBase64String(compress(json.getBytes(StandardCharsets.UTF_8)));
+  public static String serializeVisibleSignatureObject(final VisibleSigImage signImage) throws IOException {
+    final String json = objectMapper.writeValueAsString(signImage);
+    return Base64.getEncoder().encodeToString(compress(json.getBytes(StandardCharsets.UTF_8)));
   }
 
   /**
-   * Restores a {@link VisibleSigImage} object from a serialized state
-   * @param serializedSignImage serialized sign image object
-   * @return {@link VisibleSigImage} object
-   * @throws IOException on invalid input
-   * @throws DataFormatException on invalid input
+   * Restores a {@link VisibleSigImage} object from a serialized state.
+   *
+   * @param serializedSignImage
+   *          serialized sign image object
+   * @return VisibleSigImage object
+   * @throws IOException
+   *           on invalid input
    */
-  public VisibleSigImage deserializeVisibleSignImage(String serializedSignImage) throws IOException, DataFormatException {
-    ObjectMapper objectMapper = new ObjectMapper();
-    String json = new String(decompress(Base64.decode(serializedSignImage)), StandardCharsets.UTF_8);
-    VisibleSigImage visibleSignatureObject = objectMapper.readValue(json, VisibleSigImage.class);
-    return visibleSignatureObject;
+  public static VisibleSigImage deserializeVisibleSignImage(final String serializedSignImage) throws IOException {
+    final String json = new String(decompress(Base64.getDecoder().decode(serializedSignImage)), StandardCharsets.UTF_8);
+    return objectMapper.readValue(json, VisibleSigImage.class);
   }
 
   /**
-   * Compression
-   * @param data data to compress
+   * Compression of the supplied data.
+   *
+   * @param data
+   *          data to compress
    * @return compressed data
-   * @throws IOException on invalid input
+   * @throws IOException
+   *           on invalid input
    */
-  private byte[] compress(byte[] data) throws IOException {
-    Deflater deflater = new Deflater();
+  private static byte[] compress(final byte[] data) throws IOException {
+    final Deflater deflater = new Deflater();
     deflater.setInput(data);
-    ByteArrayOutputStream outputStream = new ByteArrayOutputStream(data.length);
+    final ByteArrayOutputStream outputStream = new ByteArrayOutputStream(data.length);
     deflater.finish();
-    byte[] buffer = new byte[1024];
+    final byte[] buffer = new byte[1024];
     while (!deflater.finished()) {
-      int count = deflater.deflate(buffer); // returns the generated code... index
+      final int count = deflater.deflate(buffer); // returns the generated code... index
       outputStream.write(buffer, 0, count);
     }
     outputStream.close();
-    byte[] output = outputStream.toByteArray();
-    return output;
+    return outputStream.toByteArray();
   }
 
   /**
-   * Decompression
-   * @param data data to be inflated
+   * Decompression of data.
+   *
+   * @param data
+   *          data to be inflated
    * @return inflated data
-   * @throws IOException on invalid input
-   * @throws DataFormatException on invalid input
+   * @throws IOException
+   *           on invalid input
    */
-  private byte[] decompress(byte[] data) throws IOException, DataFormatException {
-    Inflater inflater = new Inflater();
-    inflater.setInput(data);
-    ByteArrayOutputStream outputStream = new ByteArrayOutputStream(data.length);
-    byte[] buffer = new byte[1024];
-    while (!inflater.finished()) {
-      int count = inflater.inflate(buffer);
-      outputStream.write(buffer, 0, count);
+  private static byte[] decompress(final byte[] data) throws IOException {
+    try {
+      final Inflater inflater = new Inflater();
+      inflater.setInput(data);
+      final ByteArrayOutputStream outputStream = new ByteArrayOutputStream(data.length);
+      final byte[] buffer = new byte[1024];
+      while (!inflater.finished()) {
+        final int count = inflater.inflate(buffer);
+        outputStream.write(buffer, 0, count);
+      }
+      outputStream.close();
+      return outputStream.toByteArray();
     }
-    outputStream.close();
-    byte[] output = outputStream.toByteArray();
-    return output;
+    catch (DataFormatException e) {
+      throw new IOException(e);
+    }
   }
 
 }

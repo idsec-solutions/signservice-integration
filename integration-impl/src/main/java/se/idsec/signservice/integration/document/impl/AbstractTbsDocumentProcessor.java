@@ -30,8 +30,6 @@ import se.idsec.signservice.integration.document.TbsDocumentProcessor;
 import se.swedenconnect.schemas.csig.dssext_1_1.AdESObject;
 import se.swedenconnect.schemas.csig.dssext_1_1.SignTaskData;
 
-import javax.annotation.Nonnull;
-
 /**
  * Abstract base class for {@link TbsDocumentProcessor} implementations.
  * 
