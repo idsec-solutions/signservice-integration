@@ -124,7 +124,7 @@ public class PdfSignedDocumentProcessor extends AbstractSignedDocumentProcessor<
     VisibleSigImage visibleSignatureImage = null;
     try {
       final String encodedVisibleSignatureImage = getTbsDocumentExtension(tbsDocument, PDFExtensionParams.visibleSignImage.name());
-      visibleSignatureImage = encodedCmsSignedData != null
+      visibleSignatureImage = encodedVisibleSignatureImage != null
           ? VisibleSigImageSerializer.deserializeVisibleSignImage(encodedVisibleSignatureImage)
           : null;
     }
