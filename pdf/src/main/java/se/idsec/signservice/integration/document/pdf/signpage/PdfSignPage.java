@@ -312,7 +312,7 @@ public class PdfSignPage {
 
     if (this.imageTemplate == null) {
       // No sign image template specified
-      return null;
+      return getNoVisibleSignatureRequirement();
     }
 
     // Get pdf document and check if the image should be displayed
@@ -320,7 +320,7 @@ public class PdfSignPage {
     if (signImagePlacement == null || signImagePlacement.isHide() == true) {
       // Sign image placement is null or there is a sign page configuration that prevents the sign image from being
       // added to this page. Abort
-      return null;
+      return getNoVisibleSignatureRequirement();
     }
 
     VisiblePdfSignatureRequirement.SignerName signerName = null;
@@ -349,6 +349,12 @@ public class PdfSignPage {
       .xPosition(signImagePlacement.getSignImageXpos())
       .yPosition(signImagePlacement.getSingImaeYpos())
       .build();
+  }
+
+  private VisiblePdfSignatureRequirement getNoVisibleSignatureRequirement() {
+    VisiblePdfSignatureRequirement visiblePdfSignatureRequirement = VisiblePdfSignatureRequirement.builder().build();
+    visiblePdfSignatureRequirement.addExtensionValue(VisiblePdfSignatureRequirement.NULL_INDICATOR_EXTENSION, "true");
+    return visiblePdfSignatureRequirement;
   }
 
 }
