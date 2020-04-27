@@ -102,41 +102,43 @@ public class PdfTbsDocumentProcessor extends AbstractTbsDocumentProcessor<byte[]
 
       // Is this a "null" request. If so, remove it ...
       //
-      if (Boolean.valueOf(tbsDocument.getVisiblePdfSignatureRequirement().getExtensionValue(
-        NullVisiblePdfSignatureRequirement.NULL_INDICATOR_EXTENSION))) {
-        
-        log.debug("{}: Document '{}' contains a null requirement, removing ...", 
+      if (Boolean.valueOf(tbsDocument.getVisiblePdfSignatureRequirement()
+        .getExtensionValue(
+          NullVisiblePdfSignatureRequirement.NULL_INDICATOR_EXTENSION))) {
+
+        log.debug("{}: Document '{}' contains a null requirement, removing ...",
           CorrelationID.id(), tbsDocument.getId());
         tbsDocument.setVisiblePdfSignatureRequirement(null);
       }
+      else {
+        // Validate the input ...
+        //
+        this.visiblePdfSignatureRequirementValidator.validateObject(
+          tbsDocument.getVisiblePdfSignatureRequirement(), fieldName + ".visiblePdfSignatureRequirement", config);
 
-      // Validate the input ...
-      //
-      this.visiblePdfSignatureRequirementValidator.validateObject(
-        tbsDocument.getVisiblePdfSignatureRequirement(), fieldName + ".visiblePdfSignatureRequirement", config);
+        // Scale ...
+        //
+        if (tbsDocument.getVisiblePdfSignatureRequirement().getScale() == null) {
+          log.info("{}: visiblePdfSignatureRequirement.scale is not set, defaulting to 0", CorrelationID.id());
+          tbsDocument.getVisiblePdfSignatureRequirement().setScale(0);
+        }
+        else if (tbsDocument.getVisiblePdfSignatureRequirement().getScale().intValue() < -100) {
+          log.info("{}: visiblePdfSignatureRequirement.scale is set to '{}'. This is illegal, changing to -100",
+            CorrelationID.id(), tbsDocument.getVisiblePdfSignatureRequirement().getScale());
+          tbsDocument.getVisiblePdfSignatureRequirement().setScale(-100);
+        }
 
-      // Scale ...
-      //
-      if (tbsDocument.getVisiblePdfSignatureRequirement().getScale() == null) {
-        log.info("{}: visiblePdfSignatureRequirement.scale is not set, defaulting to 0", CorrelationID.id());
-        tbsDocument.getVisiblePdfSignatureRequirement().setScale(0);
-      }
-      else if (tbsDocument.getVisiblePdfSignatureRequirement().getScale().intValue() < -100) {
-        log.info("{}: visiblePdfSignatureRequirement.scale is set to '{}'. This is illegal, changing to -100",
-          CorrelationID.id(), tbsDocument.getVisiblePdfSignatureRequirement().getScale());
-        tbsDocument.getVisiblePdfSignatureRequirement().setScale(-100);
-      }
-
-      // Page ...
-      //
-      if (tbsDocument.getVisiblePdfSignatureRequirement().getPage() == null) {
-        log.info("{}: visiblePdfSignatureRequirement.page is not set, defaulting to 0", CorrelationID.id());
-        tbsDocument.getVisiblePdfSignatureRequirement().setPage(0);
-      }
-      if (tbsDocument.getVisiblePdfSignatureRequirement().getPage().intValue() < 0) {
-        log.info("{}: visiblePdfSignatureRequirement.page is set to '{}'. This is illegal, changing to 0",
-          CorrelationID.id(), tbsDocument.getVisiblePdfSignatureRequirement().getPage());
-        tbsDocument.getVisiblePdfSignatureRequirement().setPage(0);
+        // Page ...
+        //
+        if (tbsDocument.getVisiblePdfSignatureRequirement().getPage() == null) {
+          log.info("{}: visiblePdfSignatureRequirement.page is not set, defaulting to 0", CorrelationID.id());
+          tbsDocument.getVisiblePdfSignatureRequirement().setPage(0);
+        }
+        if (tbsDocument.getVisiblePdfSignatureRequirement().getPage().intValue() < 0) {
+          log.info("{}: visiblePdfSignatureRequirement.page is set to '{}'. This is illegal, changing to 0",
+            CorrelationID.id(), tbsDocument.getVisiblePdfSignatureRequirement().getPage());
+          tbsDocument.getVisiblePdfSignatureRequirement().setPage(0);
+        }
       }
     }
 
@@ -196,7 +198,7 @@ public class PdfTbsDocumentProcessor extends AbstractTbsDocumentProcessor<byte[]
       // Set extensions in TbsDocument with the PDF signature ID and time
       //
       tbsDocument.addExtensionValue(PDFExtensionParams.signTimeAndId.name(), String.valueOf(pdfSignerResult.getSigningTime()));
-      tbsDocument.addExtensionValue(PDFExtensionParams.cmsSignedData.name(), 
+      tbsDocument.addExtensionValue(PDFExtensionParams.cmsSignedData.name(),
         Base64.getEncoder().encodeToString(pdfSignerResult.getSignedData()));
 
       return tbsResult;
