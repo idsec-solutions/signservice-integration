@@ -140,11 +140,10 @@ public class SignController extends BaseController {
       .id("sample-1")
       .content(Base64.getEncoder().encodeToString(createSampleXml(signMessageParameters.getSignMessage()).getBytes()))
       .mimeType(DocumentType.XML)
-      /*
       .adesRequirement(
         EtsiAdesRequirement.builder()
           .adesFormat(AdesType.BES)
-          .build())*/
+          .build())
       .build();
 
     final String returnUrl = debug ? this.debugReturnUrl : null;
@@ -155,9 +154,7 @@ public class SignController extends BaseController {
       .authnRequirements(
         AuthnRequirements.builder()
           .authnContextRef(lastAuthentication.getAuthnContextUri())
-          .authnServiceID(lastAuthentication.getIdp()
-            // "http://qa.test.swedenconnect.se/idp"
-            )
+          .authnServiceID(lastAuthentication.getIdp())
           .requestedSignerAttributes(requestedAttributes)
           .build())
       .tbsDocument(tbsDocument)
