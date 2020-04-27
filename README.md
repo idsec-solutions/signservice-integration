@@ -16,12 +16,11 @@ The **signservice-integration** repository comprises of:
 
 * An implementation of the Signature Service Integration API.
 
-* Modules for handling different signature formats (XML, PDF, CMS).
+* Modules for handling different signature formats (XML and PDF).
 
-* A definition of a RESTful API for creating a Signature Service Integration REST application.
-
-* A sample Spring Boot application that implements a Signature Service Integration REST application.
+* A sample Spring Boot application that implements a Signature Service Integration using the SignService
+Integration API and implementation.
 
 ---
 
-Copyright &copy; 2019, [IDsec Solutions AB](http://www.idsec.se). Licensed under version 2.0 of the [Apache License](http://www.apache.org/licenses/LICENSE-2.0).
+Copyright &copy; 2019-2020, [IDsec Solutions AB](http://www.idsec.se). Licensed under version 2.0 of the [Apache License](http://www.apache.org/licenses/LICENSE-2.0).
