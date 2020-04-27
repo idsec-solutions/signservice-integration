@@ -103,8 +103,7 @@ public class PdfTbsDocumentProcessor extends AbstractTbsDocumentProcessor<byte[]
       // Is this a "null" request. If so, remove it ...
       //
       if (Boolean.valueOf(tbsDocument.getVisiblePdfSignatureRequirement()
-        .getExtensionValue(
-          NullVisiblePdfSignatureRequirement.NULL_INDICATOR_EXTENSION))) {
+        .getExtensionValue(VisiblePdfSignatureRequirement.NULL_INDICATOR_EXTENSION))) {
 
         log.debug("{}: Document '{}' contains a null requirement, removing ...",
           CorrelationID.id(), tbsDocument.getId());
