@@ -204,7 +204,7 @@ public class DefaultSignRequestProcessor implements SignRequestProcessor {
         .orElseThrow(() -> new InputValidationException(fieldName,
           String.format("Document of type '%s' is not supported", doc.getMimeType())));
 
-      final ProcessedTbsDocument processedTbsDocument = processor.preProcess(doc, config, fieldName);
+      final ProcessedTbsDocument processedTbsDocument = processor.preProcess(doc, signRequestInput, config, fieldName);
       if (processedTbsDocument.getDocumentObject() != null) {
         if (processedTbsDocument.getDocumentObject() != null) {
           final Extension ext = processedTbsDocument.getTbsDocument().getExtension();

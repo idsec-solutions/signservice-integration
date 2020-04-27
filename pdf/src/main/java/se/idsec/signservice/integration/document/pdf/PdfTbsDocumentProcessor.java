@@ -15,11 +15,21 @@
  */
 package se.idsec.signservice.integration.document.pdf;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.security.NoSuchAlgorithmException;
+import java.security.SignatureException;
+import java.util.Base64;
+
+import org.apache.commons.lang.StringUtils;
 import org.apache.pdfbox.pdmodel.PDDocument;
-import org.springframework.util.StringUtils;
 
 import lombok.extern.slf4j.Slf4j;
+import se.idsec.signservice.integration.SignRequestInput;
 import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
+import se.idsec.signservice.integration.core.Extension;
+import se.idsec.signservice.integration.core.error.ErrorCode;
 import se.idsec.signservice.integration.core.error.InputValidationException;
 import se.idsec.signservice.integration.core.impl.CorrelationID;
 import se.idsec.signservice.integration.core.validation.ValidationResult;
@@ -33,19 +43,30 @@ import se.idsec.signservice.integration.document.TbsDocument.EtsiAdesRequirement
 import se.idsec.signservice.integration.document.impl.AbstractTbsDocumentProcessor;
 import se.idsec.signservice.integration.document.impl.EtsiAdesRequirementValidator;
 import se.idsec.signservice.integration.document.impl.TbsCalculationResult;
+import se.idsec.signservice.integration.document.pdf.utils.PDFIntegrationUtils;
+import se.idsec.signservice.integration.document.pdf.visiblesig.VisiblePdfSignatureRequirementException;
+import se.idsec.signservice.integration.document.pdf.visiblesig.VisibleSignatureImageFactory;
+import se.idsec.signservice.integration.document.pdf.visiblesig.VisibleSignatureImageSerializer;
+import se.idsec.signservice.security.sign.AdesProfileType;
+import se.idsec.signservice.security.sign.impl.StaticCredentials;
+import se.idsec.signservice.security.sign.pdf.PDFSignerParameters;
+import se.idsec.signservice.security.sign.pdf.PDFSignerResult;
+import se.idsec.signservice.security.sign.pdf.impl.DefaultPDFSigner;
 
 /**
  * PDF TBS-document processor.
- * 
+ *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
 @Slf4j
-public class PdfTbsDocumentProcessor extends AbstractTbsDocumentProcessor<PDDocument> {
+public class PdfTbsDocumentProcessor extends AbstractTbsDocumentProcessor<byte[]> {
+
+  /** We need to use dummy keys when creating the to-be-signed bytes. */
+  private final StaticCredentials staticKeys = new StaticCredentials();
 
   /** Validator for visible PDF signature requirements. */
-  protected final VisiblePdfSignatureRequirementValidator visiblePdfSignatureRequirementValidator =
-      new VisiblePdfSignatureRequirementValidator();
+  protected final VisiblePdfSignatureRequirementValidator visiblePdfSignatureRequirementValidator = new VisiblePdfSignatureRequirementValidator();
 
   /** Document decoder. */
   protected final static PdfDocumentEncoderDecoder documentEncoderDecoder = new PdfDocumentEncoderDecoder();
@@ -65,10 +86,10 @@ public class PdfTbsDocumentProcessor extends AbstractTbsDocumentProcessor<PDDocu
    * Handles settings for PDF visible signatures.
    */
   @Override
-  public ProcessedTbsDocument preProcess(final TbsDocument document, final IntegrationServiceConfiguration config, final String fieldName)
-      throws InputValidationException {
+  public ProcessedTbsDocument preProcess(final TbsDocument document, final SignRequestInput signRequestInput,
+      final IntegrationServiceConfiguration config, final String fieldName) throws InputValidationException {
 
-    final ProcessedTbsDocument processedTbsDocument = super.preProcess(document, config, fieldName);
+    final ProcessedTbsDocument processedTbsDocument = super.preProcess(document, signRequestInput, config, fieldName);
     final TbsDocument tbsDocument = processedTbsDocument.getTbsDocument();
 
     if (tbsDocument.getVisiblePdfSignatureRequirement() == null) {
@@ -108,8 +129,27 @@ public class PdfTbsDocumentProcessor extends AbstractTbsDocumentProcessor<PDDocu
         tbsDocument.getVisiblePdfSignatureRequirement().setPage(0);
       }
     }
-    
-    // TODO: Do anything with AdES?
+
+    // AdES requirements ...
+    //
+    final EtsiAdesRequirement requestedAdes = tbsDocument.getAdesRequirement();
+    final AdesProfileType ades = PDFIntegrationUtils.getPadesRequirement(requestedAdes);
+    addTbsDocumentExtension(tbsDocument, PDFExtensionParams.adesRequirement.name(), ades.getStringValue());
+
+    // Visible PDF signature requirements ...
+    //
+    final VisiblePdfSignatureRequirement visiblePdfSignatureRequirement = tbsDocument.getVisiblePdfSignatureRequirement();
+    if (visiblePdfSignatureRequirement != null) {
+      final VisibleSignatureImageFactory factory = new VisibleSignatureImageFactory(config.getPdfSignatureImageTemplates());
+      try {
+        final String encodedVisibleSignImage = factory.getEncodedVisibleSignImage(
+          visiblePdfSignatureRequirement, signRequestInput.getAuthnRequirements().getRequestedSignerAttributes());
+        addTbsDocumentExtension(tbsDocument, PDFExtensionParams.visibleSignImage.name(), encodedVisibleSignImage);
+      }
+      catch (VisiblePdfSignatureRequirementException e) {
+        throw new InputValidationException(fieldName + ".visiblePdfSignatureRequirement", e.getMessage(), e);
+      }
+    }
 
     return processedTbsDocument;
   }
@@ -119,19 +159,77 @@ public class PdfTbsDocumentProcessor extends AbstractTbsDocumentProcessor<PDDocu
   protected TbsCalculationResult calculateToBeSigned(final ProcessedTbsDocument document, final String signatureAlgorithm,
       IntegrationServiceConfiguration config) throws DocumentProcessingException {
 
-    // TODO
-    return null;
+    final TbsDocument tbsDocument = document.getTbsDocument();
+
+    // Sign the document using a fake key - in order to obtain the to-be-signed bytes.
+    //
+    try {
+      final DefaultPDFSigner signer = new DefaultPDFSigner(staticKeys.getSigningCredential(signatureAlgorithm), signatureAlgorithm);
+      signer.setIncludeCertificateChain(false);
+
+      final String padesString = getTbsDocumentExtension(tbsDocument, PDFExtensionParams.adesRequirement.name());
+      final String encodedVisibleImage = getTbsDocumentExtension(tbsDocument, PDFExtensionParams.visibleSignImage.name());
+
+      final PDFSignerParameters signerParameters = PDFSignerParameters.builder()
+        .padesType(padesString != null ? AdesProfileType.fromStringValue(padesString) : null)
+        .visibleSignatureImage(
+          encodedVisibleImage != null ? VisibleSignatureImageSerializer.deserializeVisibleSignImage(encodedVisibleImage) : null)
+        .build();
+
+      final PDFSignerResult pdfSignerResult = signer.sign(document.getDocumentObject(byte[].class), signerParameters);
+
+      TbsCalculationResult tbsResult = TbsCalculationResult.builder()
+        .toBeSignedBytes(pdfSignerResult.getSignedAttributes())
+        .sigType("PDF")
+        .build();
+
+      // Set extensions in TbsDocument with the PDF signature ID and time
+      //
+      addTbsDocumentExtension(tbsDocument, PDFExtensionParams.signTimeAndId.name(), String.valueOf(pdfSignerResult.getSigningTime()));
+      addTbsDocumentExtension(tbsDocument, PDFExtensionParams.cmsSignedData.name(),
+        Base64.getEncoder().encodeToString(pdfSignerResult.getSignedData()));
+
+      return tbsResult;
+    }
+    catch (NoSuchAlgorithmException | IllegalArgumentException | IOException | SignatureException e) {
+      final String msg = String.format("Error while calculating signed attributes for PDF document '%s' - %s", tbsDocument.getId(), e
+        .getMessage());
+      log.error("{}: {}", CorrelationID.id(), msg, e);
+      throw new DocumentProcessingException(new ErrorCode.Code("sign"), msg, e);
+    }
+  }
+
+  /**
+   * Overrides the default implementation and ensures that the bytes that makes up the PDF document really are OK, that
+   * is, we ensure that they can be loaded into a {@link PDDocument}.
+   */
+  @Override
+  protected byte[] validateDocumentContent(final TbsDocument document, final IntegrationServiceConfiguration config, final String fieldName)
+      throws InputValidationException {
+
+    final byte[] pdfDocumentBytes = super.validateDocumentContent(document, config, fieldName);
+    try {
+      InputStream is = new ByteArrayInputStream(pdfDocumentBytes);
+      PDDocument pdfDocument = PDDocument.load(is);
+      pdfDocument.close();
+    }
+    catch (Exception e) {
+      final String msg = String.format("Failed to load content for document '%s' - %s", document.getId(), e.getMessage());
+      log.error("{}: {}", CorrelationID.id(), msg, e);
+      throw new InputValidationException(fieldName + ".content", msg, e);
+    }
+    return pdfDocumentBytes;
   }
 
   /** {@inheritDoc} */
   @Override
-  public DocumentDecoder<PDDocument> getDocumentDecoder() {
+  public DocumentDecoder<byte[]> getDocumentDecoder() {
     return documentEncoderDecoder;
   }
 
   /** {@inheritDoc} */
   @Override
-  public DocumentEncoder<PDDocument> getDocumentEncoder() {
+  public DocumentEncoder<byte[]> getDocumentEncoder() {
     return documentEncoderDecoder;
   }
 
@@ -139,6 +237,39 @@ public class PdfTbsDocumentProcessor extends AbstractTbsDocumentProcessor<PDDocu
   @Override
   protected EtsiAdesRequirementValidator getEtsiAdesRequirementValidator() {
     return new PadesRequirementValidator();
+  }
+
+  /**
+   * Utility method that adds an extension to a TBS document.
+   * 
+   * @param tbsDocument
+   *          the document
+   * @param extName
+   *          the name of the extension
+   * @param extValue
+   *          the extension value
+   */
+  private static void addTbsDocumentExtension(final TbsDocument tbsDocument, final String extName, final String extValue) {
+    if (tbsDocument.getExtension() == null) {
+      tbsDocument.setExtension(new Extension());
+    }
+    tbsDocument.getExtension().put(extName, extValue);
+  }
+
+  /**
+   * Utility method that gets an extension from the supplied document
+   * 
+   * @param tbsDocument
+   *          the document
+   * @param extName
+   *          the extension name
+   * @return the extension value or null if it does not exist
+   */
+  private static String getTbsDocumentExtension(final TbsDocument tbsDocument, final String extName) {
+    if (tbsDocument.getExtension() == null) {
+      return null;
+    }
+    return tbsDocument.getExtension().get(extName);
   }
 
   /**
@@ -154,12 +285,10 @@ public class PdfTbsDocumentProcessor extends AbstractTbsDocumentProcessor<PDDocu
         return result;
       }
 
-      if (TbsDocument.AdesType.EPES.equals(object.getAdesFormat()) && !StringUtils.hasText(object.getSignaturePolicy())) {
+      if (TbsDocument.AdesType.EPES.equals(object.getAdesFormat()) && StringUtils.isBlank(object.getSignaturePolicy())) {
         result.rejectValue("signaturePolicy",
           "AdES requirement states Extended Policy Electronic Signature but no signature policy has been given");
       }
-
-      // TODO: Validate the input ...
 
       return result;
     }

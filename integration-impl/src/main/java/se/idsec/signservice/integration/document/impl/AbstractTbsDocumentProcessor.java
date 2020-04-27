@@ -18,6 +18,7 @@ package se.idsec.signservice.integration.document.impl;
 import java.util.UUID;
 
 import lombok.extern.slf4j.Slf4j;
+import se.idsec.signservice.integration.SignRequestInput;
 import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
 import se.idsec.signservice.integration.core.error.InputValidationException;
 import se.idsec.signservice.integration.core.impl.CorrelationID;
@@ -54,7 +55,7 @@ public abstract class AbstractTbsDocumentProcessor<T> implements TbsDocumentProc
 
   /** {@inheritDoc} */
   @Override
-  public ProcessedTbsDocument preProcess(final TbsDocument document, final IntegrationServiceConfiguration config, final String fieldName)
+  public ProcessedTbsDocument preProcess(final TbsDocument document, final SignRequestInput signRequestInput, final IntegrationServiceConfiguration config, final String fieldName)
       throws InputValidationException {
 
     // Make a copy of the document before updating it.

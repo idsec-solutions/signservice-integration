@@ -27,6 +27,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import lombok.extern.slf4j.Slf4j;
+import se.idsec.signservice.integration.SignRequestInput;
 import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
 import se.idsec.signservice.integration.core.error.ErrorCode;
 import se.idsec.signservice.integration.core.error.InputValidationException;
@@ -83,10 +84,10 @@ public class XmlTbsDocumentProcessor extends AbstractTbsDocumentProcessor<Docume
 
   /** {@inheritDoc} */
   @Override
-  public ProcessedTbsDocument preProcess(final TbsDocument document, final IntegrationServiceConfiguration config, final String fieldName)
+  public ProcessedTbsDocument preProcess(final TbsDocument document, final SignRequestInput signRequestInput, final IntegrationServiceConfiguration config, final String fieldName)
       throws InputValidationException {
 
-    final ProcessedTbsDocument processedTbsDocument = super.preProcess(document, config, fieldName);
+    final ProcessedTbsDocument processedTbsDocument = super.preProcess(document,signRequestInput, config, fieldName);
     final TbsDocument tbsDocument = processedTbsDocument.getTbsDocument();
 
     if (tbsDocument.getAdesRequirement() != null) {

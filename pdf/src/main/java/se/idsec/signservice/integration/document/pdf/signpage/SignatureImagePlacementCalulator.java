@@ -13,27 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package se.idsec.signservice.integration.document.pdf;
-
-import se.idsec.signservice.integration.document.ades.AdesObject;
-import se.idsec.signservice.integration.document.ades.AdesSigningCertificateDigest;
+package se.idsec.signservice.integration.document.pdf.signpage;
 
 /**
- * PAdES object for PDF signing.
- * 
+ * Provides the logic for determining the relative place of a sign image.
+ *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
-public class PadesObject implements AdesObject {
-  
-  /*
-   * TODO: Implement support for PAdES object. See XadesQualifyingProperties for a reference...
+public interface SignatureImagePlacementCalulator {
+
+  /**
+   * Calculates the relative placement of a sign image based on the number of previously existing signatures on this
+   * document.
+   * 
+   * @param sigCount
+   *          number of already existing signatures on this document
+   * @param basePlacement
+   *          the base placement of sign images
+   * @return placement for the next sign image
    */
-
-  /** {@inheritDoc} */
-  @Override
-  public AdesSigningCertificateDigest getSigningCertificateDigest() {
-    return null;
-  }
-
+  SignatureImagePlacement getPlacement(final int sigCount, final SignatureImagePlacement basePlacement);
 }
