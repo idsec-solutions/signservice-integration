@@ -27,6 +27,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;
+import se.idsec.signservice.integration.core.Extension;
 import se.idsec.signservice.integration.core.ObjectBuilder;
 import se.idsec.signservice.integration.document.pdf.PdfSignatureImageTemplate;
 
@@ -63,13 +64,14 @@ public class PdfSignatureImageTemplateExt extends PdfSignatureImageTemplate {
    */
   public PdfSignatureImageTemplateExt(final PdfSignatureImageTemplate template) {
     super(template.getReference(), template.getImage(), template.getWidth(), template.getHeight(), template.isIncludeSignerName(),
-      template.isIncludeSigningTime(), template.getFields());
+      template.isIncludeSigningTime(), template.getFields(), template.getExtension());
   }
 
   @Builder(builderMethodName = "createBuilder")
   public PdfSignatureImageTemplateExt(final String reference, final String image, final Resource resource, final Integer width,
-      final Integer height, final boolean includeSignerName, final boolean includeSigningTime, final Map<String, String> fields) {
-    super(reference, image, width, height, includeSignerName, includeSigningTime, fields);
+      final Integer height, final boolean includeSignerName, final boolean includeSigningTime, final Map<String, String> fields, 
+      final Extension extension) {
+    super(reference, image, width, height, includeSignerName, includeSigningTime, fields, extension);
     this.setResource(resource);
   }
 

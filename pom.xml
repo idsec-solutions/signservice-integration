@@ -93,7 +93,7 @@
       <dependency>
         <groupId>se.idsec.signservice.integration</groupId>
         <artifactId>signservice-integration-api</artifactId>
-        <version>1.0.2</version>
+        <version>1.0.3-SNAPSHOT</version>
       </dependency>
 
       <dependency>

@@ -28,7 +28,6 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import lombok.extern.slf4j.Slf4j;
 import se.idsec.signservice.integration.SignRequestInput;
 import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
-import se.idsec.signservice.integration.core.Extension;
 import se.idsec.signservice.integration.core.error.ErrorCode;
 import se.idsec.signservice.integration.core.error.InputValidationException;
 import se.idsec.signservice.integration.core.impl.CorrelationID;
@@ -100,6 +99,17 @@ public class PdfTbsDocumentProcessor extends AbstractTbsDocumentProcessor<byte[]
       }
     }
     else {
+
+      // Is this a "null" request. If so, remove it ...
+      //
+      if (Boolean.valueOf(tbsDocument.getVisiblePdfSignatureRequirement().getExtensionValue(
+        NullVisiblePdfSignatureRequirement.NULL_INDICATOR_EXTENSION))) {
+        
+        log.debug("{}: Document '{}' contains a null requirement, removing ...", 
+          CorrelationID.id(), tbsDocument.getId());
+        tbsDocument.setVisiblePdfSignatureRequirement(null);
+      }
+
       // Validate the input ...
       //
       this.visiblePdfSignatureRequirementValidator.validateObject(
@@ -134,7 +144,7 @@ public class PdfTbsDocumentProcessor extends AbstractTbsDocumentProcessor<byte[]
     //
     final EtsiAdesRequirement requestedAdes = tbsDocument.getAdesRequirement();
     final AdesProfileType ades = PDFIntegrationUtils.getPadesRequirement(requestedAdes);
-    addTbsDocumentExtension(tbsDocument, PDFExtensionParams.adesRequirement.name(), ades.getStringValue());
+    tbsDocument.addExtensionValue(PDFExtensionParams.adesRequirement.name(), ades.getStringValue());
 
     // Visible PDF signature requirements ...
     //
@@ -144,7 +154,7 @@ public class PdfTbsDocumentProcessor extends AbstractTbsDocumentProcessor<byte[]
       try {
         final String encodedVisibleSignImage = factory.getEncodedVisibleSignImage(
           visiblePdfSignatureRequirement, signRequestInput.getAuthnRequirements().getRequestedSignerAttributes());
-        addTbsDocumentExtension(tbsDocument, PDFExtensionParams.visibleSignImage.name(), encodedVisibleSignImage);
+        tbsDocument.addExtensionValue(PDFExtensionParams.visibleSignImage.name(), encodedVisibleSignImage);
       }
       catch (VisiblePdfSignatureRequirementException e) {
         throw new InputValidationException(fieldName + ".visiblePdfSignatureRequirement", e.getMessage(), e);
@@ -167,8 +177,8 @@ public class PdfTbsDocumentProcessor extends AbstractTbsDocumentProcessor<byte[]
       final DefaultPDFSigner signer = new DefaultPDFSigner(staticKeys.getSigningCredential(signatureAlgorithm), signatureAlgorithm);
       signer.setIncludeCertificateChain(false);
 
-      final String padesString = getTbsDocumentExtension(tbsDocument, PDFExtensionParams.adesRequirement.name());
-      final String encodedVisibleImage = getTbsDocumentExtension(tbsDocument, PDFExtensionParams.visibleSignImage.name());
+      final String padesString = tbsDocument.getExtensionValue(PDFExtensionParams.adesRequirement.name());
+      final String encodedVisibleImage = tbsDocument.getExtensionValue(PDFExtensionParams.visibleSignImage.name());
 
       final PDFSignerParameters signerParameters = PDFSignerParameters.builder()
         .padesType(padesString != null ? AdesProfileType.fromStringValue(padesString) : null)
@@ -185,8 +195,8 @@ public class PdfTbsDocumentProcessor extends AbstractTbsDocumentProcessor<byte[]
 
       // Set extensions in TbsDocument with the PDF signature ID and time
       //
-      addTbsDocumentExtension(tbsDocument, PDFExtensionParams.signTimeAndId.name(), String.valueOf(pdfSignerResult.getSigningTime()));
-      addTbsDocumentExtension(tbsDocument, PDFExtensionParams.cmsSignedData.name(),
+      tbsDocument.addExtensionValue(PDFExtensionParams.signTimeAndId.name(), String.valueOf(pdfSignerResult.getSigningTime()));
+      tbsDocument.addExtensionValue(PDFExtensionParams.cmsSignedData.name(), 
         Base64.getEncoder().encodeToString(pdfSignerResult.getSignedData()));
 
       return tbsResult;
@@ -237,39 +247,6 @@ public class PdfTbsDocumentProcessor extends AbstractTbsDocumentProcessor<byte[]
   @Override
   protected EtsiAdesRequirementValidator getEtsiAdesRequirementValidator() {
     return new PadesRequirementValidator();
-  }
-
-  /**
-   * Utility method that adds an extension to a TBS document.
-   * 
-   * @param tbsDocument
-   *          the document
-   * @param extName
-   *          the name of the extension
-   * @param extValue
-   *          the extension value
-   */
-  private static void addTbsDocumentExtension(final TbsDocument tbsDocument, final String extName, final String extValue) {
-    if (tbsDocument.getExtension() == null) {
-      tbsDocument.setExtension(new Extension());
-    }
-    tbsDocument.getExtension().put(extName, extValue);
-  }
-
-  /**
-   * Utility method that gets an extension from the supplied document
-   * 
-   * @param tbsDocument
-   *          the document
-   * @param extName
-   *          the extension name
-   * @return the extension value or null if it does not exist
-   */
-  private static String getTbsDocumentExtension(final TbsDocument tbsDocument, final String extName) {
-    if (tbsDocument.getExtension() == null) {
-      return null;
-    }
-    return tbsDocument.getExtension().get(extName);
   }
 
   /**
