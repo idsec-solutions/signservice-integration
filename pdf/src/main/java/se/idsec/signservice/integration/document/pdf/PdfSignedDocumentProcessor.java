@@ -24,6 +24,7 @@ import java.util.Base64;
 import java.util.List;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
+import org.bouncycastle.cms.CMSException;
 
 import lombok.extern.slf4j.Slf4j;
 import se.idsec.signservice.integration.SignResponseProcessingParameters;
@@ -39,19 +40,18 @@ import se.idsec.signservice.integration.document.TbsDocument;
 import se.idsec.signservice.integration.document.impl.AbstractSignedDocumentProcessor;
 import se.idsec.signservice.integration.document.impl.DefaultCompiledSignedDocument;
 import se.idsec.signservice.integration.document.pdf.utils.PDFIntegrationUtils;
-import se.idsec.signservice.integration.document.pdf.visiblesig.VisibleSigImageSerializer;
+import se.idsec.signservice.integration.document.pdf.visiblesig.VisibleSignatureImageSerializer;
 import se.idsec.signservice.integration.dss.SignRequestWrapper;
 import se.idsec.signservice.integration.process.impl.SignResponseProcessingException;
 import se.idsec.signservice.security.sign.AdesProfileType;
 import se.idsec.signservice.security.sign.SignatureValidationResult;
 import se.idsec.signservice.security.sign.SignatureValidator;
-import se.idsec.signservice.security.sign.pdf.PDFSignatureException;
-import se.idsec.signservice.security.sign.pdf.SignServiceSignatureInterface;
-import se.idsec.signservice.security.sign.pdf.configuration.PDFAlgoRegistry;
-import se.idsec.signservice.security.sign.pdf.document.VisibleSigImage;
+import se.idsec.signservice.security.sign.pdf.PDFBoxSignatureInterface;
+import se.idsec.signservice.security.sign.pdf.configuration.PDFAlgorithmRegistry;
+import se.idsec.signservice.security.sign.pdf.document.VisibleSignatureImage;
 import se.idsec.signservice.security.sign.pdf.impl.BasicPDFSignatureValidator;
-import se.idsec.signservice.security.sign.pdf.signprocess.PDFSigningProcessor;
-import se.idsec.signservice.security.sign.pdf.signprocess.PdfBoxSigUtil;
+import se.idsec.signservice.security.sign.pdf.utils.PDFSigningProcessor;
+import se.idsec.signservice.security.sign.pdf.utils.PDFBoxSignatureUtils;
 import se.swedenconnect.schemas.csig.dssext_1_1.SignTaskData;
 
 /**
@@ -121,11 +121,11 @@ public class PdfSignedDocumentProcessor extends AbstractSignedDocumentProcessor<
 
     // Visible signature image
     //
-    VisibleSigImage visibleSignatureImage = null;
+    VisibleSignatureImage visibleSignatureImage = null;
     try {
       final String encodedVisibleSignatureImage = getTbsDocumentExtension(tbsDocument, PDFExtensionParams.visibleSignImage.name());
       visibleSignatureImage = encodedVisibleSignatureImage != null
-          ? VisibleSigImageSerializer.deserializeVisibleSignImage(encodedVisibleSignatureImage)
+          ? VisibleSignatureImageSerializer.deserializeVisibleSignImage(encodedVisibleSignatureImage)
           : null;
     }
     catch (IOException e) {
@@ -145,7 +145,7 @@ public class PdfSignedDocumentProcessor extends AbstractSignedDocumentProcessor<
     try {
       final PDDocument pdfDocument = PDDocument.load(document);
 
-      final SignServiceSignatureInterface replaceSignatureInterface = new ReplacingSignatureInterface(
+      final PDFBoxSignatureInterface replaceSignatureInterface = new ReplacingSignatureInterface(
         cmsSignedData,
         signedData.getToBeSignedBytes(),
         signedData.getBase64Signature().getValue(),
@@ -158,10 +158,10 @@ public class PdfSignedDocumentProcessor extends AbstractSignedDocumentProcessor<
       // Check if we have PAdES data ...
       //
       PAdESData padesData = null;
-      final PdfBoxSigUtil.SignedCertRef signedCertRefAttribute = PdfBoxSigUtil.getSignedCertRefAttribute(signResult
+      final PDFBoxSignatureUtils.SignedCertRef signedCertRefAttribute = PDFBoxSignatureUtils.getSignedCertRefAttribute(signResult
         .getCmsSignedAttributes());
       if (signedCertRefAttribute != null) {
-        final PDFAlgoRegistry.PDFSignatureAlgorithmProperties algorithmProperties = PDFAlgoRegistry.getAlgorithmProperties(signedData
+        final PDFAlgorithmRegistry.PDFSignatureAlgorithmProperties algorithmProperties = PDFAlgorithmRegistry.getAlgorithmProperties(signedData
           .getBase64Signature()
           .getType());
 
@@ -181,7 +181,7 @@ public class PdfSignedDocumentProcessor extends AbstractSignedDocumentProcessor<
       return new DefaultCompiledSignedDocument<byte[], PAdESData>(
         signedData.getSignTaskId(), signResult.getDocument(), DocumentType.PDF.getMimeType(), this.getDocumentEncoder(), padesData);
     }
-    catch (PDFSignatureException | IOException | NoSuchAlgorithmException e) {
+    catch (IOException | NoSuchAlgorithmException | SignatureException e) {
       final String msg = String.format("Failed to build signed PDF document - %s [request-id='%s']", e.getMessage(), signRequest
         .getRequestID());
       log.error("{}: {}", CorrelationID.id(), msg);
@@ -274,7 +274,7 @@ public class PdfSignedDocumentProcessor extends AbstractSignedDocumentProcessor<
    * @author Martin Lindström (martin@idsec.se)
    * @author Stefan Santesson (stefan@idsec.se)
    */  
-  private static class ReplacingSignatureInterface implements SignServiceSignatureInterface {
+  private static class ReplacingSignatureInterface implements PDFBoxSignatureInterface {
     
     /** The original ContentInfo bytes holding SignedInfo from the original pre-signing process. */
     private final byte[] originalSignedData;
@@ -353,12 +353,12 @@ public class PdfSignedDocumentProcessor extends AbstractSignedDocumentProcessor<
     @Override
     public byte[] sign(final InputStream content) throws IOException {
       try {
-        this.updatedCmsSignedData = PdfBoxSigUtil.updatePdfPKCS7(
+        this.updatedCmsSignedData = PDFBoxSignatureUtils.updatePdfPKCS7(
           this.originalSignedData, this.newSignedAttributesData, this.newSignatureValue, this.signerCertchain);
-        this.cmsSignedAttributes = PdfBoxSigUtil.getCmsSignedAttributes(this.updatedCmsSignedData);
+        this.cmsSignedAttributes = PDFBoxSignatureUtils.getCmsSignedAttributes(this.updatedCmsSignedData);
         return this.updatedCmsSignedData;
       }
-      catch (PDFSignatureException e) {
+      catch (CMSException e) {
         throw new IOException(e.getMessage(), e);
       }
     }

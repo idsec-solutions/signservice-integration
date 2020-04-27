@@ -45,8 +45,8 @@ import se.idsec.signservice.integration.document.impl.EtsiAdesRequirementValidat
 import se.idsec.signservice.integration.document.impl.TbsCalculationResult;
 import se.idsec.signservice.integration.document.pdf.utils.PDFIntegrationUtils;
 import se.idsec.signservice.integration.document.pdf.visiblesig.VisiblePdfSignatureRequirementException;
-import se.idsec.signservice.integration.document.pdf.visiblesig.VisibleSigImageFactory;
-import se.idsec.signservice.integration.document.pdf.visiblesig.VisibleSigImageSerializer;
+import se.idsec.signservice.integration.document.pdf.visiblesig.VisibleSignatureImageFactory;
+import se.idsec.signservice.integration.document.pdf.visiblesig.VisibleSignatureImageSerializer;
 import se.idsec.signservice.security.sign.AdesProfileType;
 import se.idsec.signservice.security.sign.impl.StaticCredentials;
 import se.idsec.signservice.security.sign.pdf.PDFSignerParameters;
@@ -140,7 +140,7 @@ public class PdfTbsDocumentProcessor extends AbstractTbsDocumentProcessor<byte[]
     //
     final VisiblePdfSignatureRequirement visiblePdfSignatureRequirement = tbsDocument.getVisiblePdfSignatureRequirement();
     if (visiblePdfSignatureRequirement != null) {
-      final VisibleSigImageFactory factory = new VisibleSigImageFactory(config.getPdfSignatureImageTemplates());
+      final VisibleSignatureImageFactory factory = new VisibleSignatureImageFactory(config.getPdfSignatureImageTemplates());
       try {
         final String encodedVisibleSignImage = factory.getEncodedVisibleSignImage(
           visiblePdfSignatureRequirement, signRequestInput.getAuthnRequirements().getRequestedSignerAttributes());
@@ -173,7 +173,7 @@ public class PdfTbsDocumentProcessor extends AbstractTbsDocumentProcessor<byte[]
       final PDFSignerParameters signerParameters = PDFSignerParameters.builder()
         .padesType(padesString != null ? AdesProfileType.fromStringValue(padesString) : null)
         .visibleSignatureImage(
-          encodedVisibleImage != null ? VisibleSigImageSerializer.deserializeVisibleSignImage(encodedVisibleImage) : null)
+          encodedVisibleImage != null ? VisibleSignatureImageSerializer.deserializeVisibleSignImage(encodedVisibleImage) : null)
         .build();
 
       final PDFSignerResult pdfSignerResult = signer.sign(document.getDocumentObject(byte[].class), signerParameters);

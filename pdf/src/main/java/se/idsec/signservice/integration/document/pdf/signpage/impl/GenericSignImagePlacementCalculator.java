@@ -17,8 +17,8 @@ package se.idsec.signservice.integration.document.pdf.signpage.impl;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import se.idsec.signservice.integration.document.pdf.signpage.SignImagePlacement;
-import se.idsec.signservice.integration.document.pdf.signpage.SignImagePlacementCalulator;
+import se.idsec.signservice.integration.document.pdf.signpage.SignatureImagePlacement;
+import se.idsec.signservice.integration.document.pdf.signpage.SignatureImagePlacementCalulator;
 
 /**
  * Implements a generic PDF sign image placement calculator.
@@ -28,7 +28,7 @@ import se.idsec.signservice.integration.document.pdf.signpage.SignImagePlacement
  */
 @Data
 @AllArgsConstructor
-public class GenericSignImagePlacementCalculator implements SignImagePlacementCalulator {
+public class GenericSignImagePlacementCalculator implements SignatureImagePlacementCalulator {
 
   private int cols;
   private int rows;
@@ -62,7 +62,7 @@ public class GenericSignImagePlacementCalculator implements SignImagePlacementCa
 
   /** {@inheritDoc} */
   @Override
-  public SignImagePlacement getPlacement(final int sigCount, final SignImagePlacement basePlacement) {
+  public SignatureImagePlacement getPlacement(final int sigCount, final SignatureImagePlacement basePlacement) {
     if (sigCount < this.start) {
       return basePlacement;
     }
@@ -70,8 +70,8 @@ public class GenericSignImagePlacementCalculator implements SignImagePlacementCa
     final int row = (sigCount - this.start) / this.cols;
 
     if (row >= this.rows) {
-      return new SignImagePlacement();
+      return new SignatureImagePlacement();
     }
-    return new SignImagePlacement(this.startXoffset + col * this.xIncrement, this.startYoffset + row * this.yIncrement, basePlacement);
+    return new SignatureImagePlacement(this.startXoffset + col * this.xIncrement, this.startYoffset + row * this.yIncrement, basePlacement);
   }
 }

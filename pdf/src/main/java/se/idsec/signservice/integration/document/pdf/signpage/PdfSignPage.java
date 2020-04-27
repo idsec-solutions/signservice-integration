@@ -64,8 +64,8 @@ public class PdfSignPage {
   private final boolean onlyAddedToUnsigned;
   private final SignerNameRequirementProcessor signerNameRequirementProcessor;
   @Setter
-  private SignImagePlacement basePlacement;
-  private final SignImagePlacementCalulator calulator;
+  private SignatureImagePlacement basePlacement;
+  private final SignatureImagePlacementCalulator calulator;
   @Setter
   @Getter
   private String imageTemplate;
@@ -90,8 +90,8 @@ public class PdfSignPage {
    */
   public PdfSignPage(final String signPageTemplateLocation, final boolean onlyAddedToUnsigned,
       final SignerNameRequirementProcessor signerNameRequirementProcessor,
-      final SignImagePlacement basePlacement,
-      final SignImagePlacementCalulator calulator, final String imageTemplate) {
+      final SignatureImagePlacement basePlacement,
+      final SignatureImagePlacementCalulator calulator, final String imageTemplate) {
     this.signPageTemplateLocation = signPageTemplateLocation;
     this.onlyAddedToUnsigned = onlyAddedToUnsigned;
     this.signerNameRequirementProcessor = signerNameRequirementProcessor;
@@ -115,8 +115,8 @@ public class PdfSignPage {
    * @param imageTemplate
    *          the sign image template name
    */
-  public PdfSignPage(final SignerNameRequirementProcessor signerNameRequirementProcessor, final SignImagePlacement basePlacement,
-      final SignImagePlacementCalulator calulator, final String imageTemplate) {
+  public PdfSignPage(final SignerNameRequirementProcessor signerNameRequirementProcessor, final SignatureImagePlacement basePlacement,
+      final SignatureImagePlacementCalulator calulator, final String imageTemplate) {
     this.signPageTemplateLocation = null;
     this.onlyAddedToUnsigned = false;
     this.signerNameRequirementProcessor = signerNameRequirementProcessor;
@@ -156,7 +156,7 @@ public class PdfSignPage {
    * @param imageTemplate
    *          the identifier for the sign image
    */
-  public PdfSignPage(final SignImagePlacement placement, final String imageTemplate) {
+  public PdfSignPage(final SignatureImagePlacement placement, final String imageTemplate) {
     this.signPageTemplateLocation = null;
     this.signerNameRequirementProcessor = null;
     this.onlyAddedToUnsigned = false;
@@ -265,7 +265,7 @@ public class PdfSignPage {
    * @throws IOException
    *           on invalid input
    */
-  public SignImagePlacement getSignImagePlacement(final byte[] tbsDocBytes) throws IOException {
+  public SignatureImagePlacement getSignImagePlacement(final byte[] tbsDocBytes) throws IOException {
     PDDocument pdDocument = null;
     try {
       pdDocument = PDDocument.load(tbsDocBytes);
@@ -279,7 +279,7 @@ public class PdfSignPage {
     }
   }
 
-  public SignImagePlacement getSignImagePlacement(final PDDocument tbsDoc) throws IOException {
+  public SignatureImagePlacement getSignImagePlacement(final PDDocument tbsDoc) throws IOException {
     final int sigCount = tbsDoc.getSignatureDictionaries().size();
     return this.calulator.getPlacement(sigCount, this.basePlacement);
   }
@@ -316,7 +316,7 @@ public class PdfSignPage {
     }
 
     // Get pdf document and check if the image should be displayed
-    final SignImagePlacement signImagePlacement = this.getSignImagePlacement(docBytes);
+    final SignatureImagePlacement signImagePlacement = this.getSignImagePlacement(docBytes);
     if (signImagePlacement == null || signImagePlacement.isHide() == true) {
       // Sign image placement is null or there is a sign page configuration that prevents the sign image from being
       // added to this page. Abort

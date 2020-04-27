@@ -30,16 +30,16 @@ import se.idsec.signservice.integration.authentication.SignerIdentityAttributeVa
 import se.idsec.signservice.integration.core.impl.CorrelationID;
 import se.idsec.signservice.integration.document.pdf.PdfSignatureImageTemplate;
 import se.idsec.signservice.integration.document.pdf.VisiblePdfSignatureRequirement;
-import se.idsec.signservice.security.sign.pdf.document.VisibleSigImage;
+import se.idsec.signservice.security.sign.pdf.document.VisibleSignatureImage;
 
 /**
- * Factory for creating instances of {@link VisibleSigImage} as input to a PDF sign process.
+ * Factory for creating instances of {@link VisibleSignatureImage} as input to a PDF sign process.
  *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
 @Slf4j
-public class VisibleSigImageFactory {
+public class VisibleSignatureImageFactory {
 
   /** List of available PDF signature image templates. */
   private final List<? extends PdfSignatureImageTemplate> pdfSignatureImageTemplates;
@@ -50,12 +50,12 @@ public class VisibleSigImageFactory {
    * @param pdfSignatureImageTemplates
    *          list of available PDF signature image templates
    */
-  public VisibleSigImageFactory(final List<? extends PdfSignatureImageTemplate> pdfSignatureImageTemplates) {
+  public VisibleSignatureImageFactory(final List<? extends PdfSignatureImageTemplate> pdfSignatureImageTemplates) {
     this.pdfSignatureImageTemplates = pdfSignatureImageTemplates;
   }
 
   /**
-   * Obtain an instance of {@link VisibleSigImage}.
+   * Obtain an instance of {@link VisibleSignatureImage}.
    * 
    * @param visiblePdfSignatureRequirement
    *          the requirements for a visible sign image
@@ -65,7 +65,7 @@ public class VisibleSigImageFactory {
    * @throws VisiblePdfSignatureRequirementException
    *           for errors
    */
-  public VisibleSigImage getVisibleSignImage(
+  public VisibleSignatureImage getVisibleSignImage(
       final VisiblePdfSignatureRequirement visiblePdfSignatureRequirement,
       final List<SignerIdentityAttributeValue> signerAttributes) throws VisiblePdfSignatureRequirementException {
 
@@ -116,7 +116,7 @@ public class VisibleSigImageFactory {
       imageParams.put(PdfSignatureImageTemplate.SIGNER_NAME_FIELD_NAME, name);
     }
 
-    return VisibleSigImage.builder()
+    return VisibleSignatureImage.builder()
       .page(visiblePdfSignatureRequirement.getPage())
       .xOffset(visiblePdfSignatureRequirement.getXPosition())
       .yOffset(visiblePdfSignatureRequirement.getYPosition())
@@ -130,7 +130,7 @@ public class VisibleSigImageFactory {
   }
 
   /**
-   * Obtain an instance of {@link VisibleSigImage} and return its encoding.
+   * Obtain an instance of {@link VisibleSignatureImage} and return its encoding.
    * 
    * @param visiblePdfSignatureRequirement
    *          the requirements for a visible sign image
@@ -145,7 +145,7 @@ public class VisibleSigImageFactory {
       final List<SignerIdentityAttributeValue> signerAttributes) throws VisiblePdfSignatureRequirementException {
 
     try {
-      return VisibleSigImageSerializer.serializeVisibleSignatureObject(
+      return VisibleSignatureImageSerializer.serializeVisibleSignatureObject(
         this.getVisibleSignImage(visiblePdfSignatureRequirement, signerAttributes));
     }
     catch (IOException e) {

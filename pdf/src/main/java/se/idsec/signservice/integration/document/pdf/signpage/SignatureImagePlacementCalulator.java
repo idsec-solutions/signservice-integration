@@ -21,7 +21,7 @@ package se.idsec.signservice.integration.document.pdf.signpage;
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
-public interface SignImagePlacementCalulator {
+public interface SignatureImagePlacementCalulator {
 
   /**
    * Calculates the relative placement of a sign image based on the number of previously existing signatures on this
@@ -33,5 +33,5 @@ public interface SignImagePlacementCalulator {
    *          the base placement of sign images
    * @return placement for the next sign image
    */
-  SignImagePlacement getPlacement(final int sigCount, final SignImagePlacement basePlacement);
+  SignatureImagePlacement getPlacement(final int sigCount, final SignatureImagePlacement basePlacement);
 }

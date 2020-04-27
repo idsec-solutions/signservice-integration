@@ -26,10 +26,10 @@ import java.util.zip.Inflater;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import se.idsec.signservice.security.sign.pdf.document.VisibleSigImage;
+import se.idsec.signservice.security.sign.pdf.document.VisibleSignatureImage;
 
 /**
- * Serializer for {@link VisibleSigImage} objects.
+ * Serializer for {@link VisibleSignatureImage} objects.
  *
  * <p>
  * This serializer allows serialization and compression of a visible signature object in order for it to be communicated
@@ -40,20 +40,20 @@ import se.idsec.signservice.security.sign.pdf.document.VisibleSigImage;
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
-public class VisibleSigImageSerializer {
+public class VisibleSignatureImageSerializer {
 
   /** JSON object mapper. */
   private static ObjectMapper objectMapper = new ObjectMapper();
 
   static {
-    VisibleSigImageSerializer.objectMapper.setSerializationInclusion(Include.NON_NULL);
+    VisibleSignatureImageSerializer.objectMapper.setSerializationInclusion(Include.NON_NULL);
   }
   
-  private VisibleSigImageSerializer() {    
+  private VisibleSignatureImageSerializer() {    
   }
 
   /**
-   * Serialize a {@link VisibleSigImage} object to a compressed value in a Base64 string.
+   * Serialize a {@link VisibleSignatureImage} object to a compressed value in a Base64 string.
    *
    * @param signImage
    *          object to serialize
@@ -61,13 +61,13 @@ public class VisibleSigImageSerializer {
    * @throws IOException
    *           on invalid input
    */
-  public static String serializeVisibleSignatureObject(final VisibleSigImage signImage) throws IOException {
+  public static String serializeVisibleSignatureObject(final VisibleSignatureImage signImage) throws IOException {
     final String json = objectMapper.writeValueAsString(signImage);
     return Base64.getEncoder().encodeToString(compress(json.getBytes(StandardCharsets.UTF_8)));
   }
 
   /**
-   * Restores a {@link VisibleSigImage} object from a serialized state.
+   * Restores a {@link VisibleSignatureImage} object from a serialized state.
    *
    * @param serializedSignImage
    *          serialized sign image object
@@ -75,9 +75,9 @@ public class VisibleSigImageSerializer {
    * @throws IOException
    *           on invalid input
    */
-  public static VisibleSigImage deserializeVisibleSignImage(final String serializedSignImage) throws IOException {
+  public static VisibleSignatureImage deserializeVisibleSignImage(final String serializedSignImage) throws IOException {
     final String json = new String(decompress(Base64.getDecoder().decode(serializedSignImage)), StandardCharsets.UTF_8);
-    return objectMapper.readValue(json, VisibleSigImage.class);
+    return objectMapper.readValue(json, VisibleSignatureImage.class);
   }
 
   /**
