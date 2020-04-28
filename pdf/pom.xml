@@ -9,7 +9,7 @@
   <parent>
     <groupId>se.idsec.signservice.integration</groupId>
     <artifactId>signservice-integration-parent</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1-SNAPSHOT</version>
   </parent>
 
   <name>IDsec Solutions :: SignService :: Integration :: PDF Processing</name>
@@ -64,18 +64,24 @@
     <dependency>
       <groupId>se.idsec.signservice.integration</groupId>
       <artifactId>signservice-integration-impl</artifactId>
-      <version>${project.version}</version>
+      <version>1.0.0</version>
     </dependency>
     
     <dependency>
       <groupId>se.idsec.signservice.commons</groupId>
       <artifactId>signservice-pdf-commons</artifactId>
+      <version>1.0.2</version>
       <exclusions>
+        <!-- So that we are prepared if the commons dependencies are not the same ... -->
+        <exclusion>
+          <groupId>se.idsec.signservice.commons</groupId>
+          <artifactId>signservice-commons</artifactId>
+        </exclusion>
         <exclusion>
           <groupId>commons-io</groupId>
           <artifactId>commons-io</artifactId>
         </exclusion>
-      </exclusions>
+      </exclusions>        
     </dependency>
 
     <dependency>

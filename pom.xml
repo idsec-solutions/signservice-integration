@@ -6,7 +6,7 @@
   <groupId>se.idsec.signservice.integration</groupId>
   <artifactId>signservice-integration-parent</artifactId>
   <packaging>pom</packaging>
-  <version>1.0.0</version>
+  <version>1.0.1-SNAPSHOT</version>
 
   <name>IDsec Solutions :: Parent POM for SignService :: Integration</name>
   <description>Parent POM for SignService Integration libraries</description>
@@ -113,19 +113,6 @@
             <artifactId>signservice-commons</artifactId>
           </exclusion>
         </exclusions>
-      </dependency>
-
-      <dependency>
-        <groupId>se.idsec.signservice.commons</groupId>
-        <artifactId>signservice-pdf-commons</artifactId>
-        <version>1.0.2</version>
-        <exclusions>
-          <!-- So that we are prepared if the commons dependencies are not the same ... -->
-          <exclusion>
-            <groupId>se.idsec.signservice.commons</groupId>
-            <artifactId>signservice-commons</artifactId>
-          </exclusion>
-        </exclusions>        
       </dependency>
 
       <dependency>
