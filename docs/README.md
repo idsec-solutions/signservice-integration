@@ -10,25 +10,25 @@ Programming Guide for the Signature Service Integration Service.
 
 1. [**Introduction**](#introduction)
 
-  1.1. [Getting the Artifacts](#getting_the_artifacts)
+    1.1. [Getting the Artifacts](#getting_the_artifacts)
 
-  1.2. [Java Documentation](#java_documentation)
+    1.2. [Java Documentation](#java_documentation)
 
-  1.3. [Design Principles](#design_principles)
+    1.3. [Design Principles](#design_principles)
 
-  1.3.1. [PostConstruct Annotations](#postconstruct_annotations)
+    1.3.1. [PostConstruct Annotations](#postconstruct_annotations)
 
-  1.3.2. [Use of Lombok](#use_of_lombok)
+    1.3.2. [Use of Lombok](#use_of_lombok)
 
-  1.3.3. [Java Version Compatibility](#java_version_compatibility)
+    1.3.3. [Java Version Compatibility](#java_version_compatibility)
 
-  1.3.4. [Logging](#logging)
+    1.3.4. [Logging](#logging)
 
 2. [**Initializing the Library**](#initializing_the_library)
 
-  2.1. [Spring Boot Example](#spring_boot_example_2)
+    2.1. [Spring Boot Example](#spring_boot_example_2)
 
-  2.2. [Initializing Manually](#initializing_manually)
+    2.2. [Initializing Manually](#initializing_manually)
 
 ---
 
