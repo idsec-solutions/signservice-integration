@@ -17,10 +17,7 @@ package se.idsec.signservice.integration;
 
 import org.junit.BeforeClass;
 
-import se.swedenconnect.opensaml.OpenSAMLInitializer;
-import se.swedenconnect.opensaml.OpenSAMLSecurityDefaultsConfig;
-import se.swedenconnect.opensaml.OpenSAMLSecurityExtensionConfig;
-import se.swedenconnect.opensaml.xmlsec.config.SAML2IntSecurityConfiguration;
+import se.litsec.swedisheid.opensaml.xmlsec.config.SwedishEidSecurityConfiguration;
 
 /**
  * Test base.
@@ -37,10 +34,8 @@ public abstract class TestBase {
    *           for init errors
    */
   @BeforeClass
-  public static void initializeOpenSAML() throws Exception {
-    OpenSAMLInitializer.getInstance().initialize(
-      new OpenSAMLSecurityDefaultsConfig(new SAML2IntSecurityConfiguration()),
-      new OpenSAMLSecurityExtensionConfig());
+  public static void initialize() throws Exception {
+    SignServiceIntegrationServiceInitializer.initialize(new SwedishEidSecurityConfiguration());
   }
   
 }
