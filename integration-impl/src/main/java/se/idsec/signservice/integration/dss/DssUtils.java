@@ -183,8 +183,7 @@ public class DssUtils {
         .build();
       if (attribute.getValue() == null) {
         final String msg = String.format("Error getting attribute value for attribute '%s'", a.getName());
-        log.error("{}: {}", CorrelationID.id(), msg);
-        throw new SignServiceProtocolException(msg);
+        log.warn("{}: {}", CorrelationID.id(), msg);
       }
       list.add(attribute);
     }
