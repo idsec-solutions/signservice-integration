@@ -185,7 +185,9 @@ public class DssUtils {
         final String msg = String.format("Error getting attribute value for attribute '%s'", a.getName());
         log.warn("{}: {}", CorrelationID.id(), msg);
       }
-      list.add(attribute);
+      else {
+        list.add(attribute);
+      }
     }
 
     return list;

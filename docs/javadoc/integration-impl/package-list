@@ -1,3 +1,4 @@
+se.idsec.signservice.integration
 se.idsec.signservice.integration.authentication.impl
 se.idsec.signservice.integration.certificate.impl
 se.idsec.signservice.integration.config
