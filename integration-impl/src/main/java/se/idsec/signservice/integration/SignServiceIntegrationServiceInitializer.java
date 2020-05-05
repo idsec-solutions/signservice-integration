@@ -64,7 +64,7 @@ public class SignServiceIntegrationServiceInitializer {
    *           for initialization errors
    */
   public synchronized static void initialize() throws Exception {
-    initialize(new DefaultSecurityConfiguration());
+    initialize(null);
   }
 
   /**
@@ -96,7 +96,7 @@ public class SignServiceIntegrationServiceInitializer {
     //
     log.info("Setting system property 'org.apache.xml.security.ignoreLineBreaks' to true");
     AccessController.doPrivileged(
-      (PrivilegedAction<String>) () -> System.setProperty("org.apache.xml.security.ignoreLineBreaks", "true"));    
+      (PrivilegedAction<String>) () -> System.setProperty("org.apache.xml.security.ignoreLineBreaks", "true"));
 
     // Initialize OpenSAML (Apache xmlsec will be initialized by OpenSAML).
     //
@@ -106,9 +106,18 @@ public class SignServiceIntegrationServiceInitializer {
       .initialize(
         new OpenSAMLSecurityDefaultsConfig(openSamlConf),
         new OpenSAMLSecurityExtensionConfig());
-    
+
     initialized = true;
     log.debug("SignService Integration Service was successfully initialized");
+  }
+
+  /**
+   * Predicate that tells if the SignService Integration library has been initialized.
+   * 
+   * @return true if the library has been initialized, and false otherwise
+   */
+  public static boolean isInitialized() {
+    return initialized;
   }
 
   // Hidden constructor

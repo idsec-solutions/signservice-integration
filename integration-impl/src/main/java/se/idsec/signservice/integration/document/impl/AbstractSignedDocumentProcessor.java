@@ -50,7 +50,7 @@ import se.swedenconnect.schemas.csig.dssext_1_1.SignTaskData;
 public abstract class AbstractSignedDocumentProcessor<T, X extends AdesObject> implements SignedDocumentProcessor<T, X> {
 
   /** Processing configuration. */
-  private SignResponseProcessingConfig processingConfiguration = SignResponseProcessingConfig.defaultSignResponseProcessingConfig();
+  private SignResponseProcessingConfig processingConfiguration;
 
   /** {@inheritDoc} */
   @Override
@@ -136,8 +136,9 @@ public abstract class AbstractSignedDocumentProcessor<T, X extends AdesObject> i
 
   /** {@inheritDoc} */
   @Override
-  public SignResponseProcessingConfig getProcessingConfiguration() {
-    return this.processingConfiguration;
+  public SignResponseProcessingConfig getProcessingConfiguration() {    
+    return this.processingConfiguration != null 
+        ? this.processingConfiguration : SignResponseProcessingConfig.defaultSignResponseProcessingConfig();
   }
 
   /**
@@ -147,7 +148,9 @@ public abstract class AbstractSignedDocumentProcessor<T, X extends AdesObject> i
    *          processing configuration
    */
   public void setProcessingConfiguration(final SignResponseProcessingConfig processingConfiguration) {
-    this.processingConfiguration = processingConfiguration;
+    if (processingConfiguration != null) {
+      this.processingConfiguration = processingConfiguration;
+    }
   }
 
   /**

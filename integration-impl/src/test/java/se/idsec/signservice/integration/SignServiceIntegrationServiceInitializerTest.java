@@ -31,17 +31,19 @@ public class SignServiceIntegrationServiceInitializerTest {
 
   @Test
   public void testBasicInit() throws Exception {
-    
-    // Try creating OpenSAML object. Should not be possible.
-    try {
-      XMLObjectSupport.buildXMLObject(Issuer.DEFAULT_ELEMENT_NAME);
-      Assert.fail("Expected XMLRuntimeException");
+
+    if (!SignServiceIntegrationServiceInitializer.isInitialized()) {
+      // Try creating OpenSAML object. Should not be possible.
+      try {
+        XMLObjectSupport.buildXMLObject(Issuer.DEFAULT_ELEMENT_NAME);
+        Assert.fail("Expected XMLRuntimeException");
+      }
+      catch (XMLRuntimeException e) {
+        // XMLObjectProviderRegistry was not available from the ConfigurationService.
+      }
+
+      SignServiceIntegrationServiceInitializer.initialize();
     }
-    catch (XMLRuntimeException e) {
-      // XMLObjectProviderRegistry was not available from the ConfigurationService.
-    }
-    
-    SignServiceIntegrationServiceInitializer.initialize();
 
     // Now, it should work
     XMLObjectSupport.buildXMLObject(Issuer.DEFAULT_ELEMENT_NAME);
@@ -50,5 +52,5 @@ public class SignServiceIntegrationServiceInitializerTest {
     Boolean lb = Boolean.getBoolean("org.apache.xml.security.ignoreLineBreaks");
     Assert.assertTrue("Expected org.apache.xml.security.ignoreLineBreaks to be true", lb);
   }
-    
+
 }

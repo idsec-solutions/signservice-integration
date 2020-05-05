@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 IDsec Solutions AB
+ * Copyright 2019-2020 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  */
 package se.idsec.signservice.integration.document.impl;
 
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang.StringUtils;
 
 import se.idsec.signservice.integration.core.validation.AbstractInputValidator;
 import se.idsec.signservice.integration.core.validation.ValidationResult;
@@ -39,6 +39,9 @@ public class TbsDocumentValidator extends AbstractInputValidator<TbsDocument, Vo
    *          validatorfor AdES requirements
    */
   public TbsDocumentValidator(final EtsiAdesRequirementValidator adesRequirementValidator) {
+    if (adesRequirementValidator == null) {
+      throw new IllegalArgumentException("adesRequirementValidator must not be null");
+    }
     this.adesRequirementValidator = adesRequirementValidator;
   }
 
@@ -54,7 +57,7 @@ public class TbsDocumentValidator extends AbstractInputValidator<TbsDocument, Vo
     }
     if (StringUtils.isBlank(object.getMimeType())) {
       result.rejectValue("mimeType", "No mimeType set in TbsDocument");
-    }
+    }    
     result.setFieldErrors(
       this.adesRequirementValidator.validate(object.getAdesRequirement(), "adesRequirement", null));
 

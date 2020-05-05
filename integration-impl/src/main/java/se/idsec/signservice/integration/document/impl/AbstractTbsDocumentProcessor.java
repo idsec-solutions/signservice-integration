@@ -17,6 +17,10 @@ package se.idsec.signservice.integration.document.impl;
 
 import java.util.UUID;
 
+import javax.annotation.PostConstruct;
+
+import org.apache.commons.lang.StringUtils;
+
 import lombok.extern.slf4j.Slf4j;
 import se.idsec.signservice.integration.SignRequestInput;
 import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
@@ -27,6 +31,7 @@ import se.idsec.signservice.integration.document.DocumentProcessingException;
 import se.idsec.signservice.integration.document.ProcessedTbsDocument;
 import se.idsec.signservice.integration.document.TbsDocument;
 import se.idsec.signservice.integration.document.TbsDocumentProcessor;
+import se.idsec.signservice.utils.AssertThat;
 import se.swedenconnect.schemas.csig.dssext_1_1.AdESObject;
 import se.swedenconnect.schemas.csig.dssext_1_1.SignTaskData;
 
@@ -40,23 +45,16 @@ import se.swedenconnect.schemas.csig.dssext_1_1.SignTaskData;
 public abstract class AbstractTbsDocumentProcessor<T> implements TbsDocumentProcessor<T> {
 
   /** Validator. */
-  protected TbsDocumentValidator tbsDocumentValidator;
+  private TbsDocumentValidator tbsDocumentValidator;
 
   /** Object factory for DSS-Ext objects. */
   private static se.swedenconnect.schemas.csig.dssext_1_1.ObjectFactory dssExtObjectFactory =
       new se.swedenconnect.schemas.csig.dssext_1_1.ObjectFactory();
-  
-  /**
-   * Constructor.
-   */
-  public AbstractTbsDocumentProcessor() {
-    tbsDocumentValidator = new TbsDocumentValidator(this.getEtsiAdesRequirementValidator());
-  }
 
   /** {@inheritDoc} */
   @Override
-  public ProcessedTbsDocument preProcess(final TbsDocument document, final SignRequestInput signRequestInput, final IntegrationServiceConfiguration config, final String fieldName)
-      throws InputValidationException {
+  public ProcessedTbsDocument preProcess(final TbsDocument document, final SignRequestInput signRequestInput,
+      final IntegrationServiceConfiguration config, final String fieldName) throws InputValidationException {
 
     // Make a copy of the document before updating it.
     TbsDocument updatedDocument = document.toBuilder().build();
@@ -72,7 +70,7 @@ public abstract class AbstractTbsDocumentProcessor<T> implements TbsDocumentProc
     }
 
     // Validate
-    this.tbsDocumentValidator.validateObject(updatedDocument, fieldName, null);
+    this.getTbsDocumentValidator().validateObject(updatedDocument, fieldName, null);
 
     // Validate the document content ...
     //
@@ -102,6 +100,10 @@ public abstract class AbstractTbsDocumentProcessor<T> implements TbsDocumentProc
           adesObject.setAdESObjectBytes(tbsCalculation.getAdesObjectBytes());
         }
         signTaskData.setAdESObject(adesObject);
+      }
+      // TODO: Is this correct?
+      if (StringUtils.isNotBlank(tbsDocument.getAdesRequirement().getSignaturePolicy())) {
+        signTaskData.setProcessingRules(tbsDocument.getAdesRequirement().getSignaturePolicy());
       }
     }
     else {
@@ -161,6 +163,36 @@ public abstract class AbstractTbsDocumentProcessor<T> implements TbsDocumentProc
       log.error("{}: {}", CorrelationID.id(), msg, e);
       throw new InputValidationException(fieldName + ".content", msg, e);
     }
+  }
+
+  /**
+   * Gets the {@link TbsDocumentValidator} to use while processing.
+   * 
+   * @return a TbsDocumentValidator
+   */
+  protected TbsDocumentValidator getTbsDocumentValidator() {
+    if (this.tbsDocumentValidator == null) {
+      this.tbsDocumentValidator = new TbsDocumentValidator(this.getEtsiAdesRequirementValidator());
+    }
+    return this.tbsDocumentValidator;
+  }
+
+  /**
+   * Ensures that the {@link #getEtsiAdesRequirementValidator()} does not return {@code null} and sets up a
+   * {@link TbsDocumentValidator}.
+   * 
+   * <p>
+   * Note: If executing in a Spring Framework environment this method is automatically invoked after all properties have
+   * been assigned. Otherwise it should be explicitly invoked.
+   * </p>
+   * 
+   * @throws Exception
+   *           for init errors
+   */
+  @PostConstruct
+  public void afterPropertiesSet() throws Exception {
+    AssertThat.isNotNull(this.getEtsiAdesRequirementValidator(), "etsiAdesRequirementValidator must not be null");
+    this.tbsDocumentValidator = new TbsDocumentValidator(this.getEtsiAdesRequirementValidator());
   }
 
 }

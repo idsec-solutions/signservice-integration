@@ -37,6 +37,10 @@ public class SignServiceIntegrationServiceInitializerTest2 {
   @Test
   public void testInitSecurityConfig() throws Exception {
     
+    if (SignServiceIntegrationServiceInitializer.isInitialized()) {
+      return;
+    }
+    
     // Try creating OpenSAML object. Should not be possible.
     try {
       XMLObjectSupport.buildXMLObject(Issuer.DEFAULT_ELEMENT_NAME);

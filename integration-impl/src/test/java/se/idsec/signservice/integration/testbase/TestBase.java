@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package se.idsec.signservice.integration;
+package se.idsec.signservice.integration.testbase;
 
 import org.junit.BeforeClass;
 
+import se.idsec.signservice.integration.SignServiceIntegrationServiceInitializer;
 import se.litsec.swedisheid.opensaml.xmlsec.config.SwedishEidSecurityConfiguration;
 
 /**

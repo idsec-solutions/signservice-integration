@@ -6,7 +6,7 @@
   <groupId>se.idsec.signservice.integration</groupId>
   <artifactId>signservice-integration-parent</artifactId>
   <packaging>pom</packaging>
-  <version>1.0.1</version>
+  <version>1.0.2-SNAPSHOT</version>
 
   <name>IDsec Solutions :: Parent POM for SignService :: Integration</name>
   <description>Parent POM for SignService Integration libraries</description>
@@ -326,8 +326,16 @@
         <version>0.8.5</version>
         <executions>
           <execution>
+            <id>default-prepare-agent</id>
             <goals>
               <goal>prepare-agent</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>default-report</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>report</goal>
             </goals>
           </execution>
         </executions>

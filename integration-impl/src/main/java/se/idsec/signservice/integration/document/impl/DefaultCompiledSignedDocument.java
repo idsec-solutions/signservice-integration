@@ -15,9 +15,6 @@
  */
 package se.idsec.signservice.integration.document.impl;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-
 import se.idsec.signservice.integration.document.CompiledSignedDocument;
 import se.idsec.signservice.integration.document.DocumentEncoder;
 import se.idsec.signservice.integration.document.DocumentProcessingException;
@@ -67,8 +64,7 @@ public class DefaultCompiledSignedDocument<T, X extends AdesObject> implements C
    * @param documentEncoder
    *          the document encoder
    */
-  public DefaultCompiledSignedDocument(@Nonnull final String id, @Nonnull final T document, @Nonnull final String mimeType,
-      @Nonnull final DocumentEncoder<T> documentEncoder) {
+  public DefaultCompiledSignedDocument(final String id, final T document, final String mimeType, final DocumentEncoder<T> documentEncoder) {
     this(id, document, mimeType, documentEncoder, null);
   }
 
@@ -84,25 +80,35 @@ public class DefaultCompiledSignedDocument<T, X extends AdesObject> implements C
    * @param adesObject
    *          AdES object (may be null)
    */
-  public DefaultCompiledSignedDocument(@Nonnull final String id, @Nonnull final T document, @Nonnull final String mimeType,
-      @Nonnull final DocumentEncoder<T> documentEncoder, @Nullable final X adesObject) {
+  public DefaultCompiledSignedDocument(final String id, final T document, final String mimeType,
+      final DocumentEncoder<T> documentEncoder, final X adesObject) {
+    if (id == null) {
+      throw new IllegalArgumentException("id must not be null");
+    }
     this.id = id;
+    if (document == null) {
+      throw new IllegalArgumentException("document must not be null");
+    }
     this.document = document;
+    if (mimeType == null) {
+      throw new IllegalArgumentException("mimeType must not be null");
+    }
     this.mimeType = mimeType;
+    if (documentEncoder == null) {
+      throw new IllegalArgumentException("documentEncoder must not be null");
+    }
     this.documentEncoder = documentEncoder;
     this.adesObject = adesObject;
   }
 
   /** {@inheritDoc} */
   @Override
-  @Nonnull
   public T getDocument() {
     return this.document;
   }
 
   /** {@inheritDoc} */
   @Override
-  @Nonnull
   public SignedDocument getSignedDocument() {
     if (this.documentEncoding == null) {
       try {
@@ -121,7 +127,6 @@ public class DefaultCompiledSignedDocument<T, X extends AdesObject> implements C
 
   /** {@inheritDoc} */
   @Override
-  @Nullable
   public X getAdesObject() {
     return this.adesObject;
   }

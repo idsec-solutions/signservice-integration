@@ -35,7 +35,11 @@ import se.swedenconnect.opensaml.xmlsec.config.SAML2IntSecurityConfiguration;
 public class SignServiceIntegrationServiceInitializerTest3 {
 
   @Test
-  public void testInitSecurityConfig() throws Exception {
+  public void testInitSecurityConfigSaml2Int() throws Exception {
+    
+    if (SignServiceIntegrationServiceInitializer.isInitialized()) {
+      return;
+    }
     
     // Try creating OpenSAML object. Should not be possible.
     try {
