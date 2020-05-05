@@ -15,6 +15,8 @@
  */
 package se.idsec.signservice.integration.process.impl;
 
+import org.apache.commons.lang.StringUtils;
+
 import se.idsec.signservice.integration.SignRequestInput;
 import se.idsec.signservice.integration.authentication.impl.AuthnRequirementsValidator;
 import se.idsec.signservice.integration.certificate.impl.SigningCertificateRequirementsValidator;
@@ -50,7 +52,17 @@ public class SignRequestInputValidator extends AbstractInputValidator<SignReques
       result.reject("Missing signRequestInput");
       return result;
     }
-
+    
+    // SignRequesterID
+    if (StringUtils.isBlank(object.getSignRequesterID()) && StringUtils.isBlank(hint.getDefaultSignRequesterID())) {
+      result.rejectValue("signRequesterID", "No signRequesterID given and configuration does not contain a default value");
+    }
+    
+    // ReturnUrl
+    if (StringUtils.isBlank(object.getReturnUrl()) && StringUtils.isBlank(hint.getDefaultReturnUrl())) {
+      result.rejectValue("returnUrl", "No returnUrl given and configuration does not contain a default value");
+    }
+    
     // AuthnRequirements
     result.setFieldErrors(this.authnRequirementsValidator.validate(
       object.getAuthnRequirements(), "authnRequirements", hint));

@@ -42,6 +42,7 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import se.idsec.signservice.integration.SignRequestInput;
 import se.idsec.signservice.integration.authentication.AuthnRequirements;
+import se.idsec.signservice.integration.certificate.SigningCertificateRequirements;
 import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
 import se.idsec.signservice.integration.core.Extension;
 import se.idsec.signservice.integration.core.error.ErrorCode;
@@ -188,6 +189,23 @@ public class DefaultSignRequestProcessor implements SignRequestProcessor {
     if (signRequestInput.getCertificateRequirements() == null) {
       log.debug("{}: No certificateRequirements given in input, using {}", CorrelationID.id(), config.getDefaultCertificateRequirements());
       inputBuilder.certificateRequirements(config.getDefaultCertificateRequirements());
+    }
+    else {
+      if (signRequestInput.getCertificateRequirements().getCertificateType() == null) {
+        log.debug("{}: No certificateRequirements.certificateType given in input, using {}", 
+          CorrelationID.id(), config.getDefaultCertificateRequirements().getCertificateType());
+        SigningCertificateRequirements scr = signRequestInput.getCertificateRequirements();
+        scr.setCertificateType(config.getDefaultCertificateRequirements().getCertificateType());
+        inputBuilder.certificateRequirements(scr);
+      }
+      if (signRequestInput.getCertificateRequirements().getAttributeMappings() == null
+          || signRequestInput.getCertificateRequirements().getAttributeMappings().isEmpty()) {
+        log.debug("{}: No certificateRequirements.certificateType given in input, using {}", 
+          CorrelationID.id(), config.getDefaultCertificateRequirements().getAttributeMappings());
+        SigningCertificateRequirements scr = signRequestInput.getCertificateRequirements();
+        scr.setAttributeMappings(config.getDefaultCertificateRequirements().getAttributeMappings());
+        inputBuilder.certificateRequirements(scr);
+      }
     }
 
     // TbsDocuments

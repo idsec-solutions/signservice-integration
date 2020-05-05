@@ -18,7 +18,9 @@ package se.idsec.signservice.integration.security.impl;
 import org.opensaml.xmlsec.encryption.support.EncryptionConstants;
 import org.opensaml.xmlsec.signature.support.SignatureConstants;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import se.idsec.signservice.integration.core.ObjectBuilder;
@@ -32,6 +34,8 @@ import se.idsec.signservice.integration.security.EncryptionParameters;
  */
 @ToString
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class DefaultEncryptionParameters implements EncryptionParameters {
 
   /** The default data encryption algorithm is AES-128 GCM. */

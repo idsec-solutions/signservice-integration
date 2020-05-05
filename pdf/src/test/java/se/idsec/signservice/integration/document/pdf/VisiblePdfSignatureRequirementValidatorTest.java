@@ -23,6 +23,7 @@ import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
 import se.idsec.signservice.integration.config.impl.DefaultIntegrationServiceConfiguration;
 import se.idsec.signservice.integration.config.impl.PdfSignatureImageTemplateExt;
 import se.idsec.signservice.integration.core.validation.ValidationResult;
+import se.idsec.signservice.integration.document.impl.VisiblePdfSignatureRequirementValidator;
 
 /**
  * Test cases for VisiblePdfSignatureRequirementValidator.

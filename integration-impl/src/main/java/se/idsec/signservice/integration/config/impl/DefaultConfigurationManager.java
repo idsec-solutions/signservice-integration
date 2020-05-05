@@ -22,9 +22,11 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang.StringUtils;
 
+import lombok.extern.slf4j.Slf4j;
 import se.idsec.signservice.integration.config.ConfigurationManager;
 import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
 import se.idsec.signservice.integration.config.IntegrationServiceDefaultConfiguration;
+import se.idsec.signservice.integration.core.error.InputValidationException;
 
 /**
  * Default implementation of the {@link ConfigurationManager} interface.
@@ -32,8 +34,9 @@ import se.idsec.signservice.integration.config.IntegrationServiceDefaultConfigur
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
+@Slf4j
 public class DefaultConfigurationManager implements ConfigurationManager {
-  
+
   /** The policies that this service supports. */
   private final Map<String, ? extends IntegrationServiceConfiguration> policies;
 
@@ -42,8 +45,11 @@ public class DefaultConfigurationManager implements ConfigurationManager {
    * 
    * @param policies
    *          a mapping between policy names and service configuration objects
+   * @throws IllegalArgumentException
+   *           if policies are invalid
    */
-  public DefaultConfigurationManager(final Map<String, ? extends IntegrationServiceConfiguration> policies) {
+  public DefaultConfigurationManager(final Map<String, ? extends IntegrationServiceConfiguration> policies)
+      throws IllegalArgumentException {
     this.policies = policies;
     if (this.policies.isEmpty()) {
       throw new IllegalArgumentException("At least one policy must be configured");
@@ -51,16 +57,30 @@ public class DefaultConfigurationManager implements ConfigurationManager {
     if (!this.policies.containsKey(IntegrationServiceDefaultConfiguration.DEFAULT_POLICY_NAME)) {
       throw new IllegalArgumentException("There must be a policy named 'default'");
     }
-    
+
     // Go through all policies and make sure that are complete.
-    // 
-    if (this.policies.size() > 1) {            
+    //
+    if (this.policies.size() > 1) {
       for (IntegrationServiceConfiguration policy : this.policies.values()) {
         this.mergePolicies(policy, new ArrayList<>());
       }
     }
+
+    // Validate all policies
+    //
+    final IntegrationServiceConfigurationValidator validator = new IntegrationServiceConfigurationValidator();
+    for (Map.Entry<String, ? extends IntegrationServiceConfiguration> p : this.policies.entrySet()) {
+      log.debug("Validating policy '{}' ...", p.getKey());
+      try {
+        validator.validateObject(p.getValue(), "serviceConfiguration[" + p.getKey() + "]", null);
+        log.debug("Policy '{}' was successfully validated", p.getKey());
+      }
+      catch (InputValidationException e) {
+        throw new IllegalArgumentException("Service configuration " + p.getKey() + " is invalid", e);
+      }
+    }
   }
-  
+
   private void mergePolicies(IntegrationServiceConfiguration policy, List<String> policiesForMerge) {
     final String parentPolicy = policy.getParentPolicy();
     if (StringUtils.isBlank(parentPolicy)) {

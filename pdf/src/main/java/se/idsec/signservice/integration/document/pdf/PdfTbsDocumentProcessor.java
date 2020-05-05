@@ -42,6 +42,7 @@ import se.idsec.signservice.integration.document.TbsDocument.EtsiAdesRequirement
 import se.idsec.signservice.integration.document.impl.AbstractTbsDocumentProcessor;
 import se.idsec.signservice.integration.document.impl.EtsiAdesRequirementValidator;
 import se.idsec.signservice.integration.document.impl.TbsCalculationResult;
+import se.idsec.signservice.integration.document.impl.VisiblePdfSignatureRequirementValidator;
 import se.idsec.signservice.integration.document.pdf.utils.PDFIntegrationUtils;
 import se.idsec.signservice.integration.document.pdf.visiblesig.VisiblePdfSignatureRequirementException;
 import se.idsec.signservice.integration.document.pdf.visiblesig.VisibleSignatureImageFactory;

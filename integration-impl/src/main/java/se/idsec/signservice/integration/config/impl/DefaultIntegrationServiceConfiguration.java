@@ -214,7 +214,6 @@ public class DefaultIntegrationServiceConfiguration implements IntegrationServic
   /**
    * The signing certificate that the SignService Integration Service uses to sign SignRequest messages.
    */
-  @Getter
   private String signatureCertificate;
 
   /**
@@ -279,6 +278,25 @@ public class DefaultIntegrationServiceConfiguration implements IntegrationServic
   @Override
   public boolean isStateless() {
     return this.stateless != null ? this.stateless.booleanValue() : false;
+  }
+  
+  /**
+   * Gets the signing certificate that the SignService Integration Service uses to sign SignRequest messages.
+   * 
+   * @return the Base64-encoded signing certificate 
+   */
+  public String getSignatureCertificate() {
+    if (this.signatureCertificate == null) {
+      if (this.signingCredential != null && this.signingCredential.getSigningCertificate() != null) {
+        try {
+          this.signatureCertificate = Base64.getEncoder().encodeToString(this.signingCredential.getSigningCertificate().getEncoded());
+        }
+        catch (CertificateEncodingException e) {
+          log.error("Failed to encode signing certificate", e);
+        }
+      }
+    }
+    return this.signatureCertificate;
   }
   
   /**
@@ -407,17 +425,17 @@ public class DefaultIntegrationServiceConfiguration implements IntegrationServic
     if (this.signingCredential == null) {
       this.signingCredential = parent.getSigningCredential();
     }
-    if (this.signServiceCertificates == null) {
+    if (this.signServiceCertificates == null || this.signServiceCertificates.isEmpty()) {
       this.signServiceCertificates = parent.getSignServiceCertificatesInternal();
     }
-    if (this.trustAnchors == null) {
+    if (this.trustAnchors == null || this.trustAnchors.isEmpty()) {
       this.trustAnchors = parent.getTrustAnchorsInternal();
     }
     if (this.extension == null) {
       this.extension = parent.getExtension();
     }
     else {
-      parent.getExtension().entrySet().stream().forEach(e -> this.extension.put(e.getKey(), e.getValue()));
+      parent.getExtension().entrySet().stream().forEach(e -> this.extension.putIfAbsent(e.getKey(), e.getValue()));
     }
 
     // OK, merge is done. We no longer have a parent.

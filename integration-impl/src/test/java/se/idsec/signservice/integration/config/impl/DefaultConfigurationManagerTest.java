@@ -20,8 +20,17 @@ import java.util.Map;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.springframework.core.io.ClassPathResource;
 
+import se.idsec.signservice.integration.authentication.SignerIdentityAttribute;
+import se.idsec.signservice.integration.certificate.CertificateAttributeMapping;
+import se.idsec.signservice.integration.certificate.CertificateType;
+import se.idsec.signservice.integration.certificate.RequestedCertificateAttribute;
+import se.idsec.signservice.integration.certificate.RequestedCertificateAttributeType;
+import se.idsec.signservice.integration.certificate.SigningCertificateRequirements;
 import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
+import se.idsec.signservice.integration.security.impl.DefaultEncryptionParameters;
+import se.idsec.signservice.security.sign.impl.KeyStoreSigningCredential;
 
 /**
  * Test cases for DefaultConfigurationManager.
@@ -31,12 +40,49 @@ import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
  */
 public class DefaultConfigurationManagerTest {
 
+  private DefaultIntegrationServiceConfiguration coreConfig;
+
+  public DefaultConfigurationManagerTest() throws Exception {
+    
+    KeyStoreSigningCredential signingCred = new KeyStoreSigningCredential(
+      new ClassPathResource("signing.jks"), "secret".toCharArray(), "default");
+    
+    this.coreConfig = DefaultIntegrationServiceConfiguration.builder()
+      .policy("default")
+      .defaultSignRequesterID("defaultSignRequesterID")
+      .defaultReturnUrl("https://example.com")
+      .defaultSignatureAlgorithm("sha256")
+      .signServiceID("signServiceID")
+      .defaultDestinationUrl("https://example.com/dest")
+      .defaultCertificateRequirements(
+        SigningCertificateRequirements.builder()
+          .certificateType(CertificateType.PKC)
+          .attributeMapping(
+            CertificateAttributeMapping.builder()
+              .destination(
+                RequestedCertificateAttribute.builder()
+                  .name("dummy")
+                  .type(RequestedCertificateAttributeType.RDN)
+                  .build())
+              .source(SignerIdentityAttribute.createBuilder()
+                .type(SignerIdentityAttribute.SAML_TYPE)
+                .name("urn:xxx")
+                .build())
+              .build())
+          .build())
+      .defaultEncryptionParameters(new DefaultEncryptionParameters())
+      .signingCredential(signingCred)
+      .signServiceCertificate(signingCred.getSigningCertificate() /* Just need a cert */)
+      .trustAnchor(signingCred.getSigningCertificate() /* Just need a cert */)
+      .build();
+  }
+
   @Test
   public void testMerge() throws Exception {
 
     Map<String, IntegrationServiceConfiguration> map = new HashMap<>();
 
-    DefaultIntegrationServiceConfiguration c1 = DefaultIntegrationServiceConfiguration.builder()
+    DefaultIntegrationServiceConfiguration c1 = this.coreConfig.toBuilder() 
       .policy("default")
       .defaultSignRequesterID("Kalle")
       .defaultAuthnContextRef("loa3")
@@ -80,25 +126,25 @@ public class DefaultConfigurationManagerTest {
   public void testMergeCircular() throws Exception {
     Map<String, IntegrationServiceConfiguration> map = new HashMap<>();
 
-    DefaultIntegrationServiceConfiguration c1 = DefaultIntegrationServiceConfiguration.builder()
+    DefaultIntegrationServiceConfiguration c1 = this.coreConfig.toBuilder()
       .policy("default")
       .defaultSignRequesterID("Kalle")
       .build();
     map.put(c1.getPolicy(), c1.toBuilder().build() /* make copy */);
 
-    DefaultIntegrationServiceConfiguration c2 = DefaultIntegrationServiceConfiguration.builder()
+    DefaultIntegrationServiceConfiguration c2 = this.coreConfig.toBuilder()
       .policy("no2")
       .parentPolicy("no3")
       .build();
     map.put(c2.getPolicy(), c2.toBuilder().build());
 
-    DefaultIntegrationServiceConfiguration c3 = DefaultIntegrationServiceConfiguration.builder()
+    DefaultIntegrationServiceConfiguration c3 = this.coreConfig.toBuilder()
       .policy("no3")
       .parentPolicy("no4")
       .build();
     map.put(c3.getPolicy(), c3.toBuilder().build());
 
-    DefaultIntegrationServiceConfiguration c4 = DefaultIntegrationServiceConfiguration.builder()
+    DefaultIntegrationServiceConfiguration c4 = this.coreConfig.toBuilder()
       .policy("no3")
       .parentPolicy("no2")
       .build();
@@ -111,18 +157,18 @@ public class DefaultConfigurationManagerTest {
     catch (IllegalArgumentException e) {
     }
   }
-  
+
   @Test
   public void testMergeMissingParent() throws Exception {
     Map<String, IntegrationServiceConfiguration> map = new HashMap<>();
 
-    DefaultIntegrationServiceConfiguration c1 = DefaultIntegrationServiceConfiguration.builder()
+    DefaultIntegrationServiceConfiguration c1 = this.coreConfig.toBuilder()
       .policy("default")
       .defaultSignRequesterID("Kalle")
       .build();
     map.put(c1.getPolicy(), c1.toBuilder().build() /* make copy */);
 
-    DefaultIntegrationServiceConfiguration c2 = DefaultIntegrationServiceConfiguration.builder()
+    DefaultIntegrationServiceConfiguration c2 = this.coreConfig.toBuilder()
       .policy("no2")
       .parentPolicy("no3")
       .build();

@@ -27,6 +27,9 @@ import se.idsec.signservice.integration.core.validation.ValidationResult;
 
 /**
  * Validator for {@link SigningCertificateRequirements} objects.
+ * <p>
+ * The validator is used both when checking input (hint is set) and when checking the configuration (hint is null).
+ * </p>
  * 
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
@@ -36,21 +39,32 @@ public class SigningCertificateRequirementsValidator extends
 
   /** {@inheritDoc} */
   @Override
-  public ValidationResult validate(SigningCertificateRequirements object, String objectName, 
-      IntegrationServiceConfiguration hint) {
+  public ValidationResult validate(final SigningCertificateRequirements object, final String objectName, 
+      final IntegrationServiceConfiguration hint) {
     
-    ValidationResult result = new ValidationResult(objectName);
+    final ValidationResult result = new ValidationResult(objectName);
     
     if (object == null) {
-      // Null is OK - the default will be used.
-      return result;
+      if (hint != null) {
+        // Null is OK - the default will be used.
+        return result;
+      }
+      else {
+        result.reject("Missing SigningCertificateRequirements");
+        return result;
+      }
     }
     
     if (object.getCertificateType() == null) {
-      result.rejectValue("certificateType", "Missing certificate type");
+      if (hint == null) {
+        result.rejectValue("certificateType", "Missing certificate type");
+      }
     }
+    
     if (object.getAttributeMappings() == null || object.getAttributeMappings().isEmpty()) {
-      result.rejectValue("attributeMappings", "No attribute mappings provided");
+      if (hint == null) {
+        result.rejectValue("attributeMappings", "No attribute mappings provided");
+      }
     }
     
     int pos = 0;

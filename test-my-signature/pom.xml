@@ -133,13 +133,13 @@
     <dependency>
       <artifactId>signservice-integration-impl</artifactId>
       <groupId>se.idsec.signservice.integration</groupId>
-      <version>1.0.0</version>
+      <version>1.0.2-SNAPSHOT</version>
     </dependency>
     
     <dependency>
       <artifactId>signservice-integration-xml</artifactId>
       <groupId>se.idsec.signservice.integration</groupId>
-      <version>1.0.0</version>
+      <version>1.0.2-SNAPSHOT</version>
     </dependency>
     
     <dependency>
