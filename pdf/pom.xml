@@ -5,6 +5,7 @@
 
   <artifactId>signservice-integration-pdf</artifactId>
   <packaging>jar</packaging>
+  <version>1.0.3-SNAPSHOT</version>
 
   <parent>
     <groupId>se.idsec.signservice.integration</groupId>
@@ -64,7 +65,7 @@
     <dependency>
       <groupId>se.idsec.signservice.integration</groupId>
       <artifactId>signservice-integration-impl</artifactId>
-      <version>${project.version}</version>
+      <version>1.0.2</version>
     </dependency>
     
     <dependency>
@@ -75,7 +76,7 @@
     <dependency>
       <groupId>se.idsec.signservice.commons</groupId>
       <artifactId>signservice-pdf-commons</artifactId>
-      <version>1.0.4</version>
+      <version>1.0.5</version>
       <exclusions>
         <!-- So that we are prepared if the commons dependencies are not the same ... -->
         <exclusion>
