@@ -6,7 +6,7 @@
   <groupId>se.idsec.signservice.integration</groupId>
   <artifactId>signservice-integration-parent</artifactId>
   <packaging>pom</packaging>
-  <version>1.0.2</version>
+  <version>1.0.3-SNAPSHOT</version>
 
   <name>IDsec Solutions :: Parent POM for SignService :: Integration</name>
   <description>Parent POM for SignService Integration libraries</description>
@@ -78,6 +78,13 @@
       <dependency>
         <groupId>org.springframework</groupId>
         <artifactId>spring-core</artifactId>
+        <version>[${spring.min.version},)</version>
+        <optional>true</optional>
+      </dependency>
+      
+      <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-context</artifactId>
         <version>[${spring.min.version},)</version>
         <optional>true</optional>
       </dependency>
