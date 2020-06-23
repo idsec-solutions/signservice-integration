@@ -1,0 +1,96 @@
+/*
+ * Copyright 2019-2020 IDsec Solutions AB
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package se.idsec.signservice.integration.config.spring;
+
+import java.util.Map;
+
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
+import org.springframework.core.convert.converter.Converter;
+import org.springframework.core.convert.converter.ConverterRegistry;
+import org.springframework.util.StringUtils;
+
+import lombok.extern.slf4j.Slf4j;
+import se.idsec.signservice.security.sign.SigningCredential;
+
+/**
+ * For Spring Framework users. A {@link Converter} that lets the user reference a {@link SigningCredential} instance
+ * using its bean name, or if no bean is found, the signing credential name (@link {@link SigningCredential#getName()}.
+ * <p>
+ * To use this converter it has to be instantiated as a bean and then registered in the registry using
+ * {@link ConverterRegistry#addConverter(Converter)}.
+ * </p>
+ * <p>
+ * If you are using Spring Boot, do:
+ * </p>
+ * <pre>
+ * @Bean
+ * @ConfigurationPropertiesBinding
+ * public NameToSigningCredentialConverter nameToSigningCredentialConverter() {
+ *   return new NameToSigningCredentialConverter();
+ * }
+ * </pre>
+ * 
+ * @author Martin Lindström (martin@idsec.se)
+ * @author Stefan Santesson (stefan@idsec.se)
+ */
+@Slf4j
+public class NameToSigningCredentialConverter implements Converter<String, SigningCredential>, ApplicationContextAware {
+
+  /** The application context. */
+  private ApplicationContext applicationContext;
+
+  /** {@inheritDoc} */
+  @Override
+  public SigningCredential convert(final String source) {
+    if (source == null || !StringUtils.hasText(source)) {
+      return null;
+    }
+    log.debug("Converting '{}' into a SigningCredential instance ...", source);
+    try {
+      final SigningCredential cred = this.applicationContext.getBean(source, SigningCredential.class);
+      log.debug("Found bean of type '{}' and bean name '{}' in the application context", SigningCredential.class.getSimpleName(), source);
+      return cred;
+    }
+    catch (BeansException e) {
+      log.debug("No bean of type '{}' and bean name '{}' has been registered", SigningCredential.class.getSimpleName(), source);
+    }
+    log.debug("Listing all SigningCredential beans ...");
+    try {
+      final Map<String, SigningCredential> map = this.applicationContext.getBeansOfType(SigningCredential.class);
+      for (final SigningCredential c : map.values()) {
+        if (source.equalsIgnoreCase(c.getName())) {
+          log.debug("Found bean of type '{}' and given name '{}' in the application context", SigningCredential.class.getSimpleName(),
+            source);
+          return c;
+        }
+      }
+    }
+    catch (BeansException e) {
+    }
+    final String msg = String.format("No SigningCredential instance matching '%s' was found", source);
+    log.error("%s", msg);
+    throw new IllegalArgumentException(msg);
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public void setApplicationContext(final ApplicationContext applicationContext) throws BeansException {
+    this.applicationContext = applicationContext;
+  }
+
+}

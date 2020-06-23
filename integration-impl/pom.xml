@@ -3,13 +3,13 @@
 
   <modelVersion>4.0.0</modelVersion>
 
-  <artifactId>signservice-integration-impl</artifactId>
+  <artifactId>signservice-integration-impl</artifactId>  
   <packaging>jar</packaging>
 
   <parent>
     <groupId>se.idsec.signservice.integration</groupId>
     <artifactId>signservice-integration-parent</artifactId>
-    <version>1.0.2</version>
+    <version>1.0.3-SNAPSHOT</version>
   </parent>
 
   <name>IDsec Solutions :: SignService :: Integration :: API Implementation</name>
@@ -57,10 +57,22 @@
   <dependencies>
   
     <!-- Spring --> 
-    <!-- Optional - Only needed for PdfSignatureImageTemplateExt -->
+    <!-- 
+      Optional - Needed for code under se.idsec.signservice.integration.spring
+      and for PdfSignatureImageTemplateExt 
+    -->
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-core</artifactId>
+      <optional>true</optional>
+    </dependency>
+    
+    <!-- 
+      Optional - Needed for code under se.idsec.signservice.integration.spring 
+    -->
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-context</artifactId>
       <optional>true</optional>
     </dependency>
 
