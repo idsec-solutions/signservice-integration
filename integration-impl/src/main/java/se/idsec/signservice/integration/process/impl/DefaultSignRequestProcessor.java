@@ -68,7 +68,6 @@ import se.idsec.signservice.security.sign.xml.impl.DefaultXMLSigner;
 import se.idsec.signservice.utils.AssertThat;
 import se.idsec.signservice.xml.DOMUtils;
 import se.idsec.signservice.xml.JAXBMarshaller;
-import se.litsec.swedisheid.opensaml.saml2.authentication.LevelofAssuranceAuthenticationContextURI;
 import se.swedenconnect.schemas.csig.dssext_1_1.SignRequestExtension;
 import se.swedenconnect.schemas.csig.dssext_1_1.SignTaskData;
 import se.swedenconnect.schemas.csig.dssext_1_1.SignTasks;
@@ -95,7 +94,8 @@ public class DefaultSignRequestProcessor implements SignRequestProcessor {
   private static se.swedenconnect.schemas.dss_1_0.ObjectFactory dssObjectFactory = new se.swedenconnect.schemas.dss_1_0.ObjectFactory();
 
   /** Object factory for DSS-Ext objects. */
-  private static se.swedenconnect.schemas.csig.dssext_1_1.ObjectFactory dssExtObjectFactory = new se.swedenconnect.schemas.csig.dssext_1_1.ObjectFactory();
+  private static se.swedenconnect.schemas.csig.dssext_1_1.ObjectFactory dssExtObjectFactory =
+      new se.swedenconnect.schemas.csig.dssext_1_1.ObjectFactory();
 
   /** Needed when signing the sign request. */
   private XMLSignatureLocation xmlSignatureLocation;
@@ -192,7 +192,7 @@ public class DefaultSignRequestProcessor implements SignRequestProcessor {
     }
     else {
       if (signRequestInput.getCertificateRequirements().getCertificateType() == null) {
-        log.debug("{}: No certificateRequirements.certificateType given in input, using {}", 
+        log.debug("{}: No certificateRequirements.certificateType given in input, using {}",
           CorrelationID.id(), config.getDefaultCertificateRequirements().getCertificateType());
         SigningCertificateRequirements scr = signRequestInput.getCertificateRequirements();
         scr.setCertificateType(config.getDefaultCertificateRequirements().getCertificateType());
@@ -200,7 +200,7 @@ public class DefaultSignRequestProcessor implements SignRequestProcessor {
       }
       if (signRequestInput.getCertificateRequirements().getAttributeMappings() == null
           || signRequestInput.getCertificateRequirements().getAttributeMappings().isEmpty()) {
-        log.debug("{}: No certificateRequirements.certificateType given in input, using {}", 
+        log.debug("{}: No certificateRequirements.certificateType given in input, using {}",
           CorrelationID.id(), config.getDefaultCertificateRequirements().getAttributeMappings());
         SigningCertificateRequirements scr = signRequestInput.getCertificateRequirements();
         scr.setAttributeMappings(config.getDefaultCertificateRequirements().getAttributeMappings());
@@ -266,56 +266,13 @@ public class DefaultSignRequestProcessor implements SignRequestProcessor {
       }
     }
 
-    SignRequestInput processedSignRequestInput = inputBuilder.build();
-
-    // Apply special handling (workarounds etc.)
-    //
-    processedSignRequestInput = this.applyPreProcessWorkarounds(processedSignRequestInput, config);
-
-    return processedSignRequestInput;
-  }
-
-  /**
-   * Work-arounds. Placed here so that it doesn't mess up the rest of the code.
-   * 
-   * @param input
-   *          the sign request input to apply work-arounds on
-   * @param config
-   *          the configuration
-   * @return a (possibly) updated sign request input object
-   */
-  private SignRequestInput applyPreProcessWorkarounds(final SignRequestInput input, final IntegrationServiceConfiguration config) {
-    final SignRequestInput updatedInput = input;
-
-    // To cover up for a bug i Cybercom's sign service. They expect to receive a sigmessage
-    // URI in the request (which is wrong).
-    //
-    if (updatedInput.getSignMessageParameters() != null) {
-      if (config.getExtension() != null && config.getExtension().get("send-sigmessage-uri") != null) {
-        Boolean ccWorkaround = Boolean.parseBoolean(config.getExtension().get("send-sigmessage-uri"));
-        if (ccWorkaround) {
-          final String loa = updatedInput.getAuthnRequirements().getAuthnContextRef();
-          LevelofAssuranceAuthenticationContextURI.LoaEnum loaEnum = LevelofAssuranceAuthenticationContextURI.LoaEnum.parse(loa);
-          if (loaEnum != null) {
-            LevelofAssuranceAuthenticationContextURI.LoaEnum updatedLoaEnum = LevelofAssuranceAuthenticationContextURI.LoaEnum
-              .plusSigMessage(loaEnum);
-            if (updatedLoaEnum != null) {
-              log.info("{}: Applying workaround for Cybercom sigmessage URI bug. Changing AuthnContextRef from '{}' to '{}'",
-                CorrelationID.id(), loa, updatedLoaEnum.getUri());
-              updatedInput.getAuthnRequirements().setAuthnContextRef(updatedLoaEnum.getUri());
-            }
-          }
-        }
-      }
-    }
-
-    return updatedInput;
+    return inputBuilder.build();
   }
 
   /** {@inheritDoc} */
   @Override
-  public SignRequestProcessingResult process(final SignRequestInput signRequestInput, final String requestID,
-      final IntegrationServiceConfiguration config)
+  public SignRequestProcessingResult process(
+      final SignRequestInput signRequestInput, final String requestID, final IntegrationServiceConfiguration config)
       throws SignServiceIntegrationException {
 
     // Start building the SignRequest ...
@@ -381,6 +338,11 @@ public class DefaultSignRequestProcessor implements SignRequestProcessor {
     // SignMessage
     //
     if (signRequestInput.getSignMessageParameters() != null) {
+      if (this.signMessageProcessor == null) {
+        final String msg = "No signMessageProcessor has been configured - Cannot process request holding SignMessageParameters";
+        log.error(msg);
+        throw new InternalSignServiceIntegrationException(new ErrorCode.Code("config"), msg);
+      }
       signRequestExtension.setSignMessage(this.signMessageProcessor.create(signRequestInput.getSignMessageParameters(), config));
     }
 
@@ -445,8 +407,9 @@ public class DefaultSignRequestProcessor implements SignRequestProcessor {
    * @throws InternalSignServiceIntegrationException
    *           for signature errors
    */
-  protected Document signSignRequest(final SignRequestWrapper signRequest,
-      final String correlationID, final SigningCredential signingCredential) throws InternalSignServiceIntegrationException {
+  protected Document signSignRequest(
+      final SignRequestWrapper signRequest, final String correlationID, final SigningCredential signingCredential)
+      throws InternalSignServiceIntegrationException {
 
     log.debug("{}: Signing SignRequest '{}' ...", correlationID, signRequest.getRequestID());
 
@@ -484,7 +447,7 @@ public class DefaultSignRequestProcessor implements SignRequestProcessor {
    * @param tbsDocumentProcessors
    *          the document processors
    */
-  public void setTbsDocumentProcessors(List<TbsDocumentProcessor<?>> tbsDocumentProcessors) {
+  public void setTbsDocumentProcessors(final List<TbsDocumentProcessor<?>> tbsDocumentProcessors) {
     this.tbsDocumentProcessors = tbsDocumentProcessors;
   }
 
@@ -494,7 +457,7 @@ public class DefaultSignRequestProcessor implements SignRequestProcessor {
    * @param signMessageProcessor
    *          the sign message processor
    */
-  public void setSignMessageProcessor(SignMessageProcessor signMessageProcessor) {
+  public void setSignMessageProcessor(final SignMessageProcessor signMessageProcessor) {
     this.signMessageProcessor = signMessageProcessor;
   }
 
@@ -529,7 +492,9 @@ public class DefaultSignRequestProcessor implements SignRequestProcessor {
   @PostConstruct
   public void afterPropertiesSet() throws Exception {
     AssertThat.isNotEmpty(this.tbsDocumentProcessors, "At least one TBS document processor must be configured");
-    AssertThat.isNotNull(this.signMessageProcessor, "Missing 'signMessageProcessor'");
+    if (this.signMessageProcessor == null) {
+      log.warn("No signMessageProcessor assigned - Processor will not be able to process the SignMessage extension");
+    }
   }
 
   /**
