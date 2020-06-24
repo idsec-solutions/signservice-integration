@@ -320,6 +320,7 @@ public class DefaultIntegrationServiceConfiguration implements IntegrationServic
 
   /** {@inheritDoc} */
   @Override
+  @JsonIgnore
   public List<X509Certificate> getSignServiceCertificatesInternal() {
     return this.signServiceCertificates != null ? this.signServiceCertificates : Collections.emptyList();
   }
@@ -345,6 +346,7 @@ public class DefaultIntegrationServiceConfiguration implements IntegrationServic
 
   /** {@inheritDoc} */
   @Override
+  @JsonIgnore
   public List<X509Certificate> getTrustAnchorsInternal() {
     return this.trustAnchors != null ? this.trustAnchors : Collections.emptyList();
   }
