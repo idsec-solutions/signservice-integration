@@ -18,6 +18,8 @@ package se.idsec.signservice.integration.security.impl;
 import org.opensaml.xmlsec.EncryptionConfiguration;
 import org.opensaml.xmlsec.SecurityConfigurationSupport;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import se.idsec.signservice.integration.security.EncryptionParameters;
 
 /**
@@ -64,6 +66,7 @@ public class OpenSAMLEncryptionParameters implements EncryptionParameters {
    * 
    * @return OpenSAML encryption configuration
    */
+  @JsonIgnore
   public EncryptionConfiguration getSystemConfiguration() {
     return this.systemConfiguration;
   }
