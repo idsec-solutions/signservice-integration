@@ -23,6 +23,7 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 
@@ -60,6 +61,7 @@ import se.idsec.signservice.integration.document.pdf.VisiblePdfSignatureRequirem
  */
 public class PdfSignPage {
 
+  public static final String SUBFILTER_ETSI_RFC3161 = "ETSI.RFC3161";
   private final String signPageTemplateLocation;
   private final boolean onlyAddedToUnsigned;
   private final SignerNameRequirementProcessor signerNameRequirementProcessor;
@@ -269,7 +271,9 @@ public class PdfSignPage {
     PDDocument pdDocument = null;
     try {
       pdDocument = PDDocument.load(tbsDocBytes);
-      final int sigCount = pdDocument.getSignatureDictionaries().size();
+      final int sigCount = pdDocument.getSignatureDictionaries().stream()
+        .filter(signature -> !signature.getSubFilter().equalsIgnoreCase(SUBFILTER_ETSI_RFC3161))
+        .collect(Collectors.toList()).size();
       return this.calulator.getPlacement(sigCount, this.basePlacement);
     }
     finally {
