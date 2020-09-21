@@ -17,7 +17,6 @@ package se.idsec.signservice.integration.config.impl;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.springframework.core.io.ClassPathResource;
 
 /**
  * Test cases for {@code PdfSignatureImageTemplateExt}.
@@ -25,18 +24,13 @@ import org.springframework.core.io.ClassPathResource;
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
+@SuppressWarnings("deprecation")
 public class PdfSignatureImageTemplateExtTest {
 
   @Test
-  public void testResource() throws Exception {
+  public void testResource() throws Exception {    
     PdfSignatureImageTemplateExt p = new PdfSignatureImageTemplateExt();
-    p.setResource(new ClassPathResource("idsec.svg"));
-
-    Assert.assertNotNull(p.getImage());
-    Assert.assertTrue(p.getImage().contains("<svg version"));
-
-    // The same with the builder
-    p = PdfSignatureImageTemplateExt.createBuilder().resource(new ClassPathResource("idsec.svg")).build();
+    p.setResource("classpath:idsec.svg");
 
     Assert.assertNotNull(p.getImage());
     Assert.assertTrue(p.getImage().contains("<svg version"));
@@ -47,15 +41,7 @@ public class PdfSignatureImageTemplateExtTest {
     PdfSignatureImageTemplateExt p = new PdfSignatureImageTemplateExt();
 
     try {
-      p.setResource(new ClassPathResource("no.svg"));
-      Assert.fail("Expected IllegalArgumentException");
-    }
-    catch (IllegalArgumentException e) {
-    }
-
-    // The same with the builder
-    try {
-      PdfSignatureImageTemplateExt.createBuilder().resource(new ClassPathResource("no.svg")).build();
+      p.setResource("classpath:no.svg");
       Assert.fail("Expected IllegalArgumentException");
     }
     catch (IllegalArgumentException e) {

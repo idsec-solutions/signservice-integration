@@ -16,11 +16,11 @@
 package se.idsec.signservice.integration.config.impl;
 
 import java.util.Arrays;
+import java.util.Base64;
 
 import org.junit.Test;
 import org.springframework.core.io.ClassPathResource;
 
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 
@@ -32,6 +32,8 @@ import se.idsec.signservice.integration.certificate.RequestedCertificateAttribut
 import se.idsec.signservice.integration.certificate.RequestedCertificateAttributeType;
 import se.idsec.signservice.integration.certificate.SigningCertificateRequirements;
 import se.idsec.signservice.integration.document.pdf.PdfSignatureImageTemplate;
+import se.idsec.signservice.integration.document.pdf.PdfSignaturePage;
+import se.idsec.signservice.integration.document.pdf.PdfSignaturePage.PdfSignatureImagePlacementConfiguration;
 import se.idsec.signservice.integration.document.pdf.VisiblePdfSignatureRequirement;
 import se.idsec.signservice.integration.security.impl.DefaultEncryptionParameters;
 import se.idsec.signservice.security.sign.impl.KeyStoreSigningCredential;
@@ -93,7 +95,10 @@ public class DefaultIntegrationServiceConfigurationTest {
         .build())
       .pdfSignatureImageTemplate(PdfSignatureImageTemplate.builder()
         .reference("companylogo")
-        .image("<svg>dummy</svg>")
+        .svgImageFile(DefaultFileResource.builder()
+          .contents(Base64.getEncoder().encodeToString("<svg>dummy</svg>".getBytes()))
+          .description("Dummy SVG")
+          .build())
         .width(300)
         .height(300)
         .includeSignerName(true)
@@ -102,6 +107,18 @@ public class DefaultIntegrationServiceConfigurationTest {
         .field(PdfSignatureImageTemplate.SIGNER_NAME_FIELD_NAME, "The signer name")
         .field(PdfSignatureImageTemplate.SIGNING_TIME_FIELD_NAME, "The time the signature was created")
         .build())
+      .pdfSignaturePage(PdfSignaturePage.builder()
+        .id("pdfid")
+        .pdfDocument(DefaultFileResource.builder().resource("classpath:dummy-signpage.pdf").build())
+        .rows(2)
+        .signatureImageReference("companylogo")
+        .imagePlacementConfiguration(PdfSignatureImagePlacementConfiguration.builder()
+          .xPosition(100)
+          .yPosition(100)
+          .yIncrement(150)
+          .scale(0)
+          .build())
+        .build())        
       .stateless(true)
       .defaultEncryptionParameters(DefaultEncryptionParameters.builder().build())
       .signingCredential(
@@ -109,7 +126,6 @@ public class DefaultIntegrationServiceConfigurationTest {
       .build();
 
     ObjectMapper mapper = new ObjectMapper();
-    mapper.setSerializationInclusion(Include.NON_NULL);
     ObjectWriter writer = mapper.writerWithDefaultPrettyPrinter();
 
     String json = writer.writeValueAsString(config);

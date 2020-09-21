@@ -33,6 +33,10 @@ import se.idsec.signservice.integration.document.pdf.VisiblePdfSignatureRequirem
  */
 public class VisiblePdfSignatureRequirementValidator extends
     AbstractInputValidator<VisiblePdfSignatureRequirement, IntegrationServiceConfiguration> {
+  
+  /** Validator for VisiblePdfSignatureUserInformation objects. */
+  private VisiblePdfSignatureUserInformationValidator visiblePdfSignatureUserInformationValidator = 
+      new VisiblePdfSignatureUserInformationValidator();
 
   /** {@inheritDoc} */
   @Override
@@ -74,35 +78,9 @@ public class VisiblePdfSignatureRequirementValidator extends
       result.rejectValue("yPosition", "Illegal value for yPosition given in visiblePdfSignatureRequirement");
     }
 
-    // Check signerName ...
-    //
-    if (template != null && template.isIncludeSignerName()) {
-      if (object.getSignerName() == null || object.getSignerName().getSignerAttributes() == null
-          || object.getSignerName().getSignerAttributes().isEmpty()) {
-        result.rejectValue("signerName", String.format(
-          "Requested templateImageRef '%s' requires signerName, but requirements does not include visiblePdfSignatureRequirement.signerName",
-          object.getTemplateImageRef()));
-      }
-    }
-    // Make sure that all fields required by the template are given in the requirement.
-    //
-    if (template != null && template.getFields() != null) {
-      for (final String field : template.getFields().keySet()) {
-        if (PdfSignatureImageTemplate.SIGNER_NAME_FIELD_NAME.equals(field)
-            || PdfSignatureImageTemplate.SIGNING_TIME_FIELD_NAME.equals(field)) {
-          continue;
-        }
-        if (object.getFieldValues() == null) {
-          result.rejectValue("fieldValues", String.format(
-            "The field %s is required by template, but not given in input", field));
-        }
-        else if (object.getFieldValues().get(field) == null) {
-          result.rejectValue("fieldValues", String.format(
-            "The field %s is required by template, but not given in input", field));
-        }
-      }
-    }
-
+    result.setFieldErrors(
+      this.visiblePdfSignatureUserInformationValidator.validate(object, null, template));
+    
     return result;
   }
 

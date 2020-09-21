@@ -38,8 +38,8 @@ import se.idsec.signservice.security.sign.SigningCredential;
  * If you are using Spring Boot, do:
  * </p>
  * <pre>
- * @Bean
- * @ConfigurationPropertiesBinding
+ * &#64;Bean
+ * &#64;ConfigurationPropertiesBinding
  * public NameToSigningCredentialConverter nameToSigningCredentialConverter() {
  *   return new NameToSigningCredentialConverter();
  * }

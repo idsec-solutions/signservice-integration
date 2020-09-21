@@ -39,8 +39,8 @@ import se.idsec.signservice.security.certificate.CertificateUtils;
  * If you are using Spring Boot, do:
  * </p>
  * <pre>
- * @Bean
- * @ConfigurationPropertiesBinding
+ * &#64;Bean
+ * &#64;ConfigurationPropertiesBinding
  * public PropertyToX509CertificateConverter propertyToX509CertificateConverter() {
  *   return new PropertyToX509CertificateConverter();
  * }

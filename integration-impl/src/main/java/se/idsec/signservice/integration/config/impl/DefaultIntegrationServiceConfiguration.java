@@ -35,6 +35,7 @@ import lombok.Setter;
 import lombok.Singular;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
+import se.idsec.signservice.integration.ExtendedSignServiceIntegrationService;
 import se.idsec.signservice.integration.authentication.AuthnRequirements;
 import se.idsec.signservice.integration.certificate.SigningCertificateRequirements;
 import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
@@ -42,6 +43,7 @@ import se.idsec.signservice.integration.config.IntegrationServiceDefaultConfigur
 import se.idsec.signservice.integration.core.Extension;
 import se.idsec.signservice.integration.core.ObjectBuilder;
 import se.idsec.signservice.integration.document.pdf.PdfSignatureImageTemplate;
+import se.idsec.signservice.integration.document.pdf.PdfSignaturePage;
 import se.idsec.signservice.integration.document.pdf.VisiblePdfSignatureRequirement;
 import se.idsec.signservice.integration.security.EncryptionParameters;
 import se.idsec.signservice.security.sign.SigningCredential;
@@ -191,6 +193,20 @@ public class DefaultIntegrationServiceConfiguration implements IntegrationServic
   private List<? extends PdfSignatureImageTemplate> pdfSignatureImageTemplates;
 
   /**
+   * A policy may have one, or more, configured PDF signature pages. See
+   * {@link ExtendedSignServiceIntegrationService#preparePdfSignaturePage(String, byte[], se.idsec.signservice.integration.document.pdf.PdfSignaturePagePreferences)}
+   * for a description of PDF signature pages. The first object in the list is regarded as the default page for the
+   * policy.
+   * 
+   * @param pdfSignaturePages
+   *          a list of PDF signature pages for the policy
+   */
+  @Getter
+  @Setter
+  @Singular
+  private List<? extends PdfSignaturePage> pdfSignaturePages;
+
+  /**
    * Tells whether the SignService Integration Service is running in stateless mode or not.
    * 
    * @param stateless
@@ -279,11 +295,11 @@ public class DefaultIntegrationServiceConfiguration implements IntegrationServic
   public boolean isStateless() {
     return this.stateless != null ? this.stateless.booleanValue() : false;
   }
-  
+
   /**
    * Gets the signing certificate that the SignService Integration Service uses to sign SignRequest messages.
    * 
-   * @return the Base64-encoded signing certificate 
+   * @return the Base64-encoded signing certificate
    */
   public String getSignatureCertificate() {
     if (this.signatureCertificate == null) {
@@ -298,7 +314,7 @@ public class DefaultIntegrationServiceConfiguration implements IntegrationServic
     }
     return this.signatureCertificate;
   }
-  
+
   /**
    * Assigns the signing credential that the SignService Integration Service policy instance uses to sign SignRequest
    * messages.
@@ -416,7 +432,10 @@ public class DefaultIntegrationServiceConfiguration implements IntegrationServic
       this.defaultVisiblePdfSignatureRequirement = parent.getDefaultVisiblePdfSignatureRequirement();
     }
     if (this.pdfSignatureImageTemplates == null || this.pdfSignatureImageTemplates.isEmpty()) {
-      this.pdfSignatureImageTemplates = parent.getPdfSignatureImageTemplates(); 
+      this.pdfSignatureImageTemplates = parent.getPdfSignatureImageTemplates();
+    }
+    if (this.pdfSignaturePages == null || this.pdfSignaturePages.isEmpty()) {
+      this.pdfSignaturePages = parent.getPdfSignaturePages();
     }
     if (this.stateless == null) {
       this.stateless = parent.isStateless();
