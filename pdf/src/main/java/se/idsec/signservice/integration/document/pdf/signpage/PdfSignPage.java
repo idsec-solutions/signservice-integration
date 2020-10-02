@@ -284,7 +284,9 @@ public class PdfSignPage {
   }
 
   public SignatureImagePlacement getSignImagePlacement(final PDDocument tbsDoc) throws IOException {
-    final int sigCount = tbsDoc.getSignatureDictionaries().size();
+    final int sigCount = tbsDoc.getSignatureDictionaries().stream()
+        .filter(signature -> !signature.getSubFilter().equalsIgnoreCase(SUBFILTER_ETSI_RFC3161))
+        .collect(Collectors.toList()).size();
     return this.calulator.getPlacement(sigCount, this.basePlacement);
   }
 
@@ -351,7 +353,7 @@ public class PdfSignPage {
       .page(signImagePlacement.getSignImagePage())
       .scale(signImagePlacement.getSignImageScale())
       .xPosition(signImagePlacement.getSignImageXpos())
-      .yPosition(signImagePlacement.getSingImaeYpos())
+      .yPosition(signImagePlacement.getSignImageYpos())
       .build();
   }
 

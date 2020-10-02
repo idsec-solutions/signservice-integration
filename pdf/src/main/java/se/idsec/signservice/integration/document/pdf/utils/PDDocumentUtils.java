@@ -15,9 +15,13 @@
  */
 package se.idsec.signservice.integration.document.pdf.utils;
 
+import java.io.BufferedOutputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.Iterator;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDPage;
 
 import lombok.extern.slf4j.Slf4j;
 import se.idsec.signservice.integration.core.error.ErrorCode;
@@ -69,6 +73,70 @@ public class PDDocumentUtils {
         log.warn("Failed to close PDDocument object", e);
       }
     }
+  }
+
+  /**
+   * Encodes the supplied PDF document into a byte array.
+   * 
+   * @param document
+   *          the document to encode
+   * @return a byte array of the contents
+   * @throws DocumentProcessingException
+   *           for processing errors
+   */
+  public static byte[] toBytes(final PDDocument document) throws DocumentProcessingException {
+    try {
+      final ByteArrayOutputStream bos = new ByteArrayOutputStream();
+      final BufferedOutputStream os = new BufferedOutputStream(bos);
+      document.save(os);
+      return bos.toByteArray();
+    }
+    catch (IOException e) {
+      throw new DocumentProcessingException(new ErrorCode.Code("encode"), "Failed to encode PDF document", e);
+    }
+  }
+
+  /**
+   * Inserts the {@code insertDocument} in {@code document} at position {@code page} (1-based). This means that the
+   * given page number is the page number for the first page of the {@code insertDocument} after insertion.
+   * 
+   * @param document
+   *          the document to be updated
+   * @param insertDocument
+   *          the document to insert
+   * @param page
+   *          the page (1-based) number where to insert, 0 means at the end of the file
+   * @throws DocumentProcessingException
+   *           for errors
+   */
+  public static void insertDocument(final PDDocument document, final PDDocument insertDocument, final int page)
+      throws DocumentProcessingException {
+    try {
+      final int documentNumberOfPages = document.getNumberOfPages();
+
+      PDPage insert = page == 0 || page == documentNumberOfPages + 1
+          ? document.getPage(documentNumberOfPages - 1)
+          : document.getPage(page - 1);
+      boolean insertAfter = (page == 0 || page == documentNumberOfPages + 1) ? true : false;
+
+      final Iterator<PDPage> it = insertDocument.getPages().iterator();
+      while (it.hasNext()) {
+        PDPage newPage = it.next();
+        if (insertAfter) {
+          document.getPages().insertAfter(newPage, insert);
+        }
+        else {
+          document.getPages().insertBefore(newPage, insert);
+          insertAfter = true;
+        }
+        insert = newPage;
+      }
+    }
+    catch (IndexOutOfBoundsException | IllegalStateException | IllegalArgumentException e) {
+      throw new DocumentProcessingException(new ErrorCode.Code("pdf"),
+        String.format("Failed to insert sign page at page %d of document (no such page)", page), e);
+    }
+
   }
 
   private PDDocumentUtils() {
