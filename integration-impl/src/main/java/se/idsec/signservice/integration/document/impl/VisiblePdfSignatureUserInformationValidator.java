@@ -39,9 +39,14 @@ public class VisiblePdfSignatureUserInformationValidator
       return result;
     }
     
+    if (hint == null) {
+      result.reject("No PdfSignatureImageTemplate found for visiblePdfSignatureUserInformation");
+      return result;
+    }
+    
     // Check signerName ...
     //
-    if (hint != null && hint.isIncludeSignerName()) {
+    if (hint.isIncludeSignerName()) {
       if (object.getSignerName() == null || object.getSignerName().getSignerAttributes() == null
           || object.getSignerName().getSignerAttributes().isEmpty()) {
         result.rejectValue("signerName", String.format(
@@ -51,18 +56,18 @@ public class VisiblePdfSignatureUserInformationValidator
     }
     // Make sure that all fields required by the template are given in the requirement.
     //
-    if (hint != null && hint.getFields() != null) {
+    if (hint.getFields() != null) {
       for (final String field : hint.getFields().keySet()) {
-        if (PdfSignatureImageTemplate.SIGNER_NAME_FIELD_NAME.equals(field)
-            || PdfSignatureImageTemplate.SIGNING_TIME_FIELD_NAME.equals(field)) {
+        if (PdfSignatureImageTemplate.SIGNER_NAME_FIELD_NAME.equalsIgnoreCase(field)
+            || PdfSignatureImageTemplate.SIGNING_TIME_FIELD_NAME.equalsIgnoreCase(field)) {
           continue;
         }
         if (object.getFieldValues() == null) {
-          result.rejectValue("fieldValues", String.format(
+          result.rejectValue("fieldValues." + field, String.format(
             "The field %s is required by template, but not given in input", field));
         }
-        else if (object.getFieldValues().get(field) == null) {
-          result.rejectValue("fieldValues", String.format(
+        else if (!object.getFieldValues().keySet().stream().filter(f -> field.equalsIgnoreCase(f)).findFirst().isPresent()) {
+          result.rejectValue("fieldValues." + field, String.format(
             "The field %s is required by template, but not given in input", field));
         }
       }

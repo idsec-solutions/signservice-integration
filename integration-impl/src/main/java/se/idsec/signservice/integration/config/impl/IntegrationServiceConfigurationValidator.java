@@ -15,6 +15,8 @@
  */
 package se.idsec.signservice.integration.config.impl;
 
+import java.lang.reflect.Constructor;
+
 import org.apache.commons.lang.StringUtils;
 
 import lombok.extern.slf4j.Slf4j;
@@ -56,7 +58,26 @@ class IntegrationServiceConfigurationValidator extends
   private FileResourceValidator fileResourceValidator = new FileResourceValidator();
 
   /** Validator for PdfSignaturePage objects. */
-  private PdfSignaturePageValidator pdfSignaturePageValidator = new PdfSignaturePageValidator();
+  private PdfSignaturePageValidator pdfSignaturePageValidator;
+  
+  /**
+   * Constructor.
+   */
+  public IntegrationServiceConfigurationValidator() {
+    try {
+      // If we have the pdf jar in the classpath we want to use the extended PDF validator that also
+      // loads the PDF signature page and ensures that it is a valid PDF document ...
+      //
+      Class<?> clazz = Class.forName("se.idsec.signservice.integration.document.pdf.signpage.impl.ExtendedPdfSignaturePageValidator");
+      Constructor<?> ctor = clazz.getConstructor();
+      this.pdfSignaturePageValidator = (PdfSignaturePageValidator) ctor.newInstance(); 
+    }
+    catch (Exception e) {
+      // We don't have the extended validator in the classpath, so we'll use the standard one that does
+      // now have support for loaded PDF documents.
+      this.pdfSignaturePageValidator = new PdfSignaturePageValidator();
+    }
+  }
 
   /** {@inheritDoc} */
   @Override

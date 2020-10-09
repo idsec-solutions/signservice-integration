@@ -117,7 +117,12 @@ public class ValidationResult {
   public void setFieldErrors(final ValidationResult result) {
     if (result.hasErrors()) {
       if (result.getGlobalError() != null) {
-        this.rejectValue(result.getObjectName(), result.getGlobalError());
+        if (result.getObjectName() != null) {
+          this.rejectValue(result.getObjectName(), result.getGlobalError());
+        }
+        else {
+          this.rejectValue(this.getObjectName(), result.getGlobalError());
+        }
       }
       for (Map.Entry<String, String> fe : result.getFieldErrors().entrySet()) {
         this.rejectValue(fe.getKey(), fe.getValue());

@@ -36,12 +36,13 @@ public class PDDocumentUtilsTest {
     PDDocument doc = null;
     PDDocument ins = null;
     try {
-      doc = load("four-pages.pdf");
-      ins = load("one-page.pdf");
+      doc = load("pdf/four-pages.pdf");
+      ins = load("pdf/one-page.pdf");
 
-      PDDocumentUtils.insertDocument(doc, ins, 0);
-
+      doc = PDDocumentUtils.insertDocument(doc, ins, 0);
+                  
       Assert.assertEquals(5, doc.getNumberOfPages());
+      System.out.println(getContents(doc, 5));
       Assert.assertTrue(getContents(doc, 5).contains("Document 1: This is page one"));
     }
     finally {
@@ -55,11 +56,11 @@ public class PDDocumentUtilsTest {
     PDDocument doc = null;
     PDDocument ins = null;
     try {
-      doc = load("four-pages.pdf");
-      ins = load("one-page.pdf");
+      doc = load("pdf/four-pages.pdf");
+      ins = load("pdf/one-page.pdf");
 
-      PDDocumentUtils.insertDocument(doc, ins, 5);  // 5 is the new page number
-
+      doc = PDDocumentUtils.insertDocument(doc, ins, 5);  // 5 is the new page number
+      
       Assert.assertEquals(5, doc.getNumberOfPages());
       Assert.assertTrue(getContents(doc, 4).contains("Document 4: This is page four"));
       Assert.assertTrue(getContents(doc, 5).contains("Document 1: This is page one"));
@@ -75,10 +76,10 @@ public class PDDocumentUtilsTest {
     PDDocument doc = null;
     PDDocument ins = null;
     try {
-      doc = load("four-pages.pdf");
-      ins = load("two-pages.pdf");
+      doc = load("pdf/four-pages.pdf");
+      ins = load("pdf/two-pages.pdf");
 
-      PDDocumentUtils.insertDocument(doc, ins, 1);
+      doc = PDDocumentUtils.insertDocument(doc, ins, 1);
 
       Assert.assertEquals(6, doc.getNumberOfPages());
       Assert.assertTrue(getContents(doc, 1).contains("Document 2: This is page one"));
@@ -96,10 +97,10 @@ public class PDDocumentUtilsTest {
     PDDocument doc = null;
     PDDocument ins = null;
     try {
-      doc = load("four-pages.pdf");
-      ins = load("two-pages.pdf");
+      doc = load("pdf/four-pages.pdf");
+      ins = load("pdf/two-pages.pdf");
 
-      PDDocumentUtils.insertDocument(doc, ins, 3);
+      doc = PDDocumentUtils.insertDocument(doc, ins, 3);
 
       Assert.assertEquals(6, doc.getNumberOfPages());
       Assert.assertTrue(getContents(doc, 2).contains("Document 4: This is page two"));

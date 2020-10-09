@@ -30,32 +30,33 @@ import se.idsec.signservice.integration.document.pdf.PdfSignaturePagePreferences
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
-public class PdfSignaturePagePreferencesValidator extends AbstractInputValidator<PdfSignaturePagePreferences, IntegrationServiceConfiguration> {
-  
+public class PdfSignaturePagePreferencesValidator
+    extends AbstractInputValidator<PdfSignaturePagePreferences, IntegrationServiceConfiguration> {
+
   /** Validator for sign pages. */
-  private PdfSignaturePageValidator pdfSignaturePageValidator = new PdfSignaturePageValidator();
-  
+  private PdfSignaturePageValidator pdfSignaturePageValidator = new ExtendedPdfSignaturePageValidator();
+
   /** Validator for VisiblePdfSignatureUserInformation objects. */
-  private VisiblePdfSignatureUserInformationValidator visiblePdfSignatureUserInformationValidator = 
+  private VisiblePdfSignatureUserInformationValidator visiblePdfSignatureUserInformationValidator =
       new VisiblePdfSignatureUserInformationValidator();
 
   /** {@inheritDoc} */
   @Override
   public ValidationResult validate(
       final PdfSignaturePagePreferences object, final String objectName, final IntegrationServiceConfiguration hint) {
-    
+
     final ValidationResult result = new ValidationResult(objectName);
     if (object == null) {
       return result;
     }
-    
+
     PdfSignaturePage page = null;
     if (object.getSignaturePageReference() == null && object.getSignaturePage() == null) {
       // OK, see if we have one in the configuration.
       if (hint.getPdfSignaturePages() != null && !hint.getPdfSignaturePages().isEmpty()) {
         page = hint.getPdfSignaturePages().get(0);
       }
-      if (page == null) {      
+      if (page == null) {
         result.reject("No signaturePageReference or signaturePage given, and no default page found in config.");
         return result;
       }
@@ -67,41 +68,40 @@ public class PdfSignaturePagePreferencesValidator extends AbstractInputValidator
     else if (object.getSignaturePageReference() != null) {
       // Find the sign page ...
       page = hint.getPdfSignaturePages().stream()
-          .filter(p -> object.getSignaturePageReference().equals(p.getId()))
-          .findAny()
-          .orElse(null);
+        .filter(p -> object.getSignaturePageReference().equals(p.getId()))
+        .findAny()
+        .orElse(null);
       if (page == null) {
-        result.rejectValue("signaturePageReference", 
-          String.format("Configuration '%s' does not hold a PdfSignaturePage with id '%s'", hint.getPolicy(), object.getSignaturePageReference()));  
+        result.rejectValue("signaturePageReference",
+          String.format("Configuration '%s' does not hold a PdfSignaturePage with id '%s'", hint.getPolicy(),
+            object.getSignaturePageReference()));
       }
     }
     else if (object.getSignaturePage() != null) {
       result.setFieldErrors(
         this.pdfSignaturePageValidator.validate(object.getSignaturePage(), "signaturePage", hint.getPdfSignatureImageTemplates()));
+      page = object.getSignaturePage();
     }
-    
+
     if (object.getVisiblePdfSignatureUserInformation() == null) {
       result.rejectValue("visiblePdfSignatureUserInformation", "Missing visiblePdfSignatureUserInformation");
     }
     else {
+      PdfSignatureImageTemplate template = null;
       if (page != null) {
         final PdfSignaturePage _page = page;
-        final PdfSignatureImageTemplate template = hint.getPdfSignatureImageTemplates().stream()
-            .filter(t -> _page.getSignatureImageReference().equals(t.getReference()))
-            .findFirst()
-            .orElse(null);
-        if (template == null) {
-          result.rejectValue("visiblePdfSignatureUserInformation", 
-            "The visiblePdfSignatureUserInformation refers to PdfSignatureImageTemplate that can not be found in configuration");
-        }
-        else {
-          result.setFieldErrors(
-            this.visiblePdfSignatureUserInformationValidator.validate(
-              object.getVisiblePdfSignatureUserInformation(), "visiblePdfSignatureUserInformation", template));
-        }
+        template = hint.getPdfSignatureImageTemplates().stream()
+          .filter(t -> _page.getSignatureImageReference().equals(t.getReference()))
+          .findFirst()
+          .orElse(null);
+      }
+      if (template != null || object.getSignaturePageReference() != null) {
+        result.setFieldErrors(
+          this.visiblePdfSignatureUserInformationValidator.validate(
+            object.getVisiblePdfSignatureUserInformation(), "visiblePdfSignatureUserInformation", template));
       }
     }
-    
+
     return result;
   }
 

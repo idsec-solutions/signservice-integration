@@ -106,7 +106,8 @@ public class VisiblePdfSignatureRequirementValidatorTest {
     
     Assert.assertTrue(result.hasErrors());
     Assert.assertNotNull(result.getFieldErrors().get(OBJECT_NAME + ".templateImageRef"));
-    Assert.assertEquals(1, result.getFieldErrors().size());
+    Assert.assertNotNull(result.getFieldErrors().get(OBJECT_NAME + ".visiblePdfSignatureRequirement"));
+    Assert.assertEquals(2, result.getFieldErrors().size());
 
     // The template reference does not exist in the configuration
     //
@@ -118,7 +119,8 @@ public class VisiblePdfSignatureRequirementValidatorTest {
     result = this.validator.validate(req, OBJECT_NAME, this.configuration);
     Assert.assertTrue(result.hasErrors());
     Assert.assertNotNull(result.getFieldErrors().get(OBJECT_NAME + ".templateImageRef"));
-    Assert.assertEquals(1, result.getFieldErrors().size());
+    Assert.assertNotNull(result.getFieldErrors().get(OBJECT_NAME + ".visiblePdfSignatureRequirement"));
+    Assert.assertEquals(2, result.getFieldErrors().size());
     
     // OK case
     //
@@ -245,7 +247,7 @@ public class VisiblePdfSignatureRequirementValidatorTest {
     // Should work for template ref1 since it doesn't require signer name
     ValidationResult result = this.validator.validate(req, OBJECT_NAME, this.configuration);    
     Assert.assertTrue(result.hasErrors());    
-    Assert.assertNotNull(result.getFieldErrors().get(OBJECT_NAME + ".fieldValues"));
+    Assert.assertNotNull(result.getFieldErrors().get(OBJECT_NAME + ".fieldValues.abc"));
     
     // A field value is given but the one that is required by the template
     req = VisiblePdfSignatureRequirement.builder()
@@ -257,7 +259,7 @@ public class VisiblePdfSignatureRequirementValidatorTest {
     
     result = this.validator.validate(req, OBJECT_NAME, this.configuration);    
     Assert.assertTrue(result.hasErrors());    
-    Assert.assertNotNull(result.getFieldErrors().get(OBJECT_NAME + ".fieldValues"));
+    Assert.assertNotNull(result.getFieldErrors().get(OBJECT_NAME + ".fieldValues.abc"));
     
     // Successful case
     req = VisiblePdfSignatureRequirement.builder()
