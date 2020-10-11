@@ -143,25 +143,6 @@ public class PDDocumentUtils {
       }
       
       return PDDocumentUtils.load(PDDocumentUtils.toBytes(document));
-
-      // PDPage insert = page == 0 || page == documentNumberOfPages + 1
-      // ? document.getPage(documentNumberOfPages - 1)
-      // : document.getPage(page - 1);
-      // boolean insertAfter = (page == 0 || page == documentNumberOfPages + 1) ? true : false;
-      //
-      // final Iterator<PDPage> it = insertDocument.getPages().iterator();
-      // while (it.hasNext()) {
-      // PDPage newPage = it.next();
-      //
-      // if (insertAfter) {
-      // document.getPages().insertAfter(newPage, insert);
-      // }
-      // else {
-      // document.getPages().insertBefore(newPage, insert);
-      // insertAfter = true;
-      // }
-      // insert = newPage;
-      // }
     }
     catch (IndexOutOfBoundsException | IllegalStateException | IllegalArgumentException e) {
       throw new DocumentProcessingException(new ErrorCode.Code("pdf"),
