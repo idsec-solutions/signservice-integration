@@ -97,6 +97,7 @@ public class DefaultPdfSignaturePagePreparator implements PdfSignaturePagePrepar
         }
         else {
           return PreparedPdfDocument.builder()
+            .policy(policyConfiguration.getPolicy())
             .visiblePdfSignatureRequirement(
               VisiblePdfSignatureRequirement.createNullVisiblePdfSignatureRequirement())
             .build();
@@ -116,7 +117,7 @@ public class DefaultPdfSignaturePagePreparator implements PdfSignaturePagePrepar
           document, preferences.getSignaturePage(), preferences.getInsertPageAt());
         document = updateResult.getFirst();
         signPagePageNumber = updateResult.getSecond();
-        log.debug("PDF signature page was inserted at page number {}", signPagePageNumber);        
+        log.debug("PDF signature page was inserted at page number {}", signPagePageNumber);
       }
       else {
         log.debug("PDF document already contains signatures");
@@ -145,6 +146,7 @@ public class DefaultPdfSignaturePagePreparator implements PdfSignaturePagePrepar
       // Put together the prepared PDF document ...
       //
       PreparedPdfDocument result = new PreparedPdfDocument();
+      result.setPolicy(policyConfiguration.getPolicy());
       result.setVisiblePdfSignatureRequirement(visiblePdfSignatureRequirement);
       if (signatureCount == 0) {
         result.setUpdatedPdfDocument(encoder.encodeDocument(PDDocumentUtils.toBytes(document)));
@@ -231,12 +233,13 @@ public class DefaultPdfSignaturePagePreparator implements PdfSignaturePagePrepar
    *          the sign page to add
    * @param insertPageAt
    *          the (one-based) directive where the sign page should be inserted
-   * @return a Pair of the updated document and the (one-based) page number where the sign page is located in the updated document
+   * @return a Pair of the updated document and the (one-based) page number where the sign page is located in the
+   *         updated document
    * @throws SignServiceIntegrationException
    *           for processing errors
    */
   private Pair<PDDocument, Integer> addSignaturePage(final PDDocument document, final PdfSignaturePage signPage, Integer insertPageAt)
-      throws SignServiceIntegrationException {    
+      throws SignServiceIntegrationException {
 
     final PDDocument signPageDocument = PDDocumentUtils.load(signPage.getContents());
     try {
@@ -336,26 +339,18 @@ public class DefaultPdfSignaturePagePreparator implements PdfSignaturePagePrepar
    */
   private void calculateImagePlacement(
       final VisiblePdfSignatureRequirement visiblePdfSignatureRequirement, final PdfSignaturePage signaturePage, final int signatureCount) {
+    
+    // Note: we don't have to assert that values are set and such. The validators have already checked this.
+    //
+    final int pageColumns = Optional.ofNullable(signaturePage.getColumns()).map(Integer::intValue).orElse(1);
 
-    int xPos = signaturePage.getImagePlacementConfiguration().getXPosition();
-    int yPos = signaturePage.getImagePlacementConfiguration().getYPosition();
-
-    if (signatureCount == 0) {
-      // If this is the first signature image, use the base values from the placement configuration.
-      //
-      visiblePdfSignatureRequirement.setXPosition(xPos);
-      visiblePdfSignatureRequirement.setYPosition(yPos);
-    }
-    else {
-      // Else, we need to calculate where in the page the next sign image should be inserted.
-      // Note: we don't have to assert that values are set and such. The validators have already checked this.
-      //
-      final int column = signatureCount % Optional.ofNullable(signaturePage.getColumns()).map(Integer::intValue).orElse(1);
-      final int row = signatureCount / Optional.ofNullable(signaturePage.getRows()).map(Integer::intValue).orElse(1);
-
-      visiblePdfSignatureRequirement.setXPosition(xPos + (column * signaturePage.getImagePlacementConfiguration().getXIncrement()));
-      visiblePdfSignatureRequirement.setYPosition(yPos + (row * signaturePage.getImagePlacementConfiguration().getYIncrement()));
-    }
+    visiblePdfSignatureRequirement.setXPosition(
+      signaturePage.getImagePlacementConfiguration().getXPosition() 
+      + ((signatureCount % pageColumns) * signaturePage.getImagePlacementConfiguration().getXIncrement()));
+    
+    visiblePdfSignatureRequirement.setYPosition(
+      signaturePage.getImagePlacementConfiguration().getYPosition() 
+      + ((signatureCount / pageColumns) * signaturePage.getImagePlacementConfiguration().getYIncrement()));
   }
 
 }
