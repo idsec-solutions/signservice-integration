@@ -65,6 +65,16 @@
       <groupId>se.idsec.signservice.integration</groupId>
       <artifactId>signservice-integration-impl</artifactId>
       <version>${project.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.springframework</groupId>
+          <artifactId>spring-core</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.springframework</groupId>
+          <artifactId>spring-context</artifactId>
+        </exclusion>        
+      </exclusions>
     </dependency>
     
     <dependency>
