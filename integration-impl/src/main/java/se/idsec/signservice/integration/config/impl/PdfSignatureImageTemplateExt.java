@@ -16,6 +16,7 @@
 package se.idsec.signservice.integration.config.impl;
 
 import lombok.ToString;
+import se.idsec.signservice.integration.core.FileResource;
 import se.idsec.signservice.integration.document.pdf.PdfSignatureImageTemplate;
 
 /**
@@ -53,7 +54,7 @@ public class PdfSignatureImageTemplateExt extends PdfSignatureImageTemplate {
   public void setResource(final String resource) throws IllegalArgumentException {
     if (resource != null) {
       try {
-        DefaultFileResource fileResource = DefaultFileResource.builder()
+        FileResource fileResource = FileResource.builder()
           .resource(resource).eagerlyLoadContents(true).build();
         fileResource.afterPropertiesSet();
         this.setSvgImageFile(fileResource);

@@ -26,8 +26,8 @@ import org.springframework.core.io.ClassPathResource;
 
 import se.idsec.signservice.integration.authentication.SignerIdentityAttribute;
 import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
-import se.idsec.signservice.integration.config.impl.DefaultFileResource;
 import se.idsec.signservice.integration.config.impl.DefaultIntegrationServiceConfiguration;
+import se.idsec.signservice.integration.core.FileResource;
 import se.idsec.signservice.integration.core.error.InputValidationException;
 import se.idsec.signservice.integration.document.DocumentProcessingException;
 import se.idsec.signservice.integration.document.pdf.PdfSignatureImageTemplate;
@@ -65,7 +65,7 @@ public class DefaultPdfSignaturePagePreparatorTest {
         .policy("test1")
         .pdfSignatureImageTemplate(PdfSignatureImageTemplate.builder()
           .reference("default-template")
-          .svgImageFile(DefaultFileResource.builder()
+          .svgImageFile(FileResource.builder()
               .resource("classpath:config/eduSign-image.svg")
               .description("Sign image for eduSign")
               .build())
@@ -77,7 +77,7 @@ public class DefaultPdfSignaturePagePreparatorTest {
           .build())
         .pdfSignaturePage(PdfSignaturePage.builder()
           .id("default-sign-page")
-          .pdfDocument(DefaultFileResource.builder()
+          .pdfDocument(FileResource.builder()
             .resource("classpath:config/eduSign-page.pdf")
             .description("Sign page for eduSign")
             .build())

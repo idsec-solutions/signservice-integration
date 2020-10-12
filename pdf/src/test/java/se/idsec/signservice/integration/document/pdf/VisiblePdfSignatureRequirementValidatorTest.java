@@ -22,8 +22,8 @@ import org.junit.Test;
 
 import se.idsec.signservice.integration.authentication.SignerIdentityAttribute;
 import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
-import se.idsec.signservice.integration.config.impl.DefaultFileResource;
 import se.idsec.signservice.integration.config.impl.DefaultIntegrationServiceConfiguration;
+import se.idsec.signservice.integration.core.FileResource;
 import se.idsec.signservice.integration.core.validation.ValidationResult;
 import se.idsec.signservice.integration.document.impl.VisiblePdfSignatureRequirementValidator;
 
@@ -51,7 +51,7 @@ public class VisiblePdfSignatureRequirementValidatorTest {
             PdfSignatureImageTemplate.builder()
               .reference("ref1")
               .svgImageFile(
-                DefaultFileResource.builder().contents(
+                FileResource.builder().contents(
                   Base64.getEncoder().encodeToString("<svg>DUMMY</svg>".getBytes())).build())
               .height(100)
               .width(100)
@@ -62,7 +62,7 @@ public class VisiblePdfSignatureRequirementValidatorTest {
             PdfSignatureImageTemplate.builder()
             .reference("ref2")
             .svgImageFile(
-              DefaultFileResource.builder().contents(
+              FileResource.builder().contents(
                 Base64.getEncoder().encodeToString("<svg>DUMMY</svg>".getBytes())).build())
             .height(100)
             .width(100)
@@ -73,7 +73,7 @@ public class VisiblePdfSignatureRequirementValidatorTest {
             PdfSignatureImageTemplate.builder()
             .reference("ref3")
             .svgImageFile(
-              DefaultFileResource.builder().contents(
+              FileResource.builder().contents(
                 Base64.getEncoder().encodeToString("<svg>DUMMY</svg>".getBytes())).build())
             .height(100)
             .width(100)

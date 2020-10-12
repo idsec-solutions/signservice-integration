@@ -19,8 +19,8 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
-import se.idsec.signservice.integration.config.impl.DefaultFileResource;
 import se.idsec.signservice.integration.config.impl.DefaultIntegrationServiceConfiguration;
+import se.idsec.signservice.integration.core.FileResource;
 import se.idsec.signservice.integration.core.error.InputValidationException;
 import se.idsec.signservice.integration.core.validation.ValidationResult;
 import se.idsec.signservice.integration.document.pdf.PdfSignatureImageTemplate;
@@ -120,7 +120,7 @@ public class PdfSignaturePagePreferencesValidatorTest {
     PdfSignaturePagePreferences object = PdfSignaturePagePreferences.builder()
       .signaturePage(PdfSignaturePage.builder()
         .id("page")
-        .pdfDocument(DefaultFileResource.builder()
+        .pdfDocument(FileResource.builder()
           .resource("classpath:config/eduSign-page.pdf")
           .build())
         .signatureImageReference("template")
@@ -151,7 +151,7 @@ public class PdfSignaturePagePreferencesValidatorTest {
     PdfSignaturePagePreferences object = PdfSignaturePagePreferences.builder()
       .signaturePage(PdfSignaturePage.builder()
         .id("page")
-        .pdfDocument(DefaultFileResource.builder()
+        .pdfDocument(FileResource.builder()
           .resource("classpath:config/eduSign-page.pdf")
           .build())
         .signatureImageReference("template")
@@ -178,7 +178,7 @@ public class PdfSignaturePagePreferencesValidatorTest {
       .policy("default")
       .pdfSignaturePage(PdfSignaturePage.builder()
         .id("page")
-        .pdfDocument(DefaultFileResource.builder()
+        .pdfDocument(FileResource.builder()
           .resource("classpath:config/eduSign-page.pdf")
           .build())
         .signatureImageReference("template")
@@ -223,7 +223,7 @@ public class PdfSignaturePagePreferencesValidatorTest {
     PdfSignaturePagePreferences object = PdfSignaturePagePreferences.builder()
       .signaturePage(PdfSignaturePage.builder()
         .id("page")
-        .pdfDocument(DefaultFileResource.builder()
+        .pdfDocument(FileResource.builder()
           .resource("classpath:config/eduSign-page.pdf")
           .build())
         .signatureImageReference("template")

@@ -21,7 +21,7 @@ import java.util.Base64;
 import org.junit.Assert;
 import org.junit.Test;
 
-import se.idsec.signservice.integration.config.impl.DefaultFileResource;
+import se.idsec.signservice.integration.core.FileResource;
 import se.idsec.signservice.integration.core.error.InputValidationException;
 import se.idsec.signservice.integration.core.validation.ValidationResult;
 import se.idsec.signservice.integration.document.pdf.PdfSignatureImageTemplate;
@@ -69,7 +69,7 @@ public class PdfSignaturePageValidatorTest {
     
     final PdfSignaturePage page = PdfSignaturePage.builder()
         .id("ID")
-        .pdfDocument(DefaultFileResource.builder()
+        .pdfDocument(FileResource.builder()
           .contents(Base64.getEncoder().encodeToString("ABC".getBytes()))
           .build())
         .build();
@@ -91,7 +91,7 @@ public class PdfSignaturePageValidatorTest {
     
     final PdfSignaturePage page = PdfSignaturePage.builder()
         .id("ID")
-        .pdfDocument(DefaultFileResource.builder()
+        .pdfDocument(FileResource.builder()
           .contents(Base64.getEncoder().encodeToString("ABC".getBytes()))
           .build())
         .signatureImageReference("not-found")
@@ -124,7 +124,7 @@ public class PdfSignaturePageValidatorTest {
     
     final PdfSignaturePage page = PdfSignaturePage.builder()
         .id("ID")
-        .pdfDocument(DefaultFileResource.builder()
+        .pdfDocument(FileResource.builder()
           .contents(Base64.getEncoder().encodeToString("ABC".getBytes()))
           .build())
         .signatureImageReference("ref1")
@@ -149,7 +149,7 @@ public class PdfSignaturePageValidatorTest {
     
     PdfSignaturePage page = PdfSignaturePage.builder()
         .id("ID")
-        .pdfDocument(DefaultFileResource.builder()
+        .pdfDocument(FileResource.builder()
           .contents(Base64.getEncoder().encodeToString("ABC".getBytes()))
           .build())
         .signatureImageReference("ref1")
@@ -250,7 +250,7 @@ public class PdfSignaturePageValidatorTest {
     
     final PdfSignaturePage page = PdfSignaturePage.builder()
         .id("ID")
-        .pdfDocument(DefaultFileResource.builder()
+        .pdfDocument(FileResource.builder()
           .contents(Base64.getEncoder().encodeToString("ABC".getBytes()))
           .build())
         .signatureImageReference("ref1")

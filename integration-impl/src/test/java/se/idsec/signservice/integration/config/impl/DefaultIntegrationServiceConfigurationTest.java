@@ -31,6 +31,7 @@ import se.idsec.signservice.integration.certificate.CertificateType;
 import se.idsec.signservice.integration.certificate.RequestedCertificateAttribute;
 import se.idsec.signservice.integration.certificate.RequestedCertificateAttributeType;
 import se.idsec.signservice.integration.certificate.SigningCertificateRequirements;
+import se.idsec.signservice.integration.core.FileResource;
 import se.idsec.signservice.integration.document.pdf.PdfSignatureImageTemplate;
 import se.idsec.signservice.integration.document.pdf.PdfSignaturePage;
 import se.idsec.signservice.integration.document.pdf.PdfSignaturePage.PdfSignatureImagePlacementConfiguration;
@@ -95,7 +96,7 @@ public class DefaultIntegrationServiceConfigurationTest {
         .build())
       .pdfSignatureImageTemplate(PdfSignatureImageTemplate.builder()
         .reference("companylogo")
-        .svgImageFile(DefaultFileResource.builder()
+        .svgImageFile(FileResource.builder()
           .contents(Base64.getEncoder().encodeToString("<svg>dummy</svg>".getBytes()))
           .description("Dummy SVG")
           .build())
@@ -109,7 +110,7 @@ public class DefaultIntegrationServiceConfigurationTest {
         .build())
       .pdfSignaturePage(PdfSignaturePage.builder()
         .id("pdfid")
-        .pdfDocument(DefaultFileResource.builder().resource("classpath:dummy-signpage.pdf").build())
+        .pdfDocument(FileResource.builder().resource("classpath:dummy-signpage.pdf").build())
         .rows(2)
         .signatureImageReference("companylogo")
         .imagePlacementConfiguration(PdfSignatureImagePlacementConfiguration.builder()
