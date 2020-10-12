@@ -39,7 +39,7 @@ public class ValidationResult {
    * Constructor.
    * 
    * @param objectName
-   *          the name for the object that is validated
+   *          the name for the object that is validated (null for no name)
    */
   public ValidationResult(final String objectName) {
     this.objectName = objectName;
@@ -48,7 +48,7 @@ public class ValidationResult {
   /**
    * Gets the name for the object that was validated.
    * 
-   * @return the name for the object that was validated
+   * @return the name for the object that was validated (null if the object isn't given a name)
    */
   public String getObjectName() {
     return this.objectName;
@@ -100,7 +100,12 @@ public class ValidationResult {
    *          the error message
    */
   public void rejectValue(final String field, final String msg) {
-    this.fieldErrors.put(String.format("%s.%s", this.getObjectName(), field), msg);
+    if (this.objectName != null) {
+      this.fieldErrors.put(String.format("%s.%s", this.objectName, field), msg);
+    }
+    else {
+      this.fieldErrors.put(field, msg);
+    }
   }
 
   /**
@@ -112,7 +117,12 @@ public class ValidationResult {
   public void setFieldErrors(final ValidationResult result) {
     if (result.hasErrors()) {
       if (result.getGlobalError() != null) {
-        this.rejectValue(result.getObjectName(), result.getGlobalError());
+        if (result.getObjectName() != null) {
+          this.rejectValue(result.getObjectName(), result.getGlobalError());
+        }
+        else {
+          this.rejectValue(this.getObjectName(), result.getGlobalError());
+        }
       }
       for (Map.Entry<String, String> fe : result.getFieldErrors().entrySet()) {
         this.rejectValue(fe.getKey(), fe.getValue());

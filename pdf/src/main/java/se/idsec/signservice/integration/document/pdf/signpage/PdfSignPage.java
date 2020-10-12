@@ -56,9 +56,12 @@ import se.idsec.signservice.integration.document.pdf.VisiblePdfSignatureRequirem
  * PDF document being signed.
  * </p>
  *
+ * @deprecated Use {@link DefaultPdfSignaturePagePreparator} instead
+ *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
+@Deprecated
 public class PdfSignPage {
 
   public static final String SUBFILTER_ETSI_RFC3161 = "ETSI.RFC3161";
@@ -284,7 +287,9 @@ public class PdfSignPage {
   }
 
   public SignatureImagePlacement getSignImagePlacement(final PDDocument tbsDoc) throws IOException {
-    final int sigCount = tbsDoc.getSignatureDictionaries().size();
+    final int sigCount = tbsDoc.getSignatureDictionaries().stream()
+      .filter(signature -> !signature.getSubFilter().equalsIgnoreCase(SUBFILTER_ETSI_RFC3161))
+      .collect(Collectors.toList()).size();
     return this.calulator.getPlacement(sigCount, this.basePlacement);
   }
 
@@ -351,7 +356,7 @@ public class PdfSignPage {
       .page(signImagePlacement.getSignImagePage())
       .scale(signImagePlacement.getSignImageScale())
       .xPosition(signImagePlacement.getSignImageXpos())
-      .yPosition(signImagePlacement.getSingImaeYpos())
+      .yPosition(signImagePlacement.getSignImageYpos())
       .build();
   }
 

@@ -15,13 +15,15 @@
  */
 package se.idsec.signservice.integration.document.pdf;
 
+import java.util.Base64;
+
 import org.junit.Assert;
 import org.junit.Test;
 
 import se.idsec.signservice.integration.authentication.SignerIdentityAttribute;
 import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
+import se.idsec.signservice.integration.config.impl.DefaultFileResource;
 import se.idsec.signservice.integration.config.impl.DefaultIntegrationServiceConfiguration;
-import se.idsec.signservice.integration.config.impl.PdfSignatureImageTemplateExt;
 import se.idsec.signservice.integration.core.validation.ValidationResult;
 import se.idsec.signservice.integration.document.impl.VisiblePdfSignatureRequirementValidator;
 
@@ -46,20 +48,35 @@ public class VisiblePdfSignatureRequirementValidatorTest {
         DefaultIntegrationServiceConfiguration.builder()
           .defaultVisiblePdfSignatureRequirement(null)
           .pdfSignatureImageTemplate(
-            PdfSignatureImageTemplateExt.createBuilder()
-              .reference("ref1").image("DUMMY").height(100).width(100)
+            PdfSignatureImageTemplate.builder()
+              .reference("ref1")
+              .svgImageFile(
+                DefaultFileResource.builder().contents(
+                  Base64.getEncoder().encodeToString("<svg>DUMMY</svg>".getBytes())).build())
+              .height(100)
+              .width(100)
               .includeSignerName(false)
               .includeSigningTime(false)
               .build())
           .pdfSignatureImageTemplate(
-            PdfSignatureImageTemplateExt.createBuilder()
-            .reference("ref2").image("DUMMY").height(100).width(100)
+            PdfSignatureImageTemplate.builder()
+            .reference("ref2")
+            .svgImageFile(
+              DefaultFileResource.builder().contents(
+                Base64.getEncoder().encodeToString("<svg>DUMMY</svg>".getBytes())).build())
+            .height(100)
+            .width(100)
             .includeSignerName(true)
             .includeSigningTime(false)
             .build())
           .pdfSignatureImageTemplate(
-            PdfSignatureImageTemplateExt.createBuilder()
-            .reference("ref3").image("DUMMY").height(100).width(100)
+            PdfSignatureImageTemplate.builder()
+            .reference("ref3")
+            .svgImageFile(
+              DefaultFileResource.builder().contents(
+                Base64.getEncoder().encodeToString("<svg>DUMMY</svg>".getBytes())).build())
+            .height(100)
+            .width(100)
             .includeSignerName(false)
             .includeSigningTime(false)
             .field("abc", "abc decription")
@@ -89,7 +106,8 @@ public class VisiblePdfSignatureRequirementValidatorTest {
     
     Assert.assertTrue(result.hasErrors());
     Assert.assertNotNull(result.getFieldErrors().get(OBJECT_NAME + ".templateImageRef"));
-    Assert.assertEquals(1, result.getFieldErrors().size());
+    Assert.assertNotNull(result.getFieldErrors().get(OBJECT_NAME + ".visiblePdfSignatureRequirement"));
+    Assert.assertEquals(2, result.getFieldErrors().size());
 
     // The template reference does not exist in the configuration
     //
@@ -101,7 +119,8 @@ public class VisiblePdfSignatureRequirementValidatorTest {
     result = this.validator.validate(req, OBJECT_NAME, this.configuration);
     Assert.assertTrue(result.hasErrors());
     Assert.assertNotNull(result.getFieldErrors().get(OBJECT_NAME + ".templateImageRef"));
-    Assert.assertEquals(1, result.getFieldErrors().size());
+    Assert.assertNotNull(result.getFieldErrors().get(OBJECT_NAME + ".visiblePdfSignatureRequirement"));
+    Assert.assertEquals(2, result.getFieldErrors().size());
     
     // OK case
     //
@@ -228,7 +247,7 @@ public class VisiblePdfSignatureRequirementValidatorTest {
     // Should work for template ref1 since it doesn't require signer name
     ValidationResult result = this.validator.validate(req, OBJECT_NAME, this.configuration);    
     Assert.assertTrue(result.hasErrors());    
-    Assert.assertNotNull(result.getFieldErrors().get(OBJECT_NAME + ".fieldValues"));
+    Assert.assertNotNull(result.getFieldErrors().get(OBJECT_NAME + ".fieldValues.abc"));
     
     // A field value is given but the one that is required by the template
     req = VisiblePdfSignatureRequirement.builder()
@@ -240,7 +259,7 @@ public class VisiblePdfSignatureRequirementValidatorTest {
     
     result = this.validator.validate(req, OBJECT_NAME, this.configuration);    
     Assert.assertTrue(result.hasErrors());    
-    Assert.assertNotNull(result.getFieldErrors().get(OBJECT_NAME + ".fieldValues"));
+    Assert.assertNotNull(result.getFieldErrors().get(OBJECT_NAME + ".fieldValues.abc"));
     
     // Successful case
     req = VisiblePdfSignatureRequirement.builder()

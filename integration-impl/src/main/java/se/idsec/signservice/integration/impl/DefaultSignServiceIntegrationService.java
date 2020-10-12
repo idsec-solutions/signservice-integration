@@ -24,12 +24,12 @@ import javax.annotation.PostConstruct;
 import org.apache.commons.lang.StringUtils;
 
 import lombok.extern.slf4j.Slf4j;
+import se.idsec.signservice.integration.ExtendedSignServiceIntegrationService;
 import se.idsec.signservice.integration.SignRequestData;
 import se.idsec.signservice.integration.SignRequestInput;
 import se.idsec.signservice.integration.SignResponseCancelStatusException;
 import se.idsec.signservice.integration.SignResponseErrorStatusException;
 import se.idsec.signservice.integration.SignResponseProcessingParameters;
-import se.idsec.signservice.integration.SignServiceIntegrationService;
 import se.idsec.signservice.integration.SignatureResult;
 import se.idsec.signservice.integration.config.ConfigurationManager;
 import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
@@ -38,9 +38,13 @@ import se.idsec.signservice.integration.config.PolicyNotFoundException;
 import se.idsec.signservice.integration.core.SignatureState;
 import se.idsec.signservice.integration.core.error.BadRequestException;
 import se.idsec.signservice.integration.core.error.ErrorCode;
+import se.idsec.signservice.integration.core.error.InputValidationException;
 import se.idsec.signservice.integration.core.error.SignServiceIntegrationException;
 import se.idsec.signservice.integration.core.error.impl.InternalSignServiceIntegrationException;
 import se.idsec.signservice.integration.core.impl.CorrelationID;
+import se.idsec.signservice.integration.document.pdf.PdfSignaturePageFullException;
+import se.idsec.signservice.integration.document.pdf.PdfSignaturePagePreferences;
+import se.idsec.signservice.integration.document.pdf.PreparedPdfDocument;
 import se.idsec.signservice.integration.process.SignRequestProcessingResult;
 import se.idsec.signservice.integration.process.SignRequestProcessor;
 import se.idsec.signservice.integration.process.SignResponseProcessor;
@@ -55,10 +59,10 @@ import se.idsec.signservice.utils.AssertThat;
  * @author Stefan Santesson (stefan@idsec.se)
  */
 @Slf4j
-public class DefaultSignServiceIntegrationService implements SignServiceIntegrationService {
+public class DefaultSignServiceIntegrationService implements ExtendedSignServiceIntegrationService {
 
   /** The default version. */
-  public static final String VERSION = "1.0.0";
+  public static final String VERSION = "1.1.0";
 
   /** The version of this service. Defaults to {@value #VERSION}. */
   private String version;
@@ -74,6 +78,12 @@ public class DefaultSignServiceIntegrationService implements SignServiceIntegrat
 
   /** The sign response processor. */
   private SignResponseProcessor signResponseProcessor;
+
+  /**
+   * Optional implementation of
+   * {@link ExtendedSignServiceIntegrationService#preparePdfSignaturePage(String, byte[], PdfSignaturePagePreferences)}.
+   */
+  private PdfSignaturePagePreparator pdfSignaturePagePreparator;
 
   /**
    * Default constructor.
@@ -176,9 +186,30 @@ public class DefaultSignServiceIntegrationService implements SignServiceIntegrat
 
   /** {@inheritDoc} */
   @Override
+  public PreparedPdfDocument preparePdfSignaturePage(final String policy, final byte[] pdfDocument,
+      final PdfSignaturePagePreferences signaturePagePreferences)
+      throws InputValidationException, PdfSignaturePageFullException, SignServiceIntegrationException {
+
+    if (this.pdfSignaturePagePreparator != null) {
+      final String _policy = policy != null ? policy : IntegrationServiceDefaultConfiguration.DEFAULT_POLICY_NAME;
+      final IntegrationServiceConfiguration config = this.configurationManager.getConfiguration(_policy);
+      if (config == null) {
+        final String msg = String.format("Policy '%s' does not exist", _policy);
+        log.info("{}", msg);
+        throw new PolicyNotFoundException(msg);
+      }
+      return this.pdfSignaturePagePreparator.preparePdfSignaturePage(pdfDocument, signaturePagePreferences, config);
+    }
+    else {
+      throw new IllegalArgumentException("No PdfSignaturePagePreparator installed - can not excecute method");
+    }
+  }
+
+  /** {@inheritDoc} */
+  @Override
   public IntegrationServiceDefaultConfiguration getConfiguration(final String policy) throws PolicyNotFoundException {
     final String _policy = policy != null ? policy : IntegrationServiceDefaultConfiguration.DEFAULT_POLICY_NAME;
-    DefaultSignServiceIntegrationService.log.debug("Request for policy '{}'", _policy);
+    log.debug("Request for policy '{}'", _policy);
 
     final IntegrationServiceConfiguration config = this.configurationManager.getConfiguration(_policy);
     if (config == null) {
@@ -187,7 +218,7 @@ public class DefaultSignServiceIntegrationService implements SignServiceIntegrat
       throw new PolicyNotFoundException(msg);
     }
     final IntegrationServiceDefaultConfiguration publicConfig = config.getPublicConfiguration();
-    DefaultSignServiceIntegrationService.log.debug("Returning configuration for policy '{}': {}", publicConfig.getPolicy(), publicConfig);
+    log.debug("Returning configuration for policy '{}': {}", publicConfig.getPolicy(), publicConfig);
     return publicConfig;
   }
 
@@ -251,6 +282,16 @@ public class DefaultSignServiceIntegrationService implements SignServiceIntegrat
    */
   public void setSignResponseProcessor(final SignResponseProcessor signResponseProcessor) {
     this.signResponseProcessor = signResponseProcessor;
+  }
+
+  /**
+   * Assigns the implementation for {@link #preparePdfSignaturePage(String, byte[], PdfSignaturePagePreferences)}.
+   * 
+   * @param pdfSignaturePagePreparator
+   *          the implementation for {@link #preparePdfSignaturePage(String, byte[], PdfSignaturePagePreferences)}
+   */
+  public void setPdfSignaturePagePreparator(final PdfSignaturePagePreparator pdfSignaturePagePreparator) {
+    this.pdfSignaturePagePreparator = pdfSignaturePagePreparator;
   }
 
   /**

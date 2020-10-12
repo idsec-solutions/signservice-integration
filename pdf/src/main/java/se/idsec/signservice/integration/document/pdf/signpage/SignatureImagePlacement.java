@@ -26,7 +26,7 @@ import lombok.Data;
 @Data
 public class SignatureImagePlacement {
   private int signImageXpos;
-  private int singImaeYpos;
+  private int signImageYpos;
   private int signImageScale;
   private int signImagePage;
   private boolean hide = false;
@@ -36,7 +36,7 @@ public class SignatureImagePlacement {
    */
   public SignatureImagePlacement() {
     this.signImageXpos = 0;
-    this.singImaeYpos = 0;
+    this.signImageYpos = 0;
     this.signImagePage = 0;
     this.signImageScale = 0;
     this.hide = true;
@@ -47,16 +47,16 @@ public class SignatureImagePlacement {
    *
    * @param signImageXpos
    *          image X coordinate
-   * @param singImaeYpos
+   * @param signImageYpos
    *          image Y coordinate
    * @param signImageScale
    *          zoom percentage
    * @param signImagePage
    *          1 based page placement. 0 for last page
    */
-  public SignatureImagePlacement(final int signImageXpos, final int singImaeYpos, final int signImageScale, final int signImagePage) {
+  public SignatureImagePlacement(final int signImageXpos, final int signImageYpos, final int signImageScale, final int signImagePage) {
     this.signImageXpos = signImageXpos;
-    this.singImaeYpos = singImaeYpos;
+    this.signImageYpos = signImageYpos;
     this.signImageScale = signImageScale;
     this.signImagePage = signImagePage;
   }
@@ -73,7 +73,7 @@ public class SignatureImagePlacement {
    */
   public SignatureImagePlacement(final int addX, final int addY, final SignatureImagePlacement basePlacement) {
     this.signImageXpos = basePlacement.getSignImageXpos() + addX;
-    this.singImaeYpos = basePlacement.getSingImaeYpos() + addY;
+    this.signImageYpos = basePlacement.getSignImageYpos() + addY;
     this.signImagePage = basePlacement.getSignImagePage();
     this.signImageScale = basePlacement.getSignImageScale();
   }
@@ -92,7 +92,7 @@ public class SignatureImagePlacement {
    */
   public SignatureImagePlacement(final int addX, final int addY, final int signImageScale, final SignatureImagePlacement basePlacement) {
     this.signImageXpos = basePlacement.getSignImageXpos() + addX;
-    this.singImaeYpos = basePlacement.getSingImaeYpos() + addY;
+    this.signImageYpos = basePlacement.getSignImageYpos() + addY;
     this.signImageScale = signImageScale;
     this.signImagePage = basePlacement.getSignImagePage();
   }
