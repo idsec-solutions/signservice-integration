@@ -15,12 +15,20 @@
  */
 package se.idsec.signservice.integration.dss;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
+
 import javax.xml.bind.JAXBException;
 
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import lombok.extern.slf4j.Slf4j;
 import se.idsec.signservice.integration.core.error.impl.SignServiceProtocolException;
+import se.idsec.signservice.xml.DOMUtils;
+import se.idsec.signservice.xml.InternalXMLException;
 import se.idsec.signservice.xml.JAXBMarshaller;
 import se.idsec.signservice.xml.JAXBUnmarshaller;
 import se.swedenconnect.schemas.csig.dssext_1_1.SignRequestExtension;
@@ -36,13 +44,16 @@ import se.swedenconnect.schemas.dss_1_0.SignRequest;
  * @author Stefan Santesson (stefan@idsec.se)
  */
 @Slf4j
-public class SignRequestWrapper extends SignRequest {
+public class SignRequestWrapper extends SignRequest implements Serializable {
+
+  /** For serialization. */
+  private static final long serialVersionUID = 414996066434815557L;
 
   /** Object factory for DSS objects. */
   private static se.swedenconnect.schemas.dss_1_0.ObjectFactory dssObjectFactory = new se.swedenconnect.schemas.dss_1_0.ObjectFactory();
 
   /** The wrapped SignRequest. */
-  private final SignRequest signRequest;
+  private SignRequest signRequest;
 
   /** The SignRequest extension (stored in OptionalInputs). */
   private SignRequestExtension signRequestExtension;
@@ -290,6 +301,46 @@ public class SignRequestWrapper extends SignRequest {
   @Override
   public boolean isSetProfile() {
     return this.signRequest.isSetProfile();
+  }
+
+  /**
+   * For serialization of the object.
+   * 
+   * @param out
+   *          the output stream
+   * @throws IOException
+   *           for errors
+   */
+  private void writeObject(final ObjectOutputStream out) throws IOException {
+    try {
+      final Document document = JAXBMarshaller.marshall(this.signRequest);
+      final byte[] bytes = DOMUtils.nodeToBytes(document);
+      out.writeObject(bytes);
+    }
+    catch (JAXBException | InternalXMLException e) {
+      throw new IOException("Could not marshall SignRequest", e);
+    }
+  }
+
+  /**
+   * For deserialization of the object
+   * 
+   * @param in
+   *          the input stream
+   * @throws IOException
+   *           for errors
+   * @throws ClassNotFoundException
+   *           not thrown by this method
+   */
+  private void readObject(final ObjectInputStream in) throws IOException, ClassNotFoundException {
+    try {
+      final byte[] bytes = (byte[]) in.readObject();
+      final Document document = DOMUtils.bytesToDocument(bytes);
+      this.signRequest = JAXBUnmarshaller.unmarshall(document, SignRequest.class);
+    }
+    catch (JAXBException | InternalXMLException e) {
+      throw new IOException("Could not restore SignRequest", e);
+    }
   }
 
 }
