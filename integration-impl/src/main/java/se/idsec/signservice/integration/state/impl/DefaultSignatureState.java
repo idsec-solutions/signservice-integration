@@ -15,6 +15,8 @@
  */
 package se.idsec.signservice.integration.state.impl;
 
+import java.io.Serializable;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
@@ -43,6 +45,9 @@ import se.idsec.signservice.integration.state.SignatureSessionState;
 @AllArgsConstructor
 public class DefaultSignatureState implements SignatureState {
 
+  /** For serialization. */
+  private static final long serialVersionUID = 8679954351779851073L;
+
   /**
    * The state ID.
    * 
@@ -69,7 +74,7 @@ public class DefaultSignatureState implements SignatureState {
 
   /** {@inheritDoc} */
   @Override
-  public Object getState() {
+  public Serializable getState() {
     return this.state;
   }
 

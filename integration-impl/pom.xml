@@ -149,13 +149,6 @@
     <dependency>
       <groupId>se.litsec.opensaml.sweid</groupId>
       <artifactId>swedish-eid-opensaml3</artifactId>
-      <exclusions>
-        <!-- We're not using this, and it causes Maven problems right now ... -->
-        <exclusion>
-          <groupId>com.nimbusds</groupId>
-          <artifactId>nimbus-jose-jwt</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
 
     <!-- Misc -->
@@ -188,7 +181,13 @@
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-simple</artifactId>
       <scope>test</scope>
-    </dependency>    
+    </dependency>
+    
+    <dependency>
+      <groupId>org.glassfish.jaxb</groupId>
+      <artifactId>jaxb-runtime</artifactId>
+      <scope>test</scope>
+    </dependency>
 
   </dependencies>
 

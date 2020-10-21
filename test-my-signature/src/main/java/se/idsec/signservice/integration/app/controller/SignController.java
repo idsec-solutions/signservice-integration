@@ -15,6 +15,7 @@
  */
 package se.idsec.signservice.integration.app.controller;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Comparator;
@@ -26,10 +27,13 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -37,23 +41,29 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
 import lombok.extern.slf4j.Slf4j;
+import se.idsec.signservice.integration.ExtendedSignServiceIntegrationService;
 import se.idsec.signservice.integration.SignRequestData;
 import se.idsec.signservice.integration.SignRequestInput;
 import se.idsec.signservice.integration.SignResponseCancelStatusException;
 import se.idsec.signservice.integration.SignResponseErrorStatusException;
-import se.idsec.signservice.integration.SignServiceIntegrationService;
 import se.idsec.signservice.integration.SignatureResult;
 import se.idsec.signservice.integration.authentication.AuthnRequirements;
 import se.idsec.signservice.integration.authentication.SignerAssertionInformation;
+import se.idsec.signservice.integration.authentication.SignerIdentityAttribute;
 import se.idsec.signservice.integration.authentication.SignerIdentityAttributeValue;
+import se.idsec.signservice.integration.core.SignatureState;
 import se.idsec.signservice.integration.core.error.SignServiceIntegrationException;
 import se.idsec.signservice.integration.document.DocumentType;
 import se.idsec.signservice.integration.document.TbsDocument;
 import se.idsec.signservice.integration.document.TbsDocument.AdesType;
 import se.idsec.signservice.integration.document.TbsDocument.EtsiAdesRequirement;
+import se.idsec.signservice.integration.document.TbsDocument.TbsDocumentBuilder;
+import se.idsec.signservice.integration.document.pdf.PdfSignaturePagePreferences;
+import se.idsec.signservice.integration.document.pdf.PreparedPdfDocument;
+import se.idsec.signservice.integration.document.pdf.VisiblePdfSignatureUserInformation;
+import se.idsec.signservice.integration.document.pdf.VisiblePdfSignatureUserInformation.SignerName;
 import se.idsec.signservice.integration.signmessage.SignMessageMimeType;
 import se.idsec.signservice.integration.signmessage.SignMessageParameters;
-import se.idsec.signservice.integration.state.impl.DefaultSignatureState;
 import se.litsec.swedisheid.opensaml.saml2.attribute.AttributeConstants;
 import se.litsec.swedisheid.opensaml.saml2.authentication.LevelofAssuranceAuthenticationContextURI;
 import se.swedenconnect.eid.sp.controller.ApplicationException;
@@ -76,7 +86,7 @@ public class SignController extends BaseController {
 
   /** The SignService integration service. */
   @Autowired
-  private SignServiceIntegrationService integrationService;
+  private ExtendedSignServiceIntegrationService integrationService;
 
   /** Holds localized messages. */
   @Autowired
@@ -89,10 +99,17 @@ public class SignController extends BaseController {
   @Autowired
   @Qualifier("debugReturnUrl")
   private String debugReturnUrl;
-  
+
   @Autowired
   @Qualifier("signIntegrationBaseUrl")
-  private String signIntegrationBaseUrl;  
+  private String signIntegrationBaseUrl;
+
+  @Autowired
+  @Qualifier("signRequesterId")
+  private String signRequesterId;
+
+  @Value("${signservice.sign.type:application/xml}")
+  private String signType;
 
   @RequestMapping("/request")
   public ModelAndView sendSignRequest(HttpServletRequest request, HttpServletResponse response,
@@ -110,61 +127,85 @@ public class SignController extends BaseController {
     final String correlationId = UUID.randomUUID().toString();
     final String givenName = lastAuthentication.getGivenName();
 
-    List<SignerIdentityAttributeValue> requestedAttributes = new ArrayList<>();
-    String[][] attrs = new String[][] {
-        { AttributeConstants.ATTRIBUTE_NAME_PERSONAL_IDENTITY_NUMBER, lastAuthentication.getPersonalIdentityNumber() },
-        { AttributeConstants.ATTRIBUTE_NAME_PRID, lastAuthentication.getPrid() },
-        { AttributeConstants.ATTRIBUTE_NAME_GIVEN_NAME, givenName },
-        { AttributeConstants.ATTRIBUTE_NAME_SN, lastAuthentication.getSurName() },
-        { AttributeConstants.ATTRIBUTE_NAME_DISPLAY_NAME, lastAuthentication.getDisplayName() },
-        { AttributeConstants.ATTRIBUTE_NAME_C, lastAuthentication.getCountry() }
-    };
-    for (String[] a : attrs) {
-      if (a[1] != null) {
-        requestedAttributes.add(SignerIdentityAttributeValue.builder().name(a[0]).value(a[1]).build());
-      }
-    }
-
-    SignMessageParameters signMessageParameters = SignMessageParameters.builder()
-      .signMessage(givenName != null
-          ? this.messageSource.getMessage("sp.msg.sign-message", new Object[] { givenName }, LocaleContextHolder.getLocale())
-          : this.messageSource.getMessage("sp.msg.sigm-message-noname", null, LocaleContextHolder.getLocale()))
-      .performEncryption(true)
-      .mimeType(SignMessageMimeType.TEXT)
-      .mustShow(true)
-      .build();
-
-    session.setAttribute("sign-message", signMessageParameters.getSignMessage());
-
-    TbsDocument tbsDocument = TbsDocument.builder()
-      .id("sample-1")
-      .content(Base64.getEncoder().encodeToString(createSampleXml(signMessageParameters.getSignMessage()).getBytes()))
-      .mimeType(DocumentType.XML)
-      .adesRequirement(
-        EtsiAdesRequirement.builder()
-          .adesFormat(AdesType.BES)
-          .build())
-      .build();
-
-    final String returnUrl = debug ? this.debugReturnUrl : null;
-
-    SignRequestInput input = SignRequestInput.builder()
-      .correlationId(correlationId)
-      .returnUrl(returnUrl)
-      .authnRequirements(
-        AuthnRequirements.builder()
-          .authnContextRef(lastAuthentication.getAuthnContextUri())
-          .authnServiceID(lastAuthentication.getIdp())
-          .requestedSignerAttributes(requestedAttributes)
-          .build())
-      .tbsDocument(tbsDocument)
-      .signMessageParameters(signMessageParameters)
-      .build();
-
-    log.debug("SignRequestInput: {}", input);
-
     try {
+
+      List<SignerIdentityAttributeValue> requestedAttributes = new ArrayList<>();
+      String[][] attrs = new String[][] {
+          { AttributeConstants.ATTRIBUTE_NAME_PERSONAL_IDENTITY_NUMBER, lastAuthentication.getPersonalIdentityNumber() },
+          { AttributeConstants.ATTRIBUTE_NAME_PRID, lastAuthentication.getPrid() },
+          { AttributeConstants.ATTRIBUTE_NAME_GIVEN_NAME, givenName },
+          { AttributeConstants.ATTRIBUTE_NAME_SN, lastAuthentication.getSurName() },
+          { AttributeConstants.ATTRIBUTE_NAME_DISPLAY_NAME, lastAuthentication.getDisplayName() },
+          { AttributeConstants.ATTRIBUTE_NAME_C, lastAuthentication.getCountry() }
+      };
+      for (String[] a : attrs) {
+        if (a[1] != null) {
+          requestedAttributes.add(SignerIdentityAttributeValue.builder().name(a[0]).value(a[1]).build());
+        }
+      }
+
+      final PreparedPdfDocument preparedPdfDocument = DocumentType.PDF.getMimeType().equals(this.signType)
+          ? this.integrationService.preparePdfSignaturePage("default",
+            getSamplePdf(),
+            PdfSignaturePagePreferences.builder()
+              // .signaturePageReference("idsec-sign-page")
+              .visiblePdfSignatureUserInformation(
+                VisiblePdfSignatureUserInformation.toBuilder()
+                  .fieldValue("idp", lastAuthentication.getIdp())
+                  .signerName(SignerName.builder()
+                    .signerAttribute(SignerIdentityAttribute.createBuilder().name(AttributeConstants.ATTRIBUTE_NAME_DISPLAY_NAME).build())
+                    .build())
+                  .build())
+              .build())
+          : null;
+
+      SignMessageParameters signMessageParameters = SignMessageParameters.builder()
+        .signMessage(givenName != null
+            ? this.messageSource.getMessage("sp.msg.sign-message", new Object[] { givenName }, LocaleContextHolder.getLocale())
+            : this.messageSource.getMessage("sp.msg.sigm-message-noname", null, LocaleContextHolder.getLocale()))
+        .performEncryption(true)
+        .mimeType(SignMessageMimeType.TEXT)
+        .mustShow(true)
+        .build();
+
+      session.setAttribute("sign-message", signMessageParameters.getSignMessage());
+
+      final TbsDocumentBuilder tbsDocumentBuilder = TbsDocument.builder()
+        .id(UUID.randomUUID().toString())
+        .adesRequirement(EtsiAdesRequirement.builder().adesFormat(AdesType.BES).build());
+
+      TbsDocument tbsDocument = DocumentType.PDF.getMimeType().equals(this.signType)
+          ? tbsDocumentBuilder
+            .content(preparedPdfDocument.getUpdatedPdfDocument())
+            .mimeType(DocumentType.PDF)
+            .visiblePdfSignatureRequirement(preparedPdfDocument.getVisiblePdfSignatureRequirement())
+            .build()
+          : tbsDocumentBuilder
+            .content(Base64.getEncoder().encodeToString(createSampleXml(signMessageParameters.getSignMessage()).getBytes()))
+            .mimeType(DocumentType.XML)
+            .build();
+
+      final String returnUrl = debug ? this.debugReturnUrl : null;
+
+      SignRequestInput input = SignRequestInput.builder()
+        .correlationId(correlationId)
+        .signRequesterID(this.signRequesterId)
+        .returnUrl(returnUrl)
+        .authnRequirements(
+          AuthnRequirements.builder()
+            .authnContextRef(lastAuthentication.getAuthnContextUri())
+            .authnServiceID(lastAuthentication.getIdp())
+            .requestedSignerAttributes(requestedAttributes)
+            .build())
+        .tbsDocument(tbsDocument)
+        .signMessageParameters(signMessageParameters)
+        .build();
+
+      log.debug("SignRequestInput: {}", input);
+
       SignRequestData signRequestData = this.integrationService.createSignRequest(input);
+
+      session.setAttribute("signservice-state", signRequestData.getState());
 
       ModelAndView mav = new ModelAndView("post-signrequest");
       mav.addObject("action", signRequestData.getDestinationUrl());
@@ -189,7 +230,15 @@ public class SignController extends BaseController {
     log.info("SignResponse: {}", new String(Base64.getDecoder().decode(signResponse)));
 
     HttpSession session = request.getSession();
-    DefaultSignatureState state = DefaultSignatureState.builder().id(relayState).build();
+
+    SignatureState state = (SignatureState) session.getAttribute("signservice-state");
+    if (state == null) {
+      throw new ApplicationException("sp.msg.error.no-session", "No signature state found");
+    }
+    if (!relayState.equals(state.getId())) {
+      throw new ApplicationException("sp.msg.error.no-session", "No signature state does not match RelayState");
+    }
+    session.removeAttribute("signservice-state");
 
     String signMessage = (String) session.getAttribute("sign-message");
     session.removeAttribute("sign-message");
@@ -198,12 +247,14 @@ public class SignController extends BaseController {
 
     try {
       SignatureResult result = this.integrationService.processSignResponse(signResponse, relayState, state, null);
-      
+
       session.setAttribute("signedDocument", result.getSignedDocuments().get(0).getSignedContent());
-      
+      // TMP
+      session.setAttribute("signedDocumentType", result.getSignedDocuments().get(0).getMimeType());
+
       mav.addObject("authenticationInfo", this.createAuthenticationInfo(result));
       mav.addObject("signMessage", signMessage);
-      mav.addObject("signedDocumentPath", "/signed");      
+      mav.addObject("signedDocumentPath", "/signed");
       mav.setViewName("success-sign");
     }
     catch (SignResponseCancelStatusException e) {
@@ -228,6 +279,15 @@ public class SignController extends BaseController {
     return String.format("<?xml version=\"1.0\" encoding=\"UTF-8\"?>%s"
         + "<SampleDocument>%s  <Message>%s</Message>%s</SampleDocument>",
       System.lineSeparator(), System.lineSeparator(), message, System.lineSeparator());
+  }
+
+  private static byte[] getSamplePdf() {
+    try {
+      return IOUtils.toByteArray((new ClassPathResource("pdf/sample.pdf")).getInputStream());
+    }
+    catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   /**

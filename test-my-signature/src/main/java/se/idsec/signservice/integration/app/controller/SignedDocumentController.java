@@ -34,7 +34,7 @@ public class SignedDocumentController {
   private static final byte[] NO_SESSION =
       "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><Message>No active session exists</Message>".getBytes();
 
-  @GetMapping(produces = MediaType.APPLICATION_XML_VALUE)
+  @GetMapping(produces = { MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_PDF_VALUE })
   public HttpEntity<byte[]> displaySignedDocument(HttpServletRequest request) {
     
     HttpSession session = request.getSession();
@@ -48,7 +48,14 @@ public class SignedDocumentController {
     }
     
     HttpHeaders header = new HttpHeaders();
-    header.setContentType(MediaType.APPLICATION_XML);    
+    
+    String msgType = (String) session.getAttribute("signedDocumentType");
+    if ("application/pdf".equals(msgType)) {
+      header.setContentType(MediaType.APPLICATION_PDF);
+    }
+    else {
+      header.setContentType(MediaType.APPLICATION_XML);
+    }
     header.setContentLength(contents.length);
     
     return new HttpEntity<byte[]>(contents, header);

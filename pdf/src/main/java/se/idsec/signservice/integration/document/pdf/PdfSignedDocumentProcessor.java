@@ -39,6 +39,7 @@ import se.idsec.signservice.integration.document.DocumentType;
 import se.idsec.signservice.integration.document.TbsDocument;
 import se.idsec.signservice.integration.document.impl.AbstractSignedDocumentProcessor;
 import se.idsec.signservice.integration.document.impl.DefaultCompiledSignedDocument;
+import se.idsec.signservice.integration.document.pdf.utils.PDDocumentUtils;
 import se.idsec.signservice.integration.document.pdf.utils.PDFIntegrationUtils;
 import se.idsec.signservice.integration.document.pdf.visiblesig.VisibleSignatureImageSerializer;
 import se.idsec.signservice.integration.dss.SignRequestWrapper;
@@ -50,8 +51,8 @@ import se.idsec.signservice.security.sign.pdf.PDFBoxSignatureInterface;
 import se.idsec.signservice.security.sign.pdf.configuration.PDFAlgorithmRegistry;
 import se.idsec.signservice.security.sign.pdf.document.VisibleSignatureImage;
 import se.idsec.signservice.security.sign.pdf.impl.BasicPDFSignatureValidator;
-import se.idsec.signservice.security.sign.pdf.utils.PDFSigningProcessor;
 import se.idsec.signservice.security.sign.pdf.utils.PDFBoxSignatureUtils;
+import se.idsec.signservice.security.sign.pdf.utils.PDFSigningProcessor;
 import se.swedenconnect.schemas.csig.dssext_1_1.SignTaskData;
 
 /**
@@ -142,8 +143,9 @@ public class PdfSignedDocumentProcessor extends AbstractSignedDocumentProcessor<
 
     // Now, put together the PDF signature that we prepared in the pre-sign phase.
     //
+    PDDocument pdfDocument = null;
     try {
-      final PDDocument pdfDocument = PDDocument.load(document);
+      pdfDocument = PDDocument.load(document);
 
       final PDFBoxSignatureInterface replaceSignatureInterface = new ReplacingSignatureInterface(
         cmsSignedData,
@@ -187,6 +189,9 @@ public class PdfSignedDocumentProcessor extends AbstractSignedDocumentProcessor<
       log.error("{}: {}", CorrelationID.id(), msg);
       throw new SignResponseProcessingException(new ErrorCode.Code("signature-processing"), msg, e);
     }
+    finally {
+      PDDocumentUtils.close(pdfDocument);
+    }
 
   }
 
@@ -204,7 +209,7 @@ public class PdfSignedDocumentProcessor extends AbstractSignedDocumentProcessor<
     try {
       final BasicPDFSignatureValidator signatureValidator = new BasicPDFSignatureValidator();
       final List<SignatureValidationResult> allResults = signatureValidator.validate(signedDocument);
-
+      
       // We are mainly interested in the last signature (since that is the signature we actually verify) ...
       //
       final SignatureValidationResult result = allResults.get(allResults.size() - 1);
@@ -217,7 +222,7 @@ public class PdfSignedDocumentProcessor extends AbstractSignedDocumentProcessor<
       }
       else if (!SignatureValidator.isCompleteSuccess(allResults)) {
         log.warn(
-          "{}: Signature validation for sign task '%s' was successful, but document contains other signatures that are invalid [request-id='%s']",
+          "{}: Signature validation for sign task '{}' was successful, but document contains other signatures that are invalid [request-id='{}']",
           CorrelationID.id(), signTaskData.getSignTaskId(), requestID);
       }
       else {
@@ -230,7 +235,7 @@ public class PdfSignedDocumentProcessor extends AbstractSignedDocumentProcessor<
           throw new DocumentProcessingException(new ErrorCode.Code("invalid-signature"), msg, result.getException());
         }
 
-        log.debug("{}: Signature validation for sign task '%s' succeeded", CorrelationID.id(), signTaskData.getSignTaskId());
+        log.debug("{}: Signature validation for sign task '{}' succeeded", CorrelationID.id(), signTaskData.getSignTaskId());
       }
     }
     catch (SignatureException e) {

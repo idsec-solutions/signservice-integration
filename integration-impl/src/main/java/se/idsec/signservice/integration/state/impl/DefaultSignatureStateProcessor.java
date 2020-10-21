@@ -15,8 +15,12 @@
  */
 package se.idsec.signservice.integration.state.impl;
 
+import java.io.Serializable;
+
 import javax.annotation.PostConstruct;
 import javax.xml.bind.JAXBException;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.extern.slf4j.Slf4j;
 import se.idsec.signservice.integration.SignRequestInput;
@@ -48,6 +52,9 @@ public class DefaultSignatureStateProcessor implements SignatureStateProcessor {
 
   /** Handles policy configurations. */
   private ConfigurationManager configurationManager;
+  
+  /** For JSON deserialization. */
+  private ObjectMapper objectMapper = new ObjectMapper();
 
   /** {@inheritDoc} */
   @Override
@@ -133,14 +140,33 @@ public class DefaultSignatureStateProcessor implements SignatureStateProcessor {
     else {
       // This means that we are running in stateless mode.
       //
-      if (!SignatureSessionState.class.isInstance(inputState.getState())) {
+      final Serializable receivedState = inputState.getState();
+      SignatureSessionState state = null;
+      
+      if (SignatureSessionState.class.isInstance(receivedState)) {
+        state = SignatureSessionState.class.cast(inputState.getState());
+      }
+      else {
+        // We received this as part of a JSON object. Let's deserialize the string into a
+        // SignatureSessionState instance.
+        //
+        try {          
+          state = this.objectMapper.convertValue(receivedState, SignatureSessionState.class);
+        }
+        catch (Exception e) {
+          final String msg = String.format("Could not read supplied state for ID '%s'", inputState.getId());
+          log.error("{} - Supplied state is of type '{}'. Contents: {}", 
+            msg, inputState.getState().getClass().getName(), String.class.cast(receivedState));
+          throw new StateException(new ErrorCode.Code("format-error"), msg);
+        }
+      }      
+      if (state == null) {
         final String msg = String.format("Could not read supplied state for ID '%s'", inputState.getId());
         log.error("{} - Supplied state is of type '{}'", msg, inputState.getState().getClass().getName());
         throw new StateException(new ErrorCode.Code("format-error"), msg);
       }
       // Before accepting the signature state make sure that the policy used really says "stateless".
-      //
-      final SignatureSessionState state = SignatureSessionState.class.cast(inputState.getState());
+      //      
       final IntegrationServiceConfiguration config = this.configurationManager.getConfiguration(state.getPolicy());
       if (config == null) {
         final String msg = String.format("Signature state with ID '%s' referenced policy '%s' which is not available",

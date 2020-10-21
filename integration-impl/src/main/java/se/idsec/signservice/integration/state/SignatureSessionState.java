@@ -15,6 +15,7 @@
  */
 package se.idsec.signservice.integration.state;
 
+import java.io.Serializable;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -51,7 +52,10 @@ import se.swedenconnect.schemas.dss_1_0.SignRequest;
 @AllArgsConstructor
 @ToString(exclude = { "signRequest" })
 @Slf4j
-public class SignatureSessionState {
+public class SignatureSessionState implements Serializable {
+
+  /** For serialization. */
+  private static final long serialVersionUID = 6334324655251433759L;
 
   /**
    * The correlation ID for this session/process.

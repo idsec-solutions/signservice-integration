@@ -20,19 +20,18 @@ import java.util.Collections;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.DependsOn;
-import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.scheduling.annotation.Scheduled;
 
-import lombok.extern.slf4j.Slf4j;
-import se.idsec.signservice.integration.SignServiceIntegrationService;
+import se.idsec.signservice.integration.ExtendedSignServiceIntegrationService;
 import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
 import se.idsec.signservice.integration.config.impl.DefaultConfigurationManager;
 import se.idsec.signservice.integration.config.impl.DefaultIntegrationServiceConfiguration;
+import se.idsec.signservice.integration.document.pdf.PdfSignedDocumentProcessor;
+import se.idsec.signservice.integration.document.pdf.PdfTbsDocumentProcessor;
+import se.idsec.signservice.integration.document.pdf.signpage.DefaultPdfSignaturePagePreparator;
 import se.idsec.signservice.integration.document.xml.XmlSignedDocumentProcessor;
 import se.idsec.signservice.integration.document.xml.XmlTbsDocumentProcessor;
 import se.idsec.signservice.integration.impl.DefaultSignServiceIntegrationService;
@@ -51,55 +50,17 @@ import se.litsec.opensaml.saml2.metadata.provider.MetadataProvider;
 import se.swedenconnect.eid.sp.config.SpCredential;
 
 /**
- * Configuration for the SignService integration.
+ * Configuration for the SignService integration when using the Java API (not REST).
  * 
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
-@Slf4j
 @Configuration
-@EnableScheduling
-public class SignServiceIntegrationConfiguration {
-
-  @Autowired
-  @Qualifier("signIntegrationBaseUrl")
-  private String signIntegrationBaseUrl;
-
-  @Autowired
-  private InMemoryIntegrationServiceStateCache integrationServiceCache;
-
-  @Value("${sp.debug-base-uri:}")
-  private String debugBaseUri;
+@ConditionalOnProperty(name = "signservice.rest.enabled", havingValue = "false", matchIfMissing = true)
+public class JavaApiSignServiceIntegrationConfiguration {
 
   @Autowired
   private MetadataProvider metadataProvider;
-
-  /**
-   * Gets the bean representing the base URL for the signature integration client.
-   * 
-   * @param contextPath
-   *          the context path
-   * @param baseUri
-   *          the base URI for the application
-   * @param serverPort
-   *          the server port
-   * @return the base URL
-   */
-  @Bean("signIntegrationBaseUrl")
-  public String signIntegrationBaseUrl(
-      @Value("${server.servlet.context-path}") String contextPath,
-      @Value("${sp.base-uri}") String baseUri,
-      @Value("${server.port}") int serverPort) {
-
-    StringBuffer sb = new StringBuffer(baseUri);
-    if (serverPort != 443) {
-      sb.append(":").append(serverPort);
-    }
-    if (!contextPath.equals("/")) {
-      sb.append(contextPath);
-    }
-    return sb.toString();
-  }
 
   /**
    * Gets the bean for the SignService Integration Service.
@@ -109,14 +70,13 @@ public class SignServiceIntegrationConfiguration {
    *           for bean init errors
    */
   @Bean
-  public SignServiceIntegrationService signServiceIntegrationService() throws Exception {
+  public ExtendedSignServiceIntegrationService signServiceIntegrationService(final IntegrationServiceConfiguration config) throws Exception {
     DefaultSignServiceIntegrationService service = new DefaultSignServiceIntegrationService();
-    IntegrationServiceConfiguration config = this.integrationServiceConfiguration();
-    log.debug("Using configuration: {}", config);
+    service.setPdfSignaturePagePreparator(new DefaultPdfSignaturePagePreparator());
     final DefaultConfigurationManager cfgMgr = new DefaultConfigurationManager(Collections.singletonMap(config.getPolicy(), config));
     service.setConfigurationManager(cfgMgr);
     DefaultSignatureStateProcessor stateProcessor = new DefaultSignatureStateProcessor();
-    stateProcessor.setStateCache(this.integrationServiceCache);
+    stateProcessor.setStateCache(null);
     stateProcessor.setConfigurationManager(cfgMgr);
     stateProcessor.afterPropertiesSet();
     service.setSignatureStateProcessor(stateProcessor);
@@ -129,9 +89,11 @@ public class SignServiceIntegrationConfiguration {
   public SignResponseProcessor signResponseProcessor() throws Exception {
     DefaultSignResponseProcessor processor = new DefaultSignResponseProcessor();
     processor.setProcessingConfiguration(this.signResponseProcessingConfig());
-    XmlSignedDocumentProcessor xmlProcessor = new XmlSignedDocumentProcessor();
+    final XmlSignedDocumentProcessor xmlProcessor = new XmlSignedDocumentProcessor();
     xmlProcessor.setProcessingConfiguration(this.signResponseProcessingConfig());
-    processor.setSignedDocumentProcessors(Arrays.asList(xmlProcessor));
+    final PdfSignedDocumentProcessor pdfProcessor = new PdfSignedDocumentProcessor();
+    pdfProcessor.setProcessingConfiguration(this.signResponseProcessingConfig());
+    processor.setSignedDocumentProcessors(Arrays.asList(xmlProcessor, pdfProcessor));
     processor.afterPropertiesSet();
     return processor;
   }
@@ -153,14 +115,6 @@ public class SignServiceIntegrationConfiguration {
   }
 
   /**
-   * Method that periodically purges expired entries from the cache.
-   */
-  @Scheduled(initialDelay = 1200000L, fixedDelay = 1200000L)
-  public void clearCache() {
-    this.integrationServiceCache.clearExpired();
-  }
-
-  /**
    * Creates a sign request processor.
    * 
    * @return a SignRequestProcessor bean
@@ -170,7 +124,7 @@ public class SignServiceIntegrationConfiguration {
   @Bean
   public SignRequestProcessor signRequestProcessor() throws Exception {
     DefaultSignRequestProcessor processor = new DefaultSignRequestProcessor();
-    processor.setTbsDocumentProcessors(Arrays.asList(new XmlTbsDocumentProcessor()));
+    processor.setTbsDocumentProcessors(Arrays.asList(new XmlTbsDocumentProcessor(), new PdfTbsDocumentProcessor()));
     DefaultSignMessageProcessor signMessageProcessor = new DefaultSignMessageProcessor();
     signMessageProcessor.setIdpMetadataResolver(new OpenSAMLIdpMetadataResolver(this.metadataProvider.getMetadataResolver()));
     signMessageProcessor.afterPropertiesSet();
@@ -185,18 +139,13 @@ public class SignServiceIntegrationConfiguration {
    */
   @Bean
   @ConfigurationProperties(prefix = "signservice.config")
-  @DependsOn({ "signIntegrationBaseUrl" })
-  public IntegrationServiceConfiguration integrationServiceConfiguration() {
+  public IntegrationServiceConfiguration integrationServiceConfiguration(
+      @Qualifier("signIntegrationBaseUrl") final String signIntegrationBaseUrl) {
     DefaultIntegrationServiceConfiguration config = new DefaultIntegrationServiceConfiguration();
-    config.setDefaultReturnUrl(this.signIntegrationBaseUrl + "/sign/response");
+    config.setDefaultReturnUrl(signIntegrationBaseUrl + "/sign/response");
     config.setDefaultEncryptionParameters(new OpenSAMLEncryptionParameters());
     config.setSigningCredential(new OpenSAMLSigningCredential(this.signIntegrationCredential().getCredential()));
     return config;
-  }
-
-  @Bean("debugReturnUrl")
-  public String debugReturnUrl(@Value("${server.servlet.context-path}") String contextPath) {
-    return String.format("%s%s/sign/response", this.debugBaseUri.trim(), contextPath.equals("/") ? "" : contextPath);
   }
 
   /**

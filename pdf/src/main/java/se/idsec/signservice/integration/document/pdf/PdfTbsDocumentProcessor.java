@@ -15,9 +15,7 @@
  */
 package se.idsec.signservice.integration.document.pdf;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
 import java.util.Base64;
@@ -43,6 +41,7 @@ import se.idsec.signservice.integration.document.impl.AbstractTbsDocumentProcess
 import se.idsec.signservice.integration.document.impl.EtsiAdesRequirementValidator;
 import se.idsec.signservice.integration.document.impl.TbsCalculationResult;
 import se.idsec.signservice.integration.document.impl.VisiblePdfSignatureRequirementValidator;
+import se.idsec.signservice.integration.document.pdf.utils.PDDocumentUtils;
 import se.idsec.signservice.integration.document.pdf.utils.PDFIntegrationUtils;
 import se.idsec.signservice.integration.document.pdf.visiblesig.VisiblePdfSignatureRequirementException;
 import se.idsec.signservice.integration.document.pdf.visiblesig.VisibleSignatureImageFactory;
@@ -220,15 +219,17 @@ public class PdfTbsDocumentProcessor extends AbstractTbsDocumentProcessor<byte[]
       throws InputValidationException {
 
     final byte[] pdfDocumentBytes = super.validateDocumentContent(document, config, fieldName);
+    PDDocument pdfDocument = null;
     try {
-      InputStream is = new ByteArrayInputStream(pdfDocumentBytes);
-      PDDocument pdfDocument = PDDocument.load(is);
-      pdfDocument.close();
+      pdfDocument = PDDocumentUtils.load(pdfDocumentBytes);       
     }
     catch (Exception e) {
       final String msg = String.format("Failed to load content for document '%s' - %s", document.getId(), e.getMessage());
       log.error("{}: {}", CorrelationID.id(), msg, e);
       throw new InputValidationException(fieldName + ".content", msg, e);
+    }
+    finally {
+      PDDocumentUtils.close(pdfDocument);
     }
     return pdfDocumentBytes;
   }
