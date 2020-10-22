@@ -16,6 +16,7 @@
 package se.idsec.signservice.integration.process.impl;
 
 import java.security.SignatureException;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.GregorianCalendar;
 import java.util.List;
@@ -174,10 +175,10 @@ public class DefaultSignRequestProcessor implements SignRequestProcessor {
       authnRequirements.setAuthnServiceID(config.getDefaultAuthnServiceID());
       authnServiceID = config.getDefaultAuthnServiceID();
     }
-    if (authnRequirements.getAuthnContextRef() == null) {
-      log.debug("{}: No authnRequirements.authnContextRef given in input, using '{}'",
+    if (authnRequirements.getAuthnContextClassRefs() == null || authnRequirements.getAuthnContextClassRefs().isEmpty()) {
+      log.debug("{}: No authnRequirements.authnContextClassRefs given in input, using '{}'",
         CorrelationID.id(), config.getDefaultAuthnContextRef());
-      authnRequirements.setAuthnContextRef(config.getDefaultAuthnContextRef());
+      authnRequirements.setAuthnContextClassRefs(Arrays.asList(config.getDefaultAuthnContextRef()));
     }
     if (authnRequirements.getRequestedSignerAttributes() == null || authnRequirements.getRequestedSignerAttributes().isEmpty()) {
       log.info("{}: No requested signer attributes specified - \"anonymous signature\"", CorrelationID.id());
@@ -317,6 +318,14 @@ public class DefaultSignRequestProcessor implements SignRequestProcessor {
     // IdentityProvider
     //
     signRequestExtension.setIdentityProvider(DssUtils.toEntity(signRequestInput.getAuthnRequirements().getAuthnServiceID()));
+    
+    // AuthnProfile
+    //
+    if (!StringUtils.isBlank(signRequestInput.getAuthnRequirements().getAuthnProfile())) {
+      log.info("AuthnProfile is set. Setting version of SignRequest to 1.4 ...");
+      signRequestExtension.setVersion("1.4");
+      signRequestExtension.setAuthnProfile(signRequestInput.getAuthnRequirements().getAuthnProfile());
+    }
 
     // SignRequester
     //
@@ -332,8 +341,12 @@ public class DefaultSignRequestProcessor implements SignRequestProcessor {
 
     // CertRequestProperties
     //
+    if (signRequestInput.getAuthnRequirements().getAuthnContextClassRefs().size() > 1) {
+      log.info("More that one AuthnContextClassRef URI is assigned to AuthnRequirements. Setting version of SignRequest to 1.4 ...");
+      signRequestExtension.setVersion("1.4");
+    }
     signRequestExtension.setCertRequestProperties(DssUtils.toCertRequestProperties(
-      signRequestInput.getCertificateRequirements(), signRequestInput.getAuthnRequirements().getAuthnContextRef()));
+      signRequestInput.getCertificateRequirements(), signRequestInput.getAuthnRequirements().getAuthnContextClassRefs()));
 
     // SignMessage
     //

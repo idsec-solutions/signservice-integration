@@ -44,10 +44,10 @@ public class AuthnRequirementsValidator extends AbstractInputValidator<AuthnRequ
       result.rejectValue("authnServiceID", String.format(
         "Request does not contain an authnServiceID and policy '%s' has no default value", hint.getPolicy()));
     }
-    if ((object == null || StringUtils.isBlank(object.getAuthnContextRef()))
+    if ((object == null || object.getAuthnContextClassRefs() == null || object.getAuthnContextClassRefs().isEmpty()) 
         && StringUtils.isBlank(hint.getDefaultAuthnContextRef())) {
-      result.rejectValue("authnContextRef", String.format(
-        "Request does not contain an authnContextRef and policy '%s' has no default value", hint.getPolicy()));
+      result.rejectValue("authnContextClassRefs", String.format(
+        "Request does not contain an authnContextClassRef and policy '%s' has no default value", hint.getPolicy()));
     }
     if (object != null && object.getRequestedSignerAttributes() != null) {
       int pos = 0;

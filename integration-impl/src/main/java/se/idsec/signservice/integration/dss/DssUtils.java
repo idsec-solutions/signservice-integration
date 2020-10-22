@@ -198,18 +198,18 @@ public class DssUtils {
    * 
    * @param certReqs
    *          signing certificate requirements
-   * @param authnContextRef
-   *          the level of assurance
+   * @param authnContextClassRefs
+   *          the level of assurance(s)
    * @return a CertRequestProperties elements
    * @throws SignServiceProtocolException
    *           for protocol errors
    */
   public static CertRequestProperties toCertRequestProperties(final SigningCertificateRequirements certReqs,
-      final String authnContextRef) throws SignServiceProtocolException {
+      final List<String> authnContextClassRefs) throws SignServiceProtocolException {
 
     CertRequestProperties crp = (new se.swedenconnect.schemas.csig.dssext_1_1.ObjectFactory()).createCertRequestProperties();
     crp.setCertType(certReqs.getCertificateType().getType());
-    crp.setAuthnContextClassRef(authnContextRef);
+    crp.getAuthnContextClassRefs().addAll(authnContextClassRefs);
 
     if (certReqs.getAttributeMappings() != null) {
       RequestedCertAttributes certAttributes = new RequestedCertAttributes();

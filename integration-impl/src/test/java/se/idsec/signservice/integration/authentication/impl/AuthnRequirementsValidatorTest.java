@@ -57,7 +57,7 @@ public class AuthnRequirementsValidatorTest extends TestBase {
     Assert.assertTrue(result.hasErrors());
     Assert.assertTrue(result.getFieldErrors().size() == 2);
     Assert.assertNotNull(result.getFieldErrors().get("a.authnServiceID"));
-    Assert.assertNotNull(result.getFieldErrors().get("a.authnContextRef"));
+    Assert.assertNotNull(result.getFieldErrors().get("a.authnContextClassRefs"));
   }
   
   @Test
@@ -70,7 +70,7 @@ public class AuthnRequirementsValidatorTest extends TestBase {
     Assert.assertTrue(result.hasErrors());
     Assert.assertTrue(result.getFieldErrors().size() == 2);
     Assert.assertNotNull(result.getFieldErrors().get("a.authnServiceID"));
-    Assert.assertNotNull(result.getFieldErrors().get("a.authnContextRef"));
+    Assert.assertNotNull(result.getFieldErrors().get("a.authnContextClassRefs"));
   }
   
   @Test
@@ -78,7 +78,7 @@ public class AuthnRequirementsValidatorTest extends TestBase {
     AuthnRequirementsValidator validator = new AuthnRequirementsValidator();
     
     AuthnRequirements ar = AuthnRequirements.builder()
-        .authnContextRef("loa3")
+        .authnContextClassRef("loa3")
         .authnServiceID("http://xyz")
         .requestedSignerAttribute(
           SignerIdentityAttributeValue.builder()
@@ -101,7 +101,7 @@ public class AuthnRequirementsValidatorTest extends TestBase {
     AuthnRequirementsValidator validator = new AuthnRequirementsValidator();
     
     AuthnRequirements ar = AuthnRequirements.builder()
-        .authnContextRef("loa3")
+        .authnContextClassRef("loa3")
         .authnServiceID("http://xyz")
         .requestedSignerAttribute(
           SignerIdentityAttributeValue.builder()
