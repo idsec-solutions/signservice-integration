@@ -17,7 +17,9 @@ package se.idsec.signservice.integration.process.impl;
 
 import java.io.ByteArrayInputStream;
 import java.util.Base64;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
@@ -198,12 +200,13 @@ public class DefaultSignerAssertionInfoProcessor implements SignerAssertionInfoP
     }
 
     // Get hold of the LoA from the request.
-    final String requestedAuthnContextClassRef = signRequest.getSignRequestExtension().getCertRequestProperties().getAuthnContextClassRef();
+    final List<String> requestedAuthnContextClassRefs = 
+        Optional.ofNullable(signRequest.getSignRequestExtension().getCertRequestProperties().getAuthnContextClassRefs()).orElse(Collections.emptyList());
 
     // Did we require a sign message to be displayed?
     final boolean requireDisplaySignMessageProof = this.requireDisplaySignMessageProof(state);
 
-    if (authnContextClassRef.equals(requestedAuthnContextClassRef)) {
+    if (requestedAuthnContextClassRefs.contains(authnContextClassRef)) {
       // If display of SignMessage was required, we need the signMessageDigest attribute to be released.
       if (requireDisplaySignMessageProof) {
         String signMessageDigest = attributes.stream()
@@ -270,25 +273,33 @@ public class DefaultSignerAssertionInfoProcessor implements SignerAssertionInfoP
       // If we don't allow sigmessage URI:s, we need a match ...
       if (!this.processingConfig.isAllowSigMessageUris()) {
         final String msg = String.format("Unexpected authnContextRef received - %s. %s was expected [request-id='%s']",
-          authnContextClassRef, requestedAuthnContextClassRef, signRequest.getRequestID());
+          authnContextClassRef, requestedAuthnContextClassRefs, signRequest.getRequestID());
         log.error("{}: {}", CorrelationID.id(), msg);
         throw new SignResponseProcessingException(new ErrorCode.Code("invalid-authncontext"), msg);
       }
       // OK, we allow sigmessage URI:s. Check if we find a valid mapping.
-      final String expectedUri = this.processingConfig.getSigMessageUriMap().get(requestedAuthnContextClassRef);
-      if (expectedUri == null) {
+      //
+      final List<String> possibleSigUris = requestedAuthnContextClassRefs.stream()
+        .map(r -> this.processingConfig.getSigMessageUriMap().get(r))
+        .filter(r -> r != null)
+        .collect(Collectors.toList());
+      
+      if (possibleSigUris.isEmpty()) {
         final String msg = String.format("Unrecognized authnContextRef received %s [request-id='%s']",
           authnContextClassRef, signRequest.getRequestID());
         log.error("{}: {}", CorrelationID.id(), msg);
         throw new SignResponseProcessingException(new ErrorCode.Code("invalid-authncontext"), msg);
       }
-      else if (!authnContextClassRef.equals(expectedUri)) {
+      boolean foundSigUri = possibleSigUris.stream().filter(u -> u.equals(authnContextClassRef)).findFirst().isPresent(); 
+      if (!foundSigUri) {
         final String msg = String.format("Unexpected authnContextRef received - %s. %s was expected [request-id='%s']",
-          authnContextClassRef, expectedUri, signRequest.getRequestID());
+          authnContextClassRef, possibleSigUris, signRequest.getRequestID());
         log.error("{}: {}", CorrelationID.id(), msg);
         throw new SignResponseProcessingException(new ErrorCode.Code("invalid-authncontext"), msg);
       }
+            
       // OK, the mapping is OK. Finally, check that we actually sent a SignMessage.
+      //
       if (state.getSignMessage() == null) {
         final String msg = String.format(
           "Invalid authnContextRef received - %s. No SignMessage was sent, so returning a sigmessage URI is illegal [request-id='%s']",
@@ -428,9 +439,10 @@ public class DefaultSignerAssertionInfoProcessor implements SignerAssertionInfoP
 
     // Get hold of the LoA from the request.
     //
-    final String requestedAuthnContextClassRef = signRequest.getSignRequestExtension().getCertRequestProperties().getAuthnContextClassRef();
+    final List<String> requestedAuthnContextClassRefs = signRequest.getSignRequestExtension().getCertRequestProperties().getAuthnContextClassRefs();
 
-    if (authnContextClassRef.equals(requestedAuthnContextClassRef)) {
+    
+    if (requestedAuthnContextClassRefs != null && requestedAuthnContextClassRefs.contains(authnContextClassRef)) { 
       // OK if:
       // If SM was required: signMessageDigest is present
       // If not required - OK always

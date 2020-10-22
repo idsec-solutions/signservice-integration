@@ -15,6 +15,7 @@
  */
 package se.idsec.signservice.integration.state.impl;
 
+import java.io.IOException;
 import java.io.Serializable;
 
 import javax.annotation.PostConstruct;
@@ -52,7 +53,10 @@ public class DefaultSignatureStateProcessor implements SignatureStateProcessor {
 
   /** Handles policy configurations. */
   private ConfigurationManager configurationManager;
-  
+
+  /** Should state objects be Base64-encoded? */
+  private boolean base64Encoded = false;
+
   /** For JSON deserialization. */
   private ObjectMapper objectMapper = new ObjectMapper();
 
@@ -75,6 +79,7 @@ public class DefaultSignatureStateProcessor implements SignatureStateProcessor {
     // SignRequest instance itself isn't something we can serialize to JSON (which will be done if we are
     // running as a REST-service).
     //
+    // TODO: SignRequestWrapper is serializable so we could remove the requiresSerializableObjects check ...
     if (stateless || this.stateCache.requiresSerializableObjects()) {
       try {
         final String encodedSignRequest = DOMUtils.nodeToBase64(JAXBMarshaller.marshall(signRequest.getWrappedSignRequest()));
@@ -96,11 +101,22 @@ public class DefaultSignatureStateProcessor implements SignatureStateProcessor {
     // holding just the requestID.
     //
     SignatureState completeState = DefaultSignatureState.builder()
-      .id(signRequest.getRequestID())
-      .state(sessionState)
-      .build();
-
+        .id(signRequest.getRequestID())
+        .state(sessionState)
+        .build();
+    
     if (stateless) {
+      if (this.base64Encoded) {
+        try {
+        completeState = EncodedSignatureState.builder()
+            .id(signRequest.getRequestID())
+            .state(new EncodedSignatureSessionState(sessionState))
+            .build();
+        }
+        catch (IOException e) {
+          throw new RuntimeException("Failed to serialize state", e);
+        }
+      }      
       return completeState;
     }
     else {
@@ -142,31 +158,47 @@ public class DefaultSignatureStateProcessor implements SignatureStateProcessor {
       //
       final Serializable receivedState = inputState.getState();
       SignatureSessionState state = null;
-      
+
       if (SignatureSessionState.class.isInstance(receivedState)) {
         state = SignatureSessionState.class.cast(inputState.getState());
+      }
+      else if (EncodedSignatureSessionState.class.isInstance(receivedState)) {
+        EncodedSignatureSessionState encodedState = EncodedSignatureSessionState.class.cast(inputState.getState());
+        try {
+          state = encodedState.getSignatureSessionState();
+        }
+        catch (IOException e) {
+          throw new StateException(new ErrorCode.Code("format-error"), "Failed to deserialize state", e);
+        }
       }
       else {
         // We received this as part of a JSON object. Let's deserialize the string into a
         // SignatureSessionState instance.
         //
-        try {          
-          state = this.objectMapper.convertValue(receivedState, SignatureSessionState.class);
+        try {
+          if (this.base64Encoded) {
+            final EncodedSignatureSessionState encodedState = 
+                this.objectMapper.convertValue(receivedState, EncodedSignatureSessionState.class);
+            state = encodedState.getSignatureSessionState(); 
+          }
+          else {
+            state = this.objectMapper.convertValue(receivedState, SignatureSessionState.class);
+          }
         }
         catch (Exception e) {
           final String msg = String.format("Could not read supplied state for ID '%s'", inputState.getId());
-          log.error("{} - Supplied state is of type '{}'. Contents: {}", 
+          log.error("{} - Supplied state is of type '{}'. Contents: {}",
             msg, inputState.getState().getClass().getName(), String.class.cast(receivedState));
           throw new StateException(new ErrorCode.Code("format-error"), msg);
         }
-      }      
+      }
       if (state == null) {
         final String msg = String.format("Could not read supplied state for ID '%s'", inputState.getId());
         log.error("{} - Supplied state is of type '{}'", msg, inputState.getState().getClass().getName());
         throw new StateException(new ErrorCode.Code("format-error"), msg);
       }
       // Before accepting the signature state make sure that the policy used really says "stateless".
-      //      
+      //
       final IntegrationServiceConfiguration config = this.configurationManager.getConfiguration(state.getPolicy());
       if (config == null) {
         final String msg = String.format("Signature state with ID '%s' referenced policy '%s' which is not available",
@@ -214,6 +246,16 @@ public class DefaultSignatureStateProcessor implements SignatureStateProcessor {
   }
 
   /**
+   * Tells whether we should Base64 encode the state objects if running in a stateless mode.
+   * 
+   * @param base64Encoded
+   *          true if objects should be encoded
+   */
+  public void setBase64Encoded(final boolean base64Encoded) {
+    this.base64Encoded = base64Encoded;
+  }
+
+  /**
    * Ensures that all required properties have been assigned.
    * 
    * <p>
@@ -225,7 +267,7 @@ public class DefaultSignatureStateProcessor implements SignatureStateProcessor {
    *           if not all settings are correct
    */
   @PostConstruct
-  public void afterPropertiesSet() throws Exception {    
+  public void afterPropertiesSet() throws Exception {
     AssertThat.isNotNull(this.configurationManager, "The 'configurationManager' property must be assigned");
 
     // If all policies are stateless, we don't need a cache ...

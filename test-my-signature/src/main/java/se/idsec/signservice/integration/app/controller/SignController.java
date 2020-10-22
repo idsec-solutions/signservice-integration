@@ -193,7 +193,7 @@ public class SignController extends BaseController {
         .returnUrl(returnUrl)
         .authnRequirements(
           AuthnRequirements.builder()
-            .authnContextRef(lastAuthentication.getAuthnContextUri())
+            .authnContextClassRef(lastAuthentication.getAuthnContextUri())
             .authnServiceID(lastAuthentication.getIdp())
             .requestedSignerAttributes(requestedAttributes)
             .build())

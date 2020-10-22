@@ -22,6 +22,7 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import javax.annotation.PostConstruct;
 import javax.xml.bind.JAXBException;
@@ -80,6 +81,9 @@ import se.swedenconnect.schemas.dss_1_0.SignResponse;
  */
 @Slf4j
 public class DefaultSignResponseProcessor implements SignResponseProcessor {
+  
+  /** The version to assume if no version has been set. */
+  private final static String DEFAULT_VERSION = "1.1";
 
   /** For validating signatures on SignResponse messages. */
   private XMLMessageSignatureValidator signResponseSignatureValidator = new DefaultXMLMessageSignatureValidator();
@@ -152,7 +156,7 @@ public class DefaultSignResponseProcessor implements SignResponseProcessor {
     catch (InternalXMLException | JAXBException e) {
       throw new SignServiceProtocolException("Failed to decode received SignResponse", e);
     }
-
+    
     // Validate the signature of the SignResponse ...
     //
     try {
@@ -192,6 +196,18 @@ public class DefaultSignResponseProcessor implements SignResponseProcessor {
       }
       throw new SignResponseErrorStatusException(response.getResult().getResultMajor(), response.getResult().getResultMinor(),
         response.getResult().getResultMessage() != null ? response.getResult().getResultMessage().getValue() : null);
+    }
+    
+    // Check version of response ...
+    //
+    final String requestVersion = Optional.ofNullable(sessionState.getSignRequest().getSignRequestExtension().getVersion()).orElse(DEFAULT_VERSION);
+    final String responseVersion = Optional.ofNullable(response.getSignResponseExtension().getVersion()).orElse(DEFAULT_VERSION);
+    if (!requestVersion.equals(responseVersion)) {      
+      // OK, this is an error. The response version MUST be set to the same version as the request version ...
+      final String msg = String.format("Version of SignResponse (%s) does not equal version of SignRequest (%s)", 
+        responseVersion, requestVersion);
+      log.error("{}: {}", CorrelationID.id(), msg);
+      throw new SignResponseProcessingException(new ErrorCode.Code("version"), msg);
     }
 
     // OK, it's a success.
