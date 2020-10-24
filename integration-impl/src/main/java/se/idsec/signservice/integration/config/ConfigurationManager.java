@@ -38,7 +38,7 @@ public interface ConfigurationManager {
    */
   @Nullable
   IntegrationServiceConfiguration getConfiguration(@Nullable final String policy);
-  
+
   /**
    * Returns a list of names of the policies that are defined for this instance of the SignService Integration Service.
    *
@@ -46,5 +46,22 @@ public interface ConfigurationManager {
    */
   @Nonnull
   List<String> getPolicies();
+
+  /**
+   * Gets the default policy name.
+   * 
+   * @return the default policy name
+   */
+  @Nonnull
+  String getDefaultPolicyName();
+
+  /**
+   * Assigns the default policy name. If not assigned,
+   * {@value IntegrationServiceDefaultConfiguration#DEFAULT_POLICY_NAME} will be used.
+   * 
+   * @param defaultPolicyName
+   *          the default policy name
+   */
+  void setDefaultPolicyName(@Nonnull final String defaultPolicyName);
 
 }

@@ -20,6 +20,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import javax.annotation.PostConstruct;
+
 import org.apache.commons.lang.StringUtils;
 
 import lombok.extern.slf4j.Slf4j;
@@ -39,6 +41,9 @@ public class DefaultConfigurationManager implements ConfigurationManager {
 
   /** The policies that this service supports. */
   private final Map<String, ? extends IntegrationServiceConfiguration> policies;
+  
+  /** The default policy name. */
+  private String defaultPolicyName;
 
   /**
    * Constructor.
@@ -54,10 +59,7 @@ public class DefaultConfigurationManager implements ConfigurationManager {
     if (this.policies.isEmpty()) {
       throw new IllegalArgumentException("At least one policy must be configured");
     }
-    if (!this.policies.containsKey(IntegrationServiceDefaultConfiguration.DEFAULT_POLICY_NAME)) {
-      throw new IllegalArgumentException("There must be a policy named 'default'");
-    }
-
+    
     // Go through all policies and make sure that are complete.
     //
     if (this.policies.size() > 1) {
@@ -108,14 +110,36 @@ public class DefaultConfigurationManager implements ConfigurationManager {
   /** {@inheritDoc} */
   @Override
   public IntegrationServiceConfiguration getConfiguration(final String policy) {
-    final String _policy = policy != null ? policy : IntegrationServiceDefaultConfiguration.DEFAULT_POLICY_NAME;
-    return this.policies.get(_policy);
+    return this.policies.get(policy != null ? policy : this.getDefaultPolicyName());
   }
 
   /** {@inheritDoc} */
   @Override
   public List<String> getPolicies() {
     return this.policies.entrySet().stream().map(m -> m.getKey()).collect(Collectors.toList());
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public String getDefaultPolicyName() {
+    return this.defaultPolicyName != null ? this.defaultPolicyName : IntegrationServiceDefaultConfiguration.DEFAULT_POLICY_NAME;
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public void setDefaultPolicyName(final String defaultPolicyName) {
+    this.defaultPolicyName = defaultPolicyName;
+  }
+  
+  /**
+   * Checks that the settings for this object is valid.
+   * @throws Exception
+   */
+  @PostConstruct
+  public void afterPropertiesSet() throws Exception {
+    if (!this.policies.containsKey(this.getDefaultPolicyName())) {
+      throw new IllegalArgumentException(String.format("There must be a policy named '%s'", this.getDefaultPolicyName()));
+    }
   }
 
 }

@@ -191,7 +191,7 @@ public class DefaultSignServiceIntegrationService implements ExtendedSignService
       throws InputValidationException, PdfSignaturePageFullException, SignServiceIntegrationException {
 
     if (this.pdfSignaturePagePreparator != null) {
-      final String _policy = policy != null ? policy : IntegrationServiceDefaultConfiguration.DEFAULT_POLICY_NAME;
+      final String _policy = policy != null ? policy : this.configurationManager.getDefaultPolicyName();
       final IntegrationServiceConfiguration config = this.configurationManager.getConfiguration(_policy);
       if (config == null) {
         final String msg = String.format("Policy '%s' does not exist", _policy);
@@ -208,7 +208,7 @@ public class DefaultSignServiceIntegrationService implements ExtendedSignService
   /** {@inheritDoc} */
   @Override
   public IntegrationServiceDefaultConfiguration getConfiguration(final String policy) throws PolicyNotFoundException {
-    final String _policy = policy != null ? policy : IntegrationServiceDefaultConfiguration.DEFAULT_POLICY_NAME;
+    final String _policy = policy != null ? policy : this.configurationManager.getDefaultPolicyName();
     log.debug("Request for policy '{}'", _policy);
 
     final IntegrationServiceConfiguration config = this.configurationManager.getConfiguration(_policy);
