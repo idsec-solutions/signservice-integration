@@ -138,6 +138,19 @@ public class DefaultPdfSignaturePagePreparatorTest {
   }
   
   @Test
+  public void testPdfEncrypted() throws Exception {
+    final DefaultPdfSignaturePagePreparator preparator = new DefaultPdfSignaturePagePreparator();
+    PdfSignaturePagePreferences prefs = getDefaultPrefs();
+    
+    try {
+      preparator.preparePdfSignaturePage(loadContents("pdf/sample-encrypted.pdf"), prefs, this.config);
+    }
+    catch (InputValidationException e) {
+      Assert.assertEquals("pdfDocument", e.getObjectName());
+    }
+  }  
+    
+  @Test
   public void testSignPageFull() throws Exception {
     final DefaultPdfSignaturePagePreparator preparator = new DefaultPdfSignaturePagePreparator();
     PdfSignaturePagePreferences prefs = getDefaultPrefs();
@@ -159,7 +172,7 @@ public class DefaultPdfSignaturePagePreparatorTest {
     catch (PdfSignaturePageFullException e) {      
     }
   }
-  
+    
   @Test
   public void testInsertPage() throws Exception {
     final DefaultPdfSignaturePagePreparator preparator = new DefaultPdfSignaturePagePreparator();

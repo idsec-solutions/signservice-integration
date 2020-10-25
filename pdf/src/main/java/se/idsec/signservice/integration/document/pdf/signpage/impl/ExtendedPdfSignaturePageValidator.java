@@ -63,7 +63,7 @@ public class ExtendedPdfSignaturePageValidator extends PdfSignaturePageValidator
           }
         }
         catch (Exception e) {
-          result.rejectValue("pdfDocument", "Invalid PDF document - can not be loaded");
+          result.rejectValue("pdfDocument", String.format("Invalid PDF document - can not be loaded - %s", e.getMessage()));
         }
         finally {
           PDDocumentUtils.close(document);

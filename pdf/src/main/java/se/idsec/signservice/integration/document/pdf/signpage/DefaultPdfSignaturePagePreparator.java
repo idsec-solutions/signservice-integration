@@ -84,7 +84,7 @@ public class DefaultPdfSignaturePagePreparator implements PdfSignaturePagePrepar
         document = PDDocumentUtils.load(pdfDocument);
       }
       catch (DocumentProcessingException e) {
-        throw new InputValidationException("pdfDocument", "Invalid pdfDocument", e);
+        throw new InputValidationException("pdfDocument", String.format("Invalid pdfDocument - %s", e.getMessage()), e);
       }
       final int signatureCount = this.getSignatureCount(document);
 
