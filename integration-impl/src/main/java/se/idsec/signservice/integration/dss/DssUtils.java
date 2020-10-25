@@ -39,13 +39,11 @@ import org.opensaml.saml.saml2.core.Attribute;
 import org.opensaml.saml.saml2.core.NameID;
 import org.w3c.dom.Element;
 
-import lombok.extern.slf4j.Slf4j;
 import se.idsec.signservice.integration.authentication.SignerIdentityAttribute;
 import se.idsec.signservice.integration.authentication.SignerIdentityAttributeValue;
 import se.idsec.signservice.integration.certificate.CertificateAttributeMapping;
 import se.idsec.signservice.integration.certificate.SigningCertificateRequirements;
 import se.idsec.signservice.integration.core.error.impl.SignServiceProtocolException;
-import se.idsec.signservice.integration.core.impl.CorrelationID;
 import se.idsec.signservice.xml.JAXBContextUtils;
 import se.idsec.signservice.xml.JAXBMarshaller;
 import se.litsec.opensaml.saml2.attribute.AttributeBuilder;
@@ -63,7 +61,6 @@ import se.swedenconnect.schemas.saml_2_0.assertion.NameIDType;
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
-@Slf4j
 public class DssUtils {
 
   /** The DSS profile we use. */
@@ -174,20 +171,14 @@ public class DssUtils {
 
     List<SignerIdentityAttributeValue> list = new ArrayList<>();
     for (org.opensaml.saml.saml2.core.Attribute a : openSaml.getAttributes()) {
-      final SignerIdentityAttributeValue attribute = SignerIdentityAttributeValue.builder()
-        .type(SignerIdentityAttribute.SAML_TYPE)
-        .name(a.getName())
-        .nameFormat(a.getNameFormat())
-        .value(AttributeUtils.getAttributeStringValue(a))
-        // TODO: value type ...
-        .build();
-      if (attribute.getValue() == null) {
-        final String msg = String.format("Error getting attribute value for attribute '%s'", a.getName());
-        log.warn("{}: {}", CorrelationID.id(), msg);
-      }
-      else {
-        list.add(attribute);
-      }
+      AttributeUtils.getAttributeStringValues(a).stream()
+        .map(v -> SignerIdentityAttributeValue.builder()
+          .type(SignerIdentityAttribute.SAML_TYPE)
+          .name(a.getName())
+          .nameFormat(a.getNameFormat())
+          .value(v)
+          .build())
+        .forEach(av -> list.add(av));
     }
 
     return list;
