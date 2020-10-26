@@ -41,7 +41,7 @@ public class DefaultConfigurationManager implements ConfigurationManager {
 
   /** The policies that this service supports. */
   private final Map<String, ? extends IntegrationServiceConfiguration> policies;
-  
+
   /** The default policy name. */
   private String defaultPolicyName;
 
@@ -59,7 +59,7 @@ public class DefaultConfigurationManager implements ConfigurationManager {
     if (this.policies.isEmpty()) {
       throw new IllegalArgumentException("At least one policy must be configured");
     }
-    
+
     // Go through all policies and make sure that are complete.
     //
     if (this.policies.size() > 1) {
@@ -130,10 +130,12 @@ public class DefaultConfigurationManager implements ConfigurationManager {
   public void setDefaultPolicyName(final String defaultPolicyName) {
     this.defaultPolicyName = defaultPolicyName;
   }
-  
+
   /**
    * Checks that the settings for this object is valid.
+   * 
    * @throws Exception
+   *           for initialization errors
    */
   @PostConstruct
   public void afterPropertiesSet() throws Exception {
