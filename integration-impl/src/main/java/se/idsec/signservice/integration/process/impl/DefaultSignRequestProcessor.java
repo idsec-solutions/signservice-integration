@@ -437,6 +437,7 @@ public class DefaultSignRequestProcessor implements SignRequestProcessor {
       //
       final DefaultXMLSigner signer = new DefaultXMLSigner(signingCredential);
       signer.setSignatureLocation(this.xmlSignatureLocation);
+      signer.setXPathTransform(null);
       XMLSignerResult signerResult = signer.sign(signRequestDocument);
       log.debug("{}: SignRequest '{}' successfully signed", correlationID, signRequest.getRequestID());
 
