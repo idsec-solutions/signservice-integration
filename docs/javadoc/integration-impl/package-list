@@ -3,6 +3,7 @@ se.idsec.signservice.integration.authentication.impl
 se.idsec.signservice.integration.certificate.impl
 se.idsec.signservice.integration.config
 se.idsec.signservice.integration.config.impl
+se.idsec.signservice.integration.config.spring
 se.idsec.signservice.integration.core
 se.idsec.signservice.integration.core.error.impl
 se.idsec.signservice.integration.core.impl
