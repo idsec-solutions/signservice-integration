@@ -60,8 +60,7 @@ public class SignatureSessionState implements Serializable {
   /**
    * The correlation ID for this session/process.
    * 
-   * @param correlationId
-   *          the correlation ID for this session
+   * @param correlationId the correlation ID for this session
    * @return the correlation ID for this session
    */
   @Getter
@@ -71,8 +70,7 @@ public class SignatureSessionState implements Serializable {
   /**
    * The policy under which the operation is executing.
    * 
-   * @param policy
-   *          the policy under which the operation is executing
+   * @param policy the policy under which the operation is executing
    * @return he policy under which the operation is executing
    */
   @Setter
@@ -83,8 +81,7 @@ public class SignatureSessionState implements Serializable {
    * The URL to which the user agent along with the sign response message should be directed after a signature
    * operation.
    * 
-   * @param expectedReturnUrl
-   *          the URL to which a sign response is to be returned
+   * @param expectedReturnUrl the URL to which a sign response is to be returned
    * @return the URL to which a sign response is to be returned
    */
   @Setter
@@ -94,8 +91,7 @@ public class SignatureSessionState implements Serializable {
   /**
    * The document(s) to be signed along with a per document signing requirements and parameters.
    * 
-   * @param tbsDocuments
-   *          a list of To-be-signed documents
+   * @param tbsDocuments a list of To-be-signed documents
    * @return a list of To-be-signed documents
    */
   @Setter
@@ -106,8 +102,7 @@ public class SignatureSessionState implements Serializable {
   /**
    * The sign message that was ordered by the initiator.
    * 
-   * @param signMessage
-   *          the sign message parameters
+   * @param signMessage the sign message parameters
    * @return the sign message parameters
    */
   @Setter
@@ -117,9 +112,7 @@ public class SignatureSessionState implements Serializable {
   /**
    * The SignRequest that was passed to the signature service.
    * 
-   * @param signRequest
-   *          the SignRequest that was passed to the signature service
-   * @return the SignRequest that was passed to the signature service
+   * @param signRequest the SignRequest that was passed to the signature service
    */
   @Setter
   @JsonIgnore
@@ -128,9 +121,7 @@ public class SignatureSessionState implements Serializable {
   /**
    * The Base64-encoded SignRequest. Used in cases when the state is passed back to the caller (via REST).
    * 
-   * @param encodedSignRequest
-   *          the encoded SignRequest
-   * @return the encoded SignRequest
+   * @param encodedSignRequest the encoded SignRequest
    */
   @Setter
   private String encodedSignRequest;

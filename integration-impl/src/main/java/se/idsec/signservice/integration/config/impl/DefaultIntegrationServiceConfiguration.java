@@ -64,8 +64,7 @@ public class DefaultIntegrationServiceConfiguration implements IntegrationServic
   /**
    * The integration policy name for which this configuration applies.
    * 
-   * @param policy
-   *          the policy identifier
+   * @param policy the policy identifier
    */
   @Getter
   @Setter
@@ -75,8 +74,7 @@ public class DefaultIntegrationServiceConfiguration implements IntegrationServic
    * If several policies are created where most settings are the same, the {@code parentPolicy} can be used to inherit
    * values from. In this way, only the values that should be overridden needs to be supplied.
    * 
-   * @param parentPolicy
-   *          the name of the parent policy
+   * @param parentPolicy the name of the parent policy
    */
   @Setter
   private String parentPolicy;
@@ -85,8 +83,7 @@ public class DefaultIntegrationServiceConfiguration implements IntegrationServic
    * The default ID of the entity that requests a signature. If SAML is used as the authentication protocol, this is the
    * SAML entityID of the sign requester.
    * 
-   * @param defaultSignRequesterID
-   *          the default sign requester ID
+   * @param defaultSignRequesterID the default sign requester ID
    */
   @Getter
   @Setter
@@ -96,8 +93,7 @@ public class DefaultIntegrationServiceConfiguration implements IntegrationServic
    * The default URL to which the user agent along with the sign response message should be directed after a signature
    * operation.
    * 
-   * @param defaultReturnUrl
-   *          the default URL to which a sign response is to be returned
+   * @param defaultReturnUrl the default URL to which a sign response is to be returned
    */
   @Getter
   @Setter
@@ -106,8 +102,7 @@ public class DefaultIntegrationServiceConfiguration implements IntegrationServic
   /**
    * The default algorithm identifier for the signature algorithm that should be used during signing of specified tasks.
    * 
-   * @param defaultSignatureAlgorithm
-   *          signature algorithm identifier
+   * @param defaultSignatureAlgorithm signature algorithm identifier
    */
   @Getter
   @Setter
@@ -117,8 +112,7 @@ public class DefaultIntegrationServiceConfiguration implements IntegrationServic
    * The entityID of the signature service. If SAML is used as the authentication protocol, this is the SAML entityID of
    * the SAML Service Provider that is running in the signature service.
    * 
-   * @param signServiceID
-   *          the ID of the signature service
+   * @param signServiceID the ID of the signature service
    */
   @Getter
   @Setter
@@ -127,8 +121,7 @@ public class DefaultIntegrationServiceConfiguration implements IntegrationServic
   /**
    * The default signature service URL to where SignRequest messages should be posted.
    * 
-   * @param defaultDestinationUrl
-   *          the default destination URL of the signature service to where sign messages should be posted
+   * @param defaultDestinationUrl the default destination URL of the signature service to where sign messages should be posted
    */
   @Getter
   @Setter
@@ -139,8 +132,7 @@ public class DefaultIntegrationServiceConfiguration implements IntegrationServic
    * used. If the {@link AuthnRequirements#getAuthnServiceID()} method returns {@code null}, the default value will the
    * be used.
    * 
-   * @param defaultAuthnServiceID
-   *          the entityID for the default authentication service
+   * @param defaultAuthnServiceID the entityID for the default authentication service
    */
   @Getter
   @Setter
@@ -148,11 +140,10 @@ public class DefaultIntegrationServiceConfiguration implements IntegrationServic
 
   /**
    * In a setup where all users are authenticated according to the same authentication contect, a default value could be
-   * used. If the {@link AuthnRequirements#getAuthnContextRef()} method returns {@code null}, the default value will be
-   * used.
+   * used. If the {@link AuthnRequirements#getAuthnContextClassRefs()} method returns {@code null} or an empty list, the 
+   * default value will be used.
    * 
-   * @param defaultAuthnContextRef
-   *          the default authentication context reference URI
+   * @param defaultAuthnContextRef the default authentication context reference URI
    */
   @Getter
   @Setter
@@ -162,8 +153,7 @@ public class DefaultIntegrationServiceConfiguration implements IntegrationServic
    * The default signing certificate requirements to use for SignRequest messages created under this
    * policy/configuration.
    * 
-   * @param defaultCertificateRequirements
-   *          the default signing certificate requirements
+   * @param defaultCertificateRequirements the default signing certificate requirements
    */
   @Getter
   @Setter
@@ -173,8 +163,7 @@ public class DefaultIntegrationServiceConfiguration implements IntegrationServic
    * A policy may be configured to include a default "visible PDF signature requirement" for all PDF documents that are
    * signed under this policy.
    * 
-   * @param defaultVisiblePdfSignatureRequirement
-   *          the default visible PDF signature requirement to use for PDF signatures
+   * @param defaultVisiblePdfSignatureRequirement the default visible PDF signature requirement to use for PDF signatures
    */
   @Getter
   @Setter
@@ -184,8 +173,7 @@ public class DefaultIntegrationServiceConfiguration implements IntegrationServic
    * A policy may have one, or more, image templates for visible PDF signatures in its configuration. See
    * {@link PdfSignatureImageTemplate}. This method gets these templates.
    * 
-   * @param pdfSignatureImageTemplates
-   *          a list of image templates for visible PDF signatures
+   * @param pdfSignatureImageTemplates a list of image templates for visible PDF signatures
    */
   @Getter
   @Setter
@@ -198,8 +186,7 @@ public class DefaultIntegrationServiceConfiguration implements IntegrationServic
    * for a description of PDF signature pages. The first object in the list is regarded as the default page for the
    * policy.
    * 
-   * @param pdfSignaturePages
-   *          a list of PDF signature pages for the policy
+   * @param pdfSignaturePages a list of PDF signature pages for the policy
    */
   @Getter
   @Setter
@@ -209,8 +196,7 @@ public class DefaultIntegrationServiceConfiguration implements IntegrationServic
   /**
    * Tells whether the SignService Integration Service is running in stateless mode or not.
    * 
-   * @param stateless
-   *          stateless mode
+   * @param stateless stateless mode
    */
   @Setter
   private Boolean stateless;
@@ -220,8 +206,7 @@ public class DefaultIntegrationServiceConfiguration implements IntegrationServic
    * a SignMessage. The sign requester can not override these values, but the recipient may declare other algorithms to
    * use (in the SAML case, this is done in IdP metadata).
    * 
-   * @param defaultEncryptionParameters
-   *          the default encryption parameters
+   * @param defaultEncryptionParameters the default encryption parameters
    */
   @Getter
   @Setter
@@ -242,8 +227,7 @@ public class DefaultIntegrationServiceConfiguration implements IntegrationServic
   /**
    * The signature service signing certificate(s) used by the signature service to sign {@code SignResponse} messages.
    * 
-   * @param signServiceCertificates
-   *          the signature service signing certificate(s)
+   * @param signServiceCertificates the signature service signing certificate(s)
    */
   @JsonIgnore
   @Setter
@@ -255,8 +239,7 @@ public class DefaultIntegrationServiceConfiguration implements IntegrationServic
    * trusted root certificate that is the root of the certificate chain that starts with the generated user signature
    * certificate.
    * 
-   * @param trustAnchors
-   *          the SignService CA root certificates
+   * @param trustAnchors the SignService CA root certificates
    */
   @JsonIgnore
   @Setter
@@ -266,8 +249,7 @@ public class DefaultIntegrationServiceConfiguration implements IntegrationServic
   /**
    * The extension parameters for the instance.
    * 
-   * @param extension
-   *          the extension
+   * @param extension the extension
    */
   @Getter
   @Setter
@@ -276,8 +258,7 @@ public class DefaultIntegrationServiceConfiguration implements IntegrationServic
   /**
    * Copy constructor.
    * 
-   * @param config
-   *          the config object to initialize this object from
+   * @param config the config object to initialize this object from
    */
   public DefaultIntegrationServiceConfiguration(final IntegrationServiceConfiguration config) {
     this.parentPolicy = config.getPolicy();
@@ -319,8 +300,7 @@ public class DefaultIntegrationServiceConfiguration implements IntegrationServic
    * Assigns the signing credential that the SignService Integration Service policy instance uses to sign SignRequest
    * messages.
    * 
-   * @param signingCredential
-   *          the signing credential for the SignService Integration Service policy
+   * @param signingCredential the signing credential for the SignService Integration Service policy
    */
   public void setSigningCredential(final SigningCredential signingCredential) {
     this.signingCredential = signingCredential;
