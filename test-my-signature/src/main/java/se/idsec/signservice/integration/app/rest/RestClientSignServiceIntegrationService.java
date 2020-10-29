@@ -20,6 +20,7 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
@@ -68,13 +69,17 @@ public class RestClientSignServiceIntegrationService implements ExtendedSignServ
   @Qualifier("restServerUrl")
   @Setter
   private String restServerUrl;
+  
+  @Value("${signservice.default-policy-name:default}")
+  @Setter
+  private String policyName;
 
   /** {@inheritDoc} */
   @Override
   public SignRequestData createSignRequest(final SignRequestInput signRequestInput)
       throws InputValidationException, SignServiceIntegrationException {
 
-    final String policy = signRequestInput.getPolicy() != null ? signRequestInput.getPolicy() : "default";
+    final String policy = signRequestInput.getPolicy() != null ? signRequestInput.getPolicy() : this.policyName;
 
     try {
       final SignRequestData signRequestData =

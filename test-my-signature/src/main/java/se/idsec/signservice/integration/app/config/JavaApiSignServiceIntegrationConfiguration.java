@@ -20,11 +20,13 @@ import java.util.Collections;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import lombok.Setter;
 import se.idsec.signservice.integration.ExtendedSignServiceIntegrationService;
 import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
 import se.idsec.signservice.integration.config.impl.DefaultConfigurationManager;
@@ -60,7 +62,12 @@ import se.swedenconnect.eid.sp.config.SpCredential;
 public class JavaApiSignServiceIntegrationConfiguration {
 
   @Autowired
+  @Setter
   private MetadataProvider metadataProvider;
+  
+  @Value("${signservice.default-policy-name:default}")
+  @Setter
+  private String policyName;
 
   /**
    * Gets the bean for the SignService Integration Service.
@@ -74,6 +81,7 @@ public class JavaApiSignServiceIntegrationConfiguration {
     DefaultSignServiceIntegrationService service = new DefaultSignServiceIntegrationService();
     service.setPdfSignaturePagePreparator(new DefaultPdfSignaturePagePreparator());
     final DefaultConfigurationManager cfgMgr = new DefaultConfigurationManager(Collections.singletonMap(config.getPolicy(), config));
+    cfgMgr.setDefaultPolicyName(this.policyName);
     service.setConfigurationManager(cfgMgr);
     DefaultSignatureStateProcessor stateProcessor = new DefaultSignatureStateProcessor();
     stateProcessor.setStateCache(null);

@@ -5,6 +5,7 @@
 
   <artifactId>test-my-signature</artifactId>
   <packaging>jar</packaging>
+  <version>1.1.1-SNAPSHOT</version>
   
   <parent>
     <groupId>se.idsec.signservice.integration</groupId>
@@ -146,19 +147,19 @@
     <dependency>
       <artifactId>signservice-integration-impl</artifactId>
       <groupId>se.idsec.signservice.integration</groupId>
-      <version>${project.version}</version>
+      <version>1.1.0</version>
     </dependency>
     
     <dependency>
       <artifactId>signservice-integration-xml</artifactId>
       <groupId>se.idsec.signservice.integration</groupId>
-      <version>${project.version}</version>
+      <version>1.1.0</version>
     </dependency>
     
     <dependency>
       <artifactId>signservice-integration-pdf</artifactId>
       <groupId>se.idsec.signservice.integration</groupId>
-      <version>${project.version}</version>
+      <version>1.1.0</version>
     </dependency>    
         
     <dependency>

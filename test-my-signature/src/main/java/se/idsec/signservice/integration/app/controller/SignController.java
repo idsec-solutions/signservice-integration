@@ -40,6 +40,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import se.idsec.signservice.integration.ExtendedSignServiceIntegrationService;
 import se.idsec.signservice.integration.SignRequestData;
@@ -109,7 +110,12 @@ public class SignController extends BaseController {
   private String signRequesterId;
 
   @Value("${signservice.sign.type:application/xml}")
+  @Setter
   private String signType;
+  
+  @Value("${signservice.default-policy-name:default}")
+  @Setter
+  private String policyName;
 
   @RequestMapping("/request")
   public ModelAndView sendSignRequest(HttpServletRequest request, HttpServletResponse response,
@@ -145,7 +151,7 @@ public class SignController extends BaseController {
       }
 
       final PreparedPdfDocument preparedPdfDocument = DocumentType.PDF.getMimeType().equals(this.signType)
-          ? this.integrationService.preparePdfSignaturePage("default",
+          ? this.integrationService.preparePdfSignaturePage(this.policyName,
             getSamplePdf(),
             PdfSignaturePagePreferences.builder()
               // .signaturePageReference("idsec-sign-page")
