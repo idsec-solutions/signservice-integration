@@ -51,7 +51,7 @@ public class EncodedSignatureState implements SignatureState {
    */
   @Setter
   private String id;
-  
+
   /**
    * The compressed session state.
    * 

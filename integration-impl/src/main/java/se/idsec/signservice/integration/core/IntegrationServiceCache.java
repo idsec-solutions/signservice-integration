@@ -15,7 +15,9 @@
  */
 package se.idsec.signservice.integration.core;
 
-import java.util.NoSuchElementException;
+import java.io.Serializable;
+
+import se.idsec.signservice.integration.core.error.NoAccessException;
 
 /**
  * Generic cache interface for the SignService Integration Service.
@@ -26,7 +28,7 @@ import java.util.NoSuchElementException;
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
-public interface IntegrationServiceCache<T> {
+public interface IntegrationServiceCache<T extends Serializable> {
 
   /**
    * Gets an object from the cache.
@@ -36,9 +38,13 @@ public interface IntegrationServiceCache<T> {
    * 
    * @param id
    *          the object if
+   * @param requesterId
+   *          optional ID of the requesting actor
    * @return the object, or null if it does not exist
+   * @throws NoAccessException
+   *           if the owner of the cached object does not match the requester ID
    */
-  T get(final String id);
+  T get(final String id, final String requesterId) throws NoAccessException;
 
   /**
    * Gets an object from the cache.
@@ -50,9 +56,13 @@ public interface IntegrationServiceCache<T> {
    *          the object ID
    * @param remove
    *          if set, the returned object is removed from the cache
+   * @param requesterId
+   *          optional ID of the requesting actor
    * @return the object, or null if it does not exist
+   * @throws NoAccessException
+   *           if the owner of the cached object does not match the requester ID
    */
-  T get(final String id, final boolean remove);
+  T get(final String id, final boolean remove, final String requesterId) throws NoAccessException;
 
   /**
    * Adds an object to the cache.
@@ -61,32 +71,10 @@ public interface IntegrationServiceCache<T> {
    *          the object ID
    * @param object
    *          the object to add
+   * @param ownerId
+   *          the owner identity (may be null)
    */
-  void put(final String id, final T object);
-
-  /**
-   * Adds an object to the cache and sets and explicit time when the object expires in the cache.
-   * 
-   * @param id
-   *          the object ID
-   * @param object
-   *          the object to add
-   * @param expires
-   *          the expiration time (in millis since 1970)
-   */
-  void put(final String id, final T object, final long expires);
-
-  /**
-   * Sets an explicit expiration time for a cached object
-   * 
-   * @param id
-   *          the object ID
-   * @param expires
-   *          the expiration time (in millis since 1970)
-   * @throws NoSuchElementException
-   *           if the object is not in the cache
-   */
-  void setExpires(final String id, final long expires) throws NoSuchElementException;
+  void put(final String id, final T object, final String ownerId);
 
   /**
    * Deletes an object having the given ID from the cache.
@@ -100,13 +88,5 @@ public interface IntegrationServiceCache<T> {
    * Utility method that removes expired entries. Should be called by a scheduled task.
    */
   void clearExpired();
-
-  /**
-   * A predicate that tells if the cache implementation requires the supplied objects to be serializable to a string
-   * object.
-   * 
-   * @return true if the objects should be serializable
-   */
-  boolean requiresSerializableObjects();
 
 }

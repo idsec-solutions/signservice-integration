@@ -154,7 +154,6 @@ public class SignController extends BaseController {
           ? this.integrationService.preparePdfSignaturePage(this.policyName,
             getSamplePdf(),
             PdfSignaturePagePreferences.builder()
-              // .signaturePageReference("idsec-sign-page")
               .visiblePdfSignatureUserInformation(
                 VisiblePdfSignatureUserInformation.toBuilder()
                   .fieldValue("idp", lastAuthentication.getIdp())
@@ -162,6 +161,7 @@ public class SignController extends BaseController {
                     .signerAttribute(SignerIdentityAttribute.createBuilder().name(AttributeConstants.ATTRIBUTE_NAME_DISPLAY_NAME).build())
                     .build())
                   .build())
+              .returnDocumentReference(true)
               .build())
           : null;
 
@@ -183,6 +183,7 @@ public class SignController extends BaseController {
       TbsDocument tbsDocument = DocumentType.PDF.getMimeType().equals(this.signType)
           ? tbsDocumentBuilder
             .content(preparedPdfDocument.getUpdatedPdfDocument())
+            .contentReference(preparedPdfDocument.getUpdatedPdfDocumentReference())
             .mimeType(DocumentType.PDF)
             .visiblePdfSignatureRequirement(preparedPdfDocument.getVisiblePdfSignatureRequirement())
             .build()

@@ -17,6 +17,7 @@ package se.idsec.signservice.integration.document.impl;
 
 import org.apache.commons.lang.StringUtils;
 
+import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
 import se.idsec.signservice.integration.core.validation.AbstractInputValidator;
 import se.idsec.signservice.integration.core.validation.ValidationResult;
 import se.idsec.signservice.integration.document.TbsDocument;
@@ -27,7 +28,7 @@ import se.idsec.signservice.integration.document.TbsDocument;
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
-public class TbsDocumentValidator extends AbstractInputValidator<TbsDocument, Void> {
+public class TbsDocumentValidator extends AbstractInputValidator<TbsDocument, IntegrationServiceConfiguration> {
 
   /** Validator for AdES reqs. */
   private final EtsiAdesRequirementValidator adesRequirementValidator;
@@ -47,13 +48,19 @@ public class TbsDocumentValidator extends AbstractInputValidator<TbsDocument, Vo
 
   /** {@inheritDoc} */
   @Override
-  public ValidationResult validate(final TbsDocument object, final String objectName, final Void hint) {
+  public ValidationResult validate(final TbsDocument object, final String objectName, final IntegrationServiceConfiguration hint) {
     ValidationResult result = new ValidationResult(objectName);
     if (object == null) {
       return result;
     }
-    if (StringUtils.isBlank(object.getContent())) {
+    if (StringUtils.isBlank(object.getContent()) && StringUtils.isBlank(object.getContentReference())) {
       result.rejectValue("content", "No document content set in TbsDocument");
+    }
+    if (StringUtils.isNotBlank(object.getContentReference()) && hint.isStateless()) {
+      result.rejectValue("contentReference", "Can not pass contentReference for stateless profile policy");
+    }
+    if (StringUtils.isNotBlank(object.getContent()) && StringUtils.isNotBlank(object.getContentReference()) && !hint.isStateless()) {
+      result.reject("Both content and contentReference are set - not allowed");
     }
     if (StringUtils.isBlank(object.getMimeType())) {
       result.rejectValue("mimeType", "No mimeType set in TbsDocument");

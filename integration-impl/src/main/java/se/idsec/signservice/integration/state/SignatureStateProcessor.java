@@ -18,6 +18,7 @@ package se.idsec.signservice.integration.state;
 import se.idsec.signservice.integration.SignRequestInput;
 import se.idsec.signservice.integration.SignServiceIntegrationService;
 import se.idsec.signservice.integration.core.SignatureState;
+import se.idsec.signservice.integration.core.error.NoAccessException;
 import se.idsec.signservice.integration.dss.SignRequestWrapper;
 import se.idsec.signservice.integration.process.SignRequestProcessor;
 
@@ -59,11 +60,16 @@ public interface SignatureStateProcessor {
    * 
    * @param inputState
    *          the state received from the caller
+   * @param requesterId
+   *          the requesting actor's id (may be null)
    * @return a fully populated signature session state
    * @throws StateException
    *           for state errors
+   * @throws NoAccessException
+   *           if the state belongs to someone else (than requesterId)
    */
-  SignatureSessionState getSignatureState(final SignatureState inputState) throws StateException;
+  SignatureSessionState getSignatureState(final SignatureState inputState, final String requesterId)
+      throws StateException, NoAccessException;
 
   /**
    * Gets the state cache instance that is used by the processor.

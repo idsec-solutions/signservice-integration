@@ -62,7 +62,7 @@ import se.idsec.signservice.utils.AssertThat;
 public class DefaultSignServiceIntegrationService implements ExtendedSignServiceIntegrationService {
 
   /** The default version. */
-  public static final String VERSION = "1.1.0";
+  public static final String VERSION = "1.2.0";
 
   /** The version of this service. Defaults to {@value #VERSION}. */
   private String version;
@@ -124,8 +124,8 @@ public class DefaultSignServiceIntegrationService implements ExtendedSignService
 
       // Setup the signature state ...
       //
-      final SignatureState state =
-          this.signatureStateProcessor.createSignatureState(input, processingResult.getSignRequest(), config.isStateless());
+      final SignatureState state = this.signatureStateProcessor.createSignatureState(input, processingResult.getSignRequest(), config
+        .isStateless());
 
       // And finally build the result structure that the caller may use to build the POST form
       // that takes the user to the signature service.
@@ -151,10 +151,12 @@ public class DefaultSignServiceIntegrationService implements ExtendedSignService
       throws SignResponseCancelStatusException, SignResponseErrorStatusException, SignServiceIntegrationException {
 
     log.debug("Request to process SignResponse for ID '{}'", relayState);
-
+    
     // Get hold of the session state ...
     //
-    SignatureSessionState sessionState = this.signatureStateProcessor.getSignatureState(state);
+    SignatureSessionState sessionState = this.signatureStateProcessor.getSignatureState(
+      state, parameters != null ? parameters.getExtensionValue(OWNER_ID_EXTENSION_KEY) : null);
+    
     CorrelationID.init(sessionState.getCorrelationId());
 
     // Sanity check to make sure that the relayState and signature state corresponds ...
@@ -177,11 +179,7 @@ public class DefaultSignServiceIntegrationService implements ExtendedSignService
 
     // Invoke the processor ...
     //
-    final SignatureResult result = this.signResponseProcessor.processSignResponse(signResponse, sessionState, config, parameters);
-
-    // TODO: log
-
-    return result;
+    return this.signResponseProcessor.processSignResponse(signResponse, sessionState, config, parameters);
   }
 
   /** {@inheritDoc} */

@@ -81,7 +81,7 @@ import se.swedenconnect.schemas.dss_1_0.SignResponse;
  */
 @Slf4j
 public class DefaultSignResponseProcessor implements SignResponseProcessor {
-  
+
   /** The version to assume if no version has been set. */
   private final static String DEFAULT_VERSION = "1.1";
 
@@ -98,7 +98,7 @@ public class DefaultSignResponseProcessor implements SignResponseProcessor {
   private SignerAssertionInfoProcessor signerAssertionInfoProcessor;
 
   /** Processing config. */
-  protected SignResponseProcessingConfig processingConfiguration;
+  private SignResponseProcessingConfig processingConfiguration;
 
   /**
    * An optional mapping between policies and certificate validators. It does not matter what trust anchor each
@@ -156,7 +156,7 @@ public class DefaultSignResponseProcessor implements SignResponseProcessor {
     catch (InternalXMLException | JAXBException e) {
       throw new SignServiceProtocolException("Failed to decode received SignResponse", e);
     }
-    
+
     // Validate the signature of the SignResponse ...
     //
     try {
@@ -197,14 +197,15 @@ public class DefaultSignResponseProcessor implements SignResponseProcessor {
       throw new SignResponseErrorStatusException(response.getResult().getResultMajor(), response.getResult().getResultMinor(),
         response.getResult().getResultMessage() != null ? response.getResult().getResultMessage().getValue() : null);
     }
-    
+
     // Check version of response ...
     //
-    final String requestVersion = Optional.ofNullable(sessionState.getSignRequest().getSignRequestExtension().getVersion()).orElse(DEFAULT_VERSION);
+    final String requestVersion = Optional.ofNullable(sessionState.getSignRequest().getSignRequestExtension().getVersion())
+      .orElse(DEFAULT_VERSION);
     final String responseVersion = Optional.ofNullable(response.getSignResponseExtension().getVersion()).orElse(DEFAULT_VERSION);
-    if (!requestVersion.equals(responseVersion)) {      
+    if (!requestVersion.equals(responseVersion)) {
       // OK, this is an error. The response version MUST be set to the same version as the request version ...
-      final String msg = String.format("Version of SignResponse (%s) does not equal version of SignRequest (%s)", 
+      final String msg = String.format("Version of SignResponse (%s) does not equal version of SignRequest (%s)",
         responseVersion, requestVersion);
       log.error("{}: {}", CorrelationID.id(), msg);
       throw new SignResponseProcessingException(new ErrorCode.Code("version"), msg);

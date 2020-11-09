@@ -194,10 +194,4 @@ public class RestClientSignServiceIntegrationService implements ExtendedSignServ
     return null;
   }
 
-  // private HttpHeaders getHeaders() {
-  // final HttpHeaders headers = new HttpHeaders();
-  // headers.set("Authorization", this.authorizationHeader);
-  // return headers;
-  // }
-
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 IDsec Solutions AB
+ * Copyright 2019-2020 IDsec Soslutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,6 +56,19 @@ public class SignatureSessionState implements Serializable {
 
   /** For serialization. */
   private static final long serialVersionUID = 6334324655251433759L;
+
+  /**
+   * The owner identity of this operaration. This is set in the cases when the SignService Integration Service is
+   * running in stateful mode. It is primary useful when the SignService Integration Service is running as a stand-alone
+   * service.
+   * 
+   * @param ownerId the owner ID
+   * @return the owner ID or null
+   */
+  @JsonIgnore
+  @Getter
+  @Setter
+  private String ownerId;
 
   /**
    * The correlation ID for this session/process.

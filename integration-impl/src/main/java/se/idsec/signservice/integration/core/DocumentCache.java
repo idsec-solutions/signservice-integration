@@ -13,28 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package se.idsec.signservice.integration.state;
-
-import se.idsec.signservice.integration.core.IntegrationServiceCache;
+package se.idsec.signservice.integration.core;
 
 /**
- * Interface for the SignService Integration Service state cache.
+ * Intarface for a document cache that stores Base64-encoded documents.
  * 
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
-public interface IntegrationServiceStateCache extends IntegrationServiceCache<CacheableSignatureState> {
-  
-  /**
-   * Adds an object to the cache.
-   * 
-   * @param id
-   *          the object ID
-   * @param state
-   *          the state object to add
-   */
-  default void put(final String id, final CacheableSignatureState state) {
-    this.put(id, state, state != null ? state.getOwnerId() : null);
-  }
-  
+public interface DocumentCache extends IntegrationServiceCache<String> {
 }

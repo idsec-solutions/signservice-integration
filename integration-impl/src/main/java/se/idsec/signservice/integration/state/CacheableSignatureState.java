@@ -15,26 +15,21 @@
  */
 package se.idsec.signservice.integration.state;
 
-import se.idsec.signservice.integration.core.IntegrationServiceCache;
+import se.idsec.signservice.integration.core.SignatureState;
 
 /**
- * Interface for the SignService Integration Service state cache.
+ * A signature state that is cacheable.
  * 
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
-public interface IntegrationServiceStateCache extends IntegrationServiceCache<CacheableSignatureState> {
-  
+public interface CacheableSignatureState extends SignatureState {
+
   /**
-   * Adds an object to the cache.
+   * Gets the owner identity of the state object.
    * 
-   * @param id
-   *          the object ID
-   * @param state
-   *          the state object to add
+   * @return the owner identity or null if not available
    */
-  default void put(final String id, final CacheableSignatureState state) {
-    this.put(id, state, state != null ? state.getOwnerId() : null);
-  }
-  
+  String getOwnerId();
+
 }

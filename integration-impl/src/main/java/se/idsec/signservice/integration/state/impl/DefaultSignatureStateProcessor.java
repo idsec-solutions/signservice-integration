@@ -25,11 +25,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.extern.slf4j.Slf4j;
 import se.idsec.signservice.integration.SignRequestInput;
+import se.idsec.signservice.integration.SignServiceIntegrationService;
 import se.idsec.signservice.integration.config.ConfigurationManager;
 import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
 import se.idsec.signservice.integration.core.SignatureState;
 import se.idsec.signservice.integration.core.error.ErrorCode;
+import se.idsec.signservice.integration.core.error.NoAccessException;
 import se.idsec.signservice.integration.dss.SignRequestWrapper;
+import se.idsec.signservice.integration.state.CacheableSignatureState;
 import se.idsec.signservice.integration.state.IntegrationServiceStateCache;
 import se.idsec.signservice.integration.state.SignatureSessionState;
 import se.idsec.signservice.integration.state.SignatureStateProcessor;
@@ -62,12 +65,13 @@ public class DefaultSignatureStateProcessor implements SignatureStateProcessor {
 
   /** {@inheritDoc} */
   @Override
-  public SignatureState createSignatureState(final SignRequestInput requestInput, final SignRequestWrapper signRequest,
-      final boolean stateless) {
+  public SignatureState createSignatureState(
+      final SignRequestInput requestInput, final SignRequestWrapper signRequest, final boolean stateless) {
 
     // Build a session state ...
     //
     SignatureSessionState sessionState = SignatureSessionState.builder()
+      .ownerId(requestInput.getExtensionValue(SignServiceIntegrationService.OWNER_ID_EXTENSION_KEY))
       .correlationId(requestInput.getCorrelationId())
       .policy(requestInput.getPolicy())
       .expectedReturnUrl(requestInput.getReturnUrl())
@@ -79,8 +83,7 @@ public class DefaultSignatureStateProcessor implements SignatureStateProcessor {
     // SignRequest instance itself isn't something we can serialize to JSON (which will be done if we are
     // running as a REST-service).
     //
-    // TODO: SignRequestWrapper is serializable so we could remove the requiresSerializableObjects check ...
-    if (stateless || this.stateCache.requiresSerializableObjects()) {
+    if (stateless) {
       try {
         final String encodedSignRequest = DOMUtils.nodeToBase64(JAXBMarshaller.marshall(signRequest.getWrappedSignRequest()));
         sessionState.setEncodedSignRequest(encodedSignRequest);
@@ -100,15 +103,15 @@ public class DefaultSignatureStateProcessor implements SignatureStateProcessor {
     // If we are running in a stateful mode we cache the complete state and return a simple state
     // holding just the requestID.
     //
-    SignatureState completeState = DefaultSignatureState.builder()
-        .id(signRequest.getRequestID())
-        .state(sessionState)
-        .build();
-    
+    CacheableSignatureState completeState = DefaultSignatureState.builder()
+      .id(signRequest.getRequestID())
+      .state(sessionState)
+      .build();
+
     if (stateless) {
       if (this.base64Encoded) {
         try {
-        completeState = EncodedSignatureState.builder()
+          return EncodedSignatureState.builder()
             .id(signRequest.getRequestID())
             .state(new EncodedSignatureSessionState(sessionState))
             .build();
@@ -116,7 +119,7 @@ public class DefaultSignatureStateProcessor implements SignatureStateProcessor {
         catch (IOException e) {
           throw new RuntimeException("Failed to serialize state", e);
         }
-      }      
+      }
       return completeState;
     }
     else {
@@ -127,7 +130,8 @@ public class DefaultSignatureStateProcessor implements SignatureStateProcessor {
 
   /** {@inheritDoc} */
   @Override
-  public SignatureSessionState getSignatureState(final SignatureState inputState) throws StateException {
+  public SignatureSessionState getSignatureState(final SignatureState inputState, final String requesterId)
+      throws StateException, NoAccessException {
 
     if (inputState == null) {
       final String msg = "No signature state supplied";
@@ -145,7 +149,7 @@ public class DefaultSignatureStateProcessor implements SignatureStateProcessor {
       // This indicates that the active policy is "stateful". Go get the SignatureState from the
       // cache.
       //
-      final SignatureState state = this.stateCache.get(inputState.getId(), true);
+      final SignatureState state = this.stateCache.get(inputState.getId(), true, requesterId);
       if (state == null) {
         final String msg = String.format("No signature state found for ID '%s'", inputState.getId());
         log.info(msg);
@@ -177,9 +181,9 @@ public class DefaultSignatureStateProcessor implements SignatureStateProcessor {
         //
         try {
           if (this.base64Encoded) {
-            final EncodedSignatureSessionState encodedState = 
-                this.objectMapper.convertValue(receivedState, EncodedSignatureSessionState.class);
-            state = encodedState.getSignatureSessionState(); 
+            final EncodedSignatureSessionState encodedState = this.objectMapper.convertValue(receivedState,
+              EncodedSignatureSessionState.class);
+            state = encodedState.getSignatureSessionState();
           }
           else {
             state = this.objectMapper.convertValue(receivedState, SignatureSessionState.class);

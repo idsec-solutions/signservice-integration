@@ -15,11 +15,11 @@
  */
 package se.idsec.signservice.integration.core.impl;
 
-import java.util.NoSuchElementException;
+import java.io.Serializable;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import se.idsec.signservice.integration.core.IntegrationServiceCache;
 
@@ -30,82 +30,27 @@ import se.idsec.signservice.integration.core.IntegrationServiceCache;
  * @author Stefan Santesson (stefan@idsec.se)
  */
 @Slf4j
-public abstract class AbstractInMemoryIntegrationServiceCache<T> implements IntegrationServiceCache<T> {
+public abstract class AbstractInMemoryIntegrationServiceCache<T extends Serializable> extends AbstractIntegrationServiceCache<T> {
 
-  /** The default max age (in millis) to keep an object in the cache. */
-  public static final long MAX_AGE = 3600000L;
-
-  /** The maximum time (in millis) to keep an object in the cache. Default is {@value #MAX_AGE}. */
-  private long maxAge = MAX_AGE;
-  
   /** The cache. */
-  private ConcurrentMap<String, CacheEntry<T>> cache = new ConcurrentHashMap<>();
-  
+  private ConcurrentMap<String, InMemoryCacheEntry<T>> cache = new ConcurrentHashMap<>();
+
   /** {@inheritDoc} */
   @Override
-  public T get(String id) {
-    return this.get(id, false);
+  protected CacheEntry<T> getCacheEntry(final String id) {
+    return this.cache.get(id);
   }
 
   /** {@inheritDoc} */
   @Override
-  public T get(final String id, final boolean remove) {
-    CacheEntry<T> entry = this.cache.get(id);
-    if (entry == null) {
-      log.info("{}: Entry '{}' does not exist in cache", CorrelationID.id(), id);
-      return null;
-    }
-    if (entry.isExpired()) {
-      log.info("{}: Cached entry '{}' has expired", CorrelationID.id(), id);
-      this.remove(id);
-      return null;
-    }
-    if (remove) {
-      log.trace("{}: Removing entry '{}' from cache", CorrelationID.id(), id);
-      this.remove(id);
-    }
-    return entry.getObject();
+  protected void putCacheObject(final String id, T object, final String ownerId, final long expirationTime) {
+    this.cache.put(id, new InMemoryCacheEntry<T>(object, ownerId, expirationTime));
   }
+
 
   /** {@inheritDoc} */
   @Override
-  public void put(final String id, final T object) {
-    this.put(id, object, System.currentTimeMillis() + this.maxAge);
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public void put(final String id, final T object, final long expires) {
-    if (id == null) {
-      log.error("{}: Attempt to cache object with no id", CorrelationID.id());
-      throw new NullPointerException("Missing id");
-    }
-    if (object == null) {
-      log.error("{}: Attempt to cache null object with id {}", CorrelationID.id(), id);
-      throw new NullPointerException("Missing object");
-    }
-    if (expires < System.currentTimeMillis()) {
-      log.warn("{}: Expiration time has already passed, will not cache object '{}'", CorrelationID.id(), id);
-    }
-    else {
-      this.cache.put(id, new CacheEntry<T>(object, expires));
-    }
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public void setExpires(final String id, final long expires) {
-    T object = this.get(id, true);
-    if (object == null) {
-      log.warn("{}: The object '{}' is not cached - can not set expiration time", CorrelationID.id(), id);
-      throw new NoSuchElementException("No such object in cache");
-    }
-    this.put(id, object, expires);
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public void remove(final String id) {
+  protected void removeCacheObject(final String id) {
     this.cache.remove(id);
   }
 
@@ -113,8 +58,8 @@ public abstract class AbstractInMemoryIntegrationServiceCache<T> implements Inte
   @Override
   public void clearExpired() {
     for (String id : this.cache.keySet()) {
-      CacheEntry<T> entry = this.cache.get(id);
-      if (entry.isExpired()) {
+      final CacheEntry<T> entry = this.cache.get(id);
+      if (System.currentTimeMillis() > Optional.ofNullable(entry.getExpirationTime()).orElse(Long.MAX_VALUE)) {
         log.debug("{}: Clearing expired cache entry '{}'", CorrelationID.id(), id);
         this.remove(id);
       }
@@ -122,47 +67,54 @@ public abstract class AbstractInMemoryIntegrationServiceCache<T> implements Inte
   }
 
   /**
-   * Assigns the maximum time (in millis) to keep an object in the cache. Default is {@value #MAX_AGE}.
-   * 
-   * @param maxAge
-   *          age in millis
-   */
-  public void setMaxAge(final long maxAge) {
-    this.maxAge = maxAge;
-  }
-
-  /**
    * Class representing the cache entry.
    */
-  private static class CacheEntry<T> {
+  public static class InMemoryCacheEntry<T extends Serializable> implements CacheEntry<T> {
+
+    /** For serializing. */
+    private static final long serialVersionUID = 6027367800009250991L;
 
     /** The cached object. */
-    @Getter
     private final T object;
 
     /** The time when the object expires. */
-    @Getter
-    private final long expires;
+    private final long expirationTime;
+
+    /** The owner id. */
+    private final String ownerId;
 
     /**
      * Constructor.
      * 
      * @param object
      *          the object to cache.
+     *          @param ownerId the owner identity (may be null)
+     *          @param expirationTime the expiration time
      */
-    public CacheEntry(final T object, final long expires) {
+    public InMemoryCacheEntry(final T object, final String ownerId, final long expirationTime) {
       this.object = object;
-      this.expires = expires;
+      this.ownerId = ownerId;
+      this.expirationTime = expirationTime;
     }
 
-    /**
-     * Predicate telling if this entry has expired.
-     * 
-     * @return true if this entry has expired, and false otherwise
-     */
-    public boolean isExpired() {
-      return this.expires < System.currentTimeMillis();
+    /** {@inheritDoc} */
+    @Override
+    public T getObject() {
+      return this.object;
     }
+    
+    /** {@inheritDoc} */
+    @Override
+    public String getOwnerId() {
+      return this.ownerId;
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public Long getExpirationTime() {
+      return this.expirationTime;
+    }
+
   }
 
 }

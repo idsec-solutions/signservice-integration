@@ -23,8 +23,11 @@ import org.apache.commons.lang.StringUtils;
 
 import lombok.extern.slf4j.Slf4j;
 import se.idsec.signservice.integration.SignRequestInput;
+import se.idsec.signservice.integration.SignServiceIntegrationService;
 import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
+import se.idsec.signservice.integration.core.DocumentCache;
 import se.idsec.signservice.integration.core.error.InputValidationException;
+import se.idsec.signservice.integration.core.error.NoAccessException;
 import se.idsec.signservice.integration.core.impl.CorrelationID;
 import se.idsec.signservice.integration.document.DocumentDecoder;
 import se.idsec.signservice.integration.document.DocumentProcessingException;
@@ -48,13 +51,13 @@ public abstract class AbstractTbsDocumentProcessor<T> implements TbsDocumentProc
   private TbsDocumentValidator tbsDocumentValidator;
 
   /** Object factory for DSS-Ext objects. */
-  private static se.swedenconnect.schemas.csig.dssext_1_1.ObjectFactory dssExtObjectFactory =
-      new se.swedenconnect.schemas.csig.dssext_1_1.ObjectFactory();
+  private static se.swedenconnect.schemas.csig.dssext_1_1.ObjectFactory dssExtObjectFactory = new se.swedenconnect.schemas.csig.dssext_1_1.ObjectFactory();
 
   /** {@inheritDoc} */
   @Override
   public ProcessedTbsDocument preProcess(final TbsDocument document, final SignRequestInput signRequestInput,
-      final IntegrationServiceConfiguration config, final String fieldName) throws InputValidationException {
+      final IntegrationServiceConfiguration config, final DocumentCache documentCache, final String fieldName)
+      throws InputValidationException {
 
     // Make a copy of the document before updating it.
     TbsDocument updatedDocument = document.toBuilder().build();
@@ -70,7 +73,34 @@ public abstract class AbstractTbsDocumentProcessor<T> implements TbsDocumentProc
     }
 
     // Validate
-    this.getTbsDocumentValidator().validateObject(updatedDocument, fieldName, null);
+    //
+    this.getTbsDocumentValidator().validateObject(updatedDocument, fieldName, config);
+
+    // Check if the document holds a content reference, if so, get the cached document ...
+    //
+    if (StringUtils.isNotBlank(updatedDocument.getContentReference())) {
+      if (documentCache == null) {
+        throw new RuntimeException("No document cache available");
+      }
+      try {
+        final String cachedDocument = documentCache.get(updatedDocument.getContentReference(), true, 
+          signRequestInput.getExtensionValue(SignServiceIntegrationService.OWNER_ID_EXTENSION_KEY));
+        
+        if (cachedDocument == null) {
+          final String msg = String.format("reference '%s' not found in cache", updatedDocument.getContentReference());
+          log.error("{}: {}", CorrelationID.id(), msg);
+          throw new InputValidationException(fieldName + ".contentReference", msg);
+        }
+        // Replace the content reference with the actual contents ...
+        updatedDocument.setContent(cachedDocument);
+        updatedDocument.setContentReference(null);
+      }
+      catch (NoAccessException e) {
+        final String msg = String.format("Caller does not have access to referenced document '%s'", updatedDocument.getContentReference());
+        log.error("{}: {}", CorrelationID.id(), msg);
+        throw new InputValidationException(fieldName + ".contentReference", msg, e);
+      }
+    }
 
     // Validate the document content ...
     //
