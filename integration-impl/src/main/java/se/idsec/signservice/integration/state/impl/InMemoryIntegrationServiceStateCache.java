@@ -15,8 +15,8 @@
  */
 package se.idsec.signservice.integration.state.impl;
 
-import se.idsec.signservice.integration.core.SignatureState;
 import se.idsec.signservice.integration.core.impl.AbstractInMemoryIntegrationServiceCache;
+import se.idsec.signservice.integration.state.CacheableSignatureState;
 import se.idsec.signservice.integration.state.IntegrationServiceStateCache;
 
 /**
@@ -25,13 +25,7 @@ import se.idsec.signservice.integration.state.IntegrationServiceStateCache;
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
-public class InMemoryIntegrationServiceStateCache extends AbstractInMemoryIntegrationServiceCache<SignatureState>
+public class InMemoryIntegrationServiceStateCache extends AbstractInMemoryIntegrationServiceCache<CacheableSignatureState>
   implements IntegrationServiceStateCache {
-
-  /** {@inheritDoc} */
-  @Override
-  public boolean requiresSerializableObjects() {
-    return false;
-  }
   
 }

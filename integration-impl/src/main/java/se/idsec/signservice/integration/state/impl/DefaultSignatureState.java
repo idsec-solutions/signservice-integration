@@ -17,6 +17,7 @@ package se.idsec.signservice.integration.state.impl;
 
 import java.io.Serializable;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
@@ -27,6 +28,7 @@ import lombok.Setter;
 import lombok.ToString;
 import se.idsec.signservice.integration.SignRequestInput;
 import se.idsec.signservice.integration.core.SignatureState;
+import se.idsec.signservice.integration.state.CacheableSignatureState;
 import se.idsec.signservice.integration.state.SignatureSessionState;
 
 /**
@@ -43,7 +45,7 @@ import se.idsec.signservice.integration.state.SignatureSessionState;
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
-public class DefaultSignatureState implements SignatureState {
+public class DefaultSignatureState implements CacheableSignatureState {
 
   /** For serialization. */
   private static final long serialVersionUID = 8679954351779851073L;
@@ -76,6 +78,13 @@ public class DefaultSignatureState implements SignatureState {
   @Override
   public Serializable getState() {
     return this.state;
+  }
+
+  /** {@inheritDoc} */
+  @JsonIgnore
+  @Override
+  public String getOwnerId() {
+    return this.state != null ? this.state.getOwnerId() : null;
   }
 
 }

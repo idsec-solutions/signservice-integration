@@ -45,6 +45,7 @@ import se.idsec.signservice.integration.SignRequestInput;
 import se.idsec.signservice.integration.authentication.AuthnRequirements;
 import se.idsec.signservice.integration.certificate.SigningCertificateRequirements;
 import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
+import se.idsec.signservice.integration.core.DocumentCache;
 import se.idsec.signservice.integration.core.Extension;
 import se.idsec.signservice.integration.core.error.ErrorCode;
 import se.idsec.signservice.integration.core.error.InputValidationException;
@@ -87,6 +88,9 @@ public class DefaultSignRequestProcessor implements SignRequestProcessor {
 
   /** Validator. */
   private final SignRequestInputValidator signRequestInputValidator = new SignRequestInputValidator();
+  
+  /** Document cache. */
+  private DocumentCache documentCache;
 
   /** The processor for SignMessages. */
   private SignMessageProcessor signMessageProcessor;
@@ -223,7 +227,7 @@ public class DefaultSignRequestProcessor implements SignRequestProcessor {
         .orElseThrow(() -> new InputValidationException(fieldName,
           String.format("Document of type '%s' is not supported", doc.getMimeType())));
 
-      final ProcessedTbsDocument processedTbsDocument = processor.preProcess(doc, signRequestInput, config, fieldName);
+      final ProcessedTbsDocument processedTbsDocument = processor.preProcess(doc, signRequestInput, config, this.documentCache, fieldName);
       if (processedTbsDocument.getDocumentObject() != null) {
         if (processedTbsDocument.getDocumentObject() != null) {
           final Extension ext = processedTbsDocument.getTbsDocument().getExtension();
@@ -473,6 +477,16 @@ public class DefaultSignRequestProcessor implements SignRequestProcessor {
    */
   public void setSignMessageProcessor(final SignMessageProcessor signMessageProcessor) {
     this.signMessageProcessor = signMessageProcessor;
+  }
+  
+  /**
+   * Assigns the document cache to use.
+   * 
+   * @param documentCache
+   *          the document cache
+   */
+  public void setDocumentCache(final DocumentCache documentCache) {
+    this.documentCache = documentCache;
   }
 
   /**

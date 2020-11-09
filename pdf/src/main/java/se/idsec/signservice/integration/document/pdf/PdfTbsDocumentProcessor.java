@@ -26,6 +26,7 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import lombok.extern.slf4j.Slf4j;
 import se.idsec.signservice.integration.SignRequestInput;
 import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
+import se.idsec.signservice.integration.core.DocumentCache;
 import se.idsec.signservice.integration.core.error.ErrorCode;
 import se.idsec.signservice.integration.core.error.InputValidationException;
 import se.idsec.signservice.integration.core.impl.CorrelationID;
@@ -86,9 +87,10 @@ public class PdfTbsDocumentProcessor extends AbstractTbsDocumentProcessor<byte[]
    */
   @Override
   public ProcessedTbsDocument preProcess(final TbsDocument document, final SignRequestInput signRequestInput,
-      final IntegrationServiceConfiguration config, final String fieldName) throws InputValidationException {
+      final IntegrationServiceConfiguration config, final DocumentCache documentCache, final String fieldName)
+      throws InputValidationException {
 
-    final ProcessedTbsDocument processedTbsDocument = super.preProcess(document, signRequestInput, config, fieldName);
+    final ProcessedTbsDocument processedTbsDocument = super.preProcess(document, signRequestInput, config, documentCache, fieldName);
     final TbsDocument tbsDocument = processedTbsDocument.getTbsDocument();
 
     if (tbsDocument.getVisiblePdfSignatureRequirement() == null) {
@@ -221,7 +223,7 @@ public class PdfTbsDocumentProcessor extends AbstractTbsDocumentProcessor<byte[]
     final byte[] pdfDocumentBytes = super.validateDocumentContent(document, config, fieldName);
     PDDocument pdfDocument = null;
     try {
-      pdfDocument = PDDocumentUtils.load(pdfDocumentBytes);       
+      pdfDocument = PDDocumentUtils.load(pdfDocumentBytes);
     }
     catch (Exception e) {
       final String msg = String.format("Failed to load content for document '%s' - %s", document.getId(), e.getMessage());
