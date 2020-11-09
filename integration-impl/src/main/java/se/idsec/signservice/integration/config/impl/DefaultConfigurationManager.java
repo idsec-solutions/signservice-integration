@@ -59,6 +59,21 @@ public class DefaultConfigurationManager implements ConfigurationManager {
     if (this.policies.isEmpty()) {
       throw new IllegalArgumentException("At least one policy must be configured");
     }
+    
+    // We have the policy name in two places, both as the key and the named property. Make sure that 
+    // they are correct (and also set the property if missing).
+    //
+    for (Map.Entry<String, ? extends IntegrationServiceConfiguration> p : this.policies.entrySet()) {
+      if (StringUtils.isNotBlank(p.getValue().getPolicy()) && !p.getKey().equals(p.getValue().getPolicy().trim())) {
+        throw new IllegalArgumentException(String.format("Illegal policyName (%s) - expected '%s'",
+          p.getValue().getPolicy(), p.getKey()));        
+      }
+      else if (StringUtils.isBlank(p.getValue().getPolicy())) {
+        if (DefaultIntegrationServiceConfiguration.class.isInstance(p.getValue())) {
+          DefaultIntegrationServiceConfiguration.class.cast(p.getValue()).setPolicy(p.getKey());
+        }
+      }
+    }
 
     // Go through all policies and make sure that are complete.
     //
