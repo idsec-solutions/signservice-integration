@@ -290,6 +290,17 @@ public class DefaultSignRequestProcessor implements SignRequestProcessor {
 
     SignRequestExtension signRequestExtension = dssExtObjectFactory.createSignRequestExtension();
 
+    // Set default version
+    // TODO Make configurable per policy/profile
+    /*
+     * IMPORTANT NOTE: The current fix is temporary, allowing default version to be set by env variable
+     * This shall be replaced by a permanent fix that allows default version to be set by configuration variable
+     */
+    String defaultVersion = System.getenv("DEFAULT_SIGREQEXT_VERSION");
+    if (StringUtils.isNotBlank(defaultVersion)){
+      signRequestExtension.setVersion(defaultVersion);
+    }
+
     // RequestTime
     //
     signRequestExtension.setRequestTime(getNow());
@@ -549,8 +560,8 @@ public class DefaultSignRequestProcessor implements SignRequestProcessor {
     /**
      * Copy constructor.
      * 
-     * @param m
-     *          the map to initialize the object with
+     * @param extension
+     *          the extension to initialize the object with
      */
     public DocumentExtension(final Extension extension) {
       super(extension);
