@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,10 @@ package se.idsec.signservice.integration.process.impl;
 import java.security.SignatureException;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.GregorianCalendar;
 import java.util.List;
+import java.util.Objects;
 
 import javax.annotation.PostConstruct;
 import javax.xml.bind.JAXBException;
@@ -76,7 +78,7 @@ import se.swedenconnect.schemas.csig.dssext_1_1.SignTasks;
 
 /**
  * Default implementation of the {@link SignRequestProcessor} interface.
- * 
+ *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
@@ -88,7 +90,7 @@ public class DefaultSignRequestProcessor implements SignRequestProcessor {
 
   /** Validator. */
   private final SignRequestInputValidator signRequestInputValidator = new SignRequestInputValidator();
-  
+
   /** Document cache. */
   private DocumentCache documentCache;
 
@@ -104,6 +106,13 @@ public class DefaultSignRequestProcessor implements SignRequestProcessor {
 
   /** Needed when signing the sign request. */
   private XMLSignatureLocation xmlSignatureLocation;
+
+  /**
+   * The default version to use. If not set, section 3.1 of "DSS Extension for Federated Central Signing Services"
+   * states that version 1.1 is the default. So, if the {@code defaultVersion} is not set, we don't include the version
+   * unless a feature that requires a higher version is used.
+   */
+  private String defaultVersion;
 
   /**
    * Constructor.
@@ -290,6 +299,12 @@ public class DefaultSignRequestProcessor implements SignRequestProcessor {
 
     SignRequestExtension signRequestExtension = dssExtObjectFactory.createSignRequestExtension();
 
+    // Version
+    //
+    if (StringUtils.isNotBlank(this.defaultVersion)) {
+      signRequestExtension.setVersion(this.defaultVersion);
+    }
+
     // RequestTime
     //
     signRequestExtension.setRequestTime(getNow());
@@ -322,13 +337,16 @@ public class DefaultSignRequestProcessor implements SignRequestProcessor {
     // IdentityProvider
     //
     signRequestExtension.setIdentityProvider(DssUtils.toEntity(signRequestInput.getAuthnRequirements().getAuthnServiceID()));
-    
+
     // AuthnProfile
     //
     if (!StringUtils.isBlank(signRequestInput.getAuthnRequirements().getAuthnProfile())) {
-      log.info("AuthnProfile is set. Setting version of SignRequest to 1.4 ...");
-      signRequestExtension.setVersion("1.4");
-      signRequestExtension.setAuthnProfile(signRequestInput.getAuthnRequirements().getAuthnProfile());
+      if (signRequestExtension.getVersion() != null
+          && getVersionComparator().compare(signRequestExtension.getVersion(), "1.4") < 0) {
+        log.info("AuthnProfile is set. Setting version of SignRequest to 1.4 ...");
+        signRequestExtension.setVersion("1.4");
+        signRequestExtension.setAuthnProfile(signRequestInput.getAuthnRequirements().getAuthnProfile());
+      }
     }
 
     // SignRequester
@@ -346,8 +364,12 @@ public class DefaultSignRequestProcessor implements SignRequestProcessor {
     // CertRequestProperties
     //
     if (signRequestInput.getAuthnRequirements().getAuthnContextClassRefs().size() > 1) {
-      log.info("More that one AuthnContextClassRef URI is assigned to AuthnRequirements. Setting version of SignRequest to 1.4 ...");
-      signRequestExtension.setVersion("1.4");
+      if (signRequestExtension.getVersion() != null
+          && getVersionComparator().compare(signRequestExtension.getVersion(), "1.4") < 0) {
+
+        log.info("More that one AuthnContextClassRef URI is assigned to AuthnRequirements. Setting version of SignRequest to 1.4 ...");
+        signRequestExtension.setVersion("1.4");
+      }
     }
     signRequestExtension.setCertRequestProperties(DssUtils.toCertRequestProperties(
       signRequestInput.getCertificateRequirements(), signRequestInput.getAuthnRequirements().getAuthnContextClassRefs()));
@@ -413,7 +435,7 @@ public class DefaultSignRequestProcessor implements SignRequestProcessor {
 
   /**
    * Signs the supplied {@code SignRequest} message.
-   * 
+   *
    * @param signRequest
    *          the SignRequest message to sign
    * @param correlationID
@@ -461,7 +483,7 @@ public class DefaultSignRequestProcessor implements SignRequestProcessor {
 
   /**
    * Sets the list of TBS document processors.
-   * 
+   *
    * @param tbsDocumentProcessors
    *          the document processors
    */
@@ -471,17 +493,17 @@ public class DefaultSignRequestProcessor implements SignRequestProcessor {
 
   /**
    * Assigns the sign message processor to use.
-   * 
+   *
    * @param signMessageProcessor
    *          the sign message processor
    */
   public void setSignMessageProcessor(final SignMessageProcessor signMessageProcessor) {
     this.signMessageProcessor = signMessageProcessor;
   }
-  
+
   /**
    * Assigns the document cache to use.
-   * 
+   *
    * @param documentCache
    *          the document cache
    */
@@ -490,8 +512,47 @@ public class DefaultSignRequestProcessor implements SignRequestProcessor {
   }
 
   /**
+   * Assigns the default version to use. If not set, section 3.1 of "DSS Extension for Federated Central Signing
+   * Services" states that version 1.1 is the default. So, if the {@code defaultVersion} is not set, we don't include
+   * the version unless a feature that requires a higher version is used.
+   *
+   * @param defaultVersion
+   *          the version to default to
+   */
+  public void setDefaultVersion(final String defaultVersion) {
+    if (defaultVersion != null) {
+      try {
+        Double.parseDouble(defaultVersion);
+      }
+      catch (final NumberFormatException e) {
+        throw new IllegalArgumentException("Not a valid version number", e);
+      }
+    }
+    this.defaultVersion = defaultVersion;
+  }
+
+  /**
+   * Gets a version comparator.
+   *
+   * @return a version number comparator.
+   */
+  protected Comparator<String> getVersionComparator() {
+    return (a, b) -> {
+      if (Objects.equals(a, b)) {
+        return 0;
+      }
+      try {
+        return Double.compare(Double.parseDouble(a), Double.parseDouble(b));
+      }
+      catch (final NumberFormatException e) {
+        throw new ClassCastException("Not a valid version");
+      }
+    };
+  }
+
+  /**
    * Returns the current time in XML time format.
-   * 
+   *
    * @return the current time
    */
   protected static XMLGregorianCalendar getNow() {
@@ -508,12 +569,12 @@ public class DefaultSignRequestProcessor implements SignRequestProcessor {
 
   /**
    * Ensures that all required properties have been assigned.
-   * 
+   *
    * <p>
    * Note: If executing in a Spring Framework environment this method is automatically invoked after all properties have
    * been assigned. Otherwise it should be explicitly invoked.
    * </p>
-   * 
+   *
    * @throws Exception
    *           if not all settings are correct
    */
@@ -548,7 +609,7 @@ public class DefaultSignRequestProcessor implements SignRequestProcessor {
 
     /**
      * Copy constructor.
-     * 
+     *
      * @param m
      *          the map to initialize the object with
      */
