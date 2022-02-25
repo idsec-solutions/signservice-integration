@@ -18,10 +18,8 @@ package se.idsec.signservice.integration.process.impl;
 import java.security.SignatureException;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.GregorianCalendar;
 import java.util.List;
-import java.util.Objects;
 
 import javax.annotation.PostConstruct;
 import javax.xml.bind.JAXBException;
@@ -59,6 +57,7 @@ import se.idsec.signservice.integration.document.TbsDocument;
 import se.idsec.signservice.integration.document.TbsDocumentProcessor;
 import se.idsec.signservice.integration.dss.DssUtils;
 import se.idsec.signservice.integration.dss.SignRequestWrapper;
+import se.idsec.signservice.integration.process.ProtocolVersion;
 import se.idsec.signservice.integration.process.SignRequestProcessingResult;
 import se.idsec.signservice.integration.process.SignRequestProcessor;
 import se.idsec.signservice.integration.signmessage.SignMessageMimeType;
@@ -342,7 +341,7 @@ public class DefaultSignRequestProcessor implements SignRequestProcessor {
     //
     if (!StringUtils.isBlank(signRequestInput.getAuthnRequirements().getAuthnProfile())) {
       if (signRequestExtension.getVersion() != null
-          && getVersionComparator().compare(signRequestExtension.getVersion(), "1.4") < 0) {
+          && ProtocolVersion.getInstance(signRequestExtension.getVersion()).compareTo(ProtocolVersion.getInstance("1.4")) < 0) {
         log.info("AuthnProfile is set. Setting version of SignRequest to 1.4 ...");
         signRequestExtension.setVersion("1.4");
         signRequestExtension.setAuthnProfile(signRequestInput.getAuthnRequirements().getAuthnProfile());
@@ -365,7 +364,7 @@ public class DefaultSignRequestProcessor implements SignRequestProcessor {
     //
     if (signRequestInput.getAuthnRequirements().getAuthnContextClassRefs().size() > 1) {
       if (signRequestExtension.getVersion() != null
-          && getVersionComparator().compare(signRequestExtension.getVersion(), "1.4") < 0) {
+          && ProtocolVersion.getInstance(signRequestExtension.getVersion()).compareTo(ProtocolVersion.getInstance("1.4")) < 0) {
 
         log.info("More that one AuthnContextClassRef URI is assigned to AuthnRequirements. Setting version of SignRequest to 1.4 ...");
         signRequestExtension.setVersion("1.4");
@@ -531,24 +530,6 @@ public class DefaultSignRequestProcessor implements SignRequestProcessor {
     this.defaultVersion = defaultVersion;
   }
 
-  /**
-   * Gets a version comparator.
-   *
-   * @return a version number comparator.
-   */
-  protected Comparator<String> getVersionComparator() {
-    return (a, b) -> {
-      if (Objects.equals(a, b)) {
-        return 0;
-      }
-      try {
-        return Double.compare(Double.parseDouble(a), Double.parseDouble(b));
-      }
-      catch (final NumberFormatException e) {
-        throw new ClassCastException("Not a valid version");
-      }
-    };
-  }
 
   /**
    * Returns the current time in XML time format.
@@ -610,8 +591,8 @@ public class DefaultSignRequestProcessor implements SignRequestProcessor {
     /**
      * Copy constructor.
      *
-     * @param m
-     *          the map to initialize the object with
+     * @param extension
+     *          the extension to initialize the object with
      */
     public DocumentExtension(final Extension extension) {
       super(extension);
