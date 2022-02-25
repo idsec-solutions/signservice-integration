@@ -111,7 +111,10 @@ public class DefaultSignRequestProcessor implements SignRequestProcessor {
    * states that version 1.1 is the default. So, if the {@code defaultVersion} is not set, we don't include the version
    * unless a feature that requires a higher version is used.
    */
-  private String defaultVersion;
+  private ProtocolVersion defaultVersion;
+
+  /** Version 1.4. */
+  private static final ProtocolVersion VERSION_1_4 = new ProtocolVersion("1.4");
 
   /**
    * Constructor.
@@ -300,8 +303,8 @@ public class DefaultSignRequestProcessor implements SignRequestProcessor {
 
     // Version
     //
-    if (StringUtils.isNotBlank(this.defaultVersion)) {
-      signRequestExtension.setVersion(this.defaultVersion);
+    if (this.defaultVersion != null) {
+      signRequestExtension.setVersion(this.defaultVersion.toString());
     }
 
     // RequestTime
@@ -340,8 +343,7 @@ public class DefaultSignRequestProcessor implements SignRequestProcessor {
     // AuthnProfile
     //
     if (!StringUtils.isBlank(signRequestInput.getAuthnRequirements().getAuthnProfile())) {
-      if (signRequestExtension.getVersion() != null
-          && ProtocolVersion.getInstance(signRequestExtension.getVersion()).compareTo(ProtocolVersion.getInstance("1.4")) < 0) {
+      if (signRequestExtension.getVersion() != null && VERSION_1_4.compareTo(signRequestExtension.getVersion()) > 0) {
         log.info("AuthnProfile is set. Setting version of SignRequest to 1.4 ...");
         signRequestExtension.setVersion("1.4");
         signRequestExtension.setAuthnProfile(signRequestInput.getAuthnRequirements().getAuthnProfile());
@@ -363,9 +365,7 @@ public class DefaultSignRequestProcessor implements SignRequestProcessor {
     // CertRequestProperties
     //
     if (signRequestInput.getAuthnRequirements().getAuthnContextClassRefs().size() > 1) {
-      if (signRequestExtension.getVersion() != null
-          && ProtocolVersion.getInstance(signRequestExtension.getVersion()).compareTo(ProtocolVersion.getInstance("1.4")) < 0) {
-
+      if (signRequestExtension.getVersion() != null && VERSION_1_4.compareTo(signRequestExtension.getVersion()) > 0) {
         log.info("More that one AuthnContextClassRef URI is assigned to AuthnRequirements. Setting version of SignRequest to 1.4 ...");
         signRequestExtension.setVersion("1.4");
       }
@@ -520,16 +520,9 @@ public class DefaultSignRequestProcessor implements SignRequestProcessor {
    */
   public void setDefaultVersion(final String defaultVersion) {
     if (defaultVersion != null) {
-      try {
-        Double.parseDouble(defaultVersion);
-      }
-      catch (final NumberFormatException e) {
-        throw new IllegalArgumentException("Not a valid version number", e);
-      }
+      this.defaultVersion = new ProtocolVersion(defaultVersion);
     }
-    this.defaultVersion = defaultVersion;
   }
-
 
   /**
    * Returns the current time in XML time format.
