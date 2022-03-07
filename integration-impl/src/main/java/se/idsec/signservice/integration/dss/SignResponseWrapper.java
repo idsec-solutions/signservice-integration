@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ import se.swedenconnect.schemas.dss_1_0.SignatureObject;
 
 /**
  * A wrapper for a {@link SignResponse} object where we introduce utility methods for access of extension elements.
- * 
+ *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
@@ -61,7 +61,7 @@ public class SignResponseWrapper extends SignResponse {
 
   /**
    * Constructor.
-   * 
+   *
    * @param signResponse
    *          the wrapped sign response
    */
@@ -71,7 +71,7 @@ public class SignResponseWrapper extends SignResponse {
 
   /**
    * Gets the wrapped SignResponse.
-   * 
+   *
    * @return the wrapped SignResponse
    */
   public SignResponse getWrappedSignResponse() {
@@ -86,7 +86,7 @@ public class SignResponseWrapper extends SignResponse {
 
   /** {@inheritDoc} */
   @Override
-  public void setSignatureObject(SignatureObject value) {
+  public void setSignatureObject(final SignatureObject value) {
     this.signTasks = null;
     this.signResponse.setSignatureObject(value);
   }
@@ -99,7 +99,7 @@ public class SignResponseWrapper extends SignResponse {
 
   /**
    * Utility method that gets the {@code SignTasks} object from the {@code SignatureObject}.
-   * 
+   *
    * @return the SignTasks (or null)
    * @throws SignServiceProtocolException
    *           for unmarshalling errors
@@ -123,7 +123,7 @@ public class SignResponseWrapper extends SignResponse {
       try {
         this.signTasks = JAXBUnmarshaller.unmarshall(signTasksElement, SignTasks.class);
       }
-      catch (JAXBException e) {
+      catch (final JAXBException e) {
         log.error("{}: Failed to decode SignTasks element - {}", CorrelationID.id(), e.getMessage(), e);
         throw new SignServiceProtocolException("Failed to decode SignTasks", e);
       }
@@ -134,7 +134,7 @@ public class SignResponseWrapper extends SignResponse {
   /**
    * Utility method that add a SignTasks object to {@code Other} object of the {@code SignatureObject}. Any previous
    * sign tasks set in {@code Other} will be overwritten.
-   * 
+   *
    * @param signTasks
    *          the object to add
    * @throws SignServiceProtocolException
@@ -148,17 +148,17 @@ public class SignResponseWrapper extends SignResponse {
     if (this.signResponse.getSignatureObject().getOther() == null) {
       this.signResponse.getSignatureObject().setOther(dssObjectFactory.createAnyType());
     }
-    
+
     Element signTasksElement;
     try {
       signTasksElement = JAXBMarshaller.marshall(this.signTasks).getDocumentElement();
     }
-    catch (JAXBException e) {
+    catch (final JAXBException e) {
       log.error("Failed to marshall SignTasks - {}", e.getMessage(), e);
       throw new SignServiceProtocolException("Failed to marshall SignTasks", e);
     }
     for (int i = 0; i < this.signResponse.getSignatureObject().getOther().getAnies().size(); i++) {
-      Element elm = this.signResponse.getSignatureObject().getOther().getAnies().get(i);
+      final Element elm = this.signResponse.getSignatureObject().getOther().getAnies().get(i);
       if (elm.getLocalName().equals("SignTasks")) {
         // Overwrite this ...
         this.signResponse.getSignatureObject().getOther().getAnies().set(i, signTasksElement);
@@ -177,7 +177,7 @@ public class SignResponseWrapper extends SignResponse {
 
   /** {@inheritDoc} */
   @Override
-  public void setResult(Result value) {
+  public void setResult(final Result value) {
     this.signResponse.setResult(value);
   }
 
@@ -195,7 +195,7 @@ public class SignResponseWrapper extends SignResponse {
 
   /** {@inheritDoc} */
   @Override
-  public void setOptionalOutputs(AnyType value) {
+  public void setOptionalOutputs(final AnyType value) {
     // Reset our cache for signResponseExtension.
     this.signResponseExtension = null;
     this.signResponse.setOptionalOutputs(value);
@@ -209,7 +209,7 @@ public class SignResponseWrapper extends SignResponse {
 
   /**
    * Gets the {@code SignResponseExtension} element from the {@code OptionalOutput} object.
-   * 
+   *
    * @return the SignResponseExtension (or null)
    * @throws SignServiceProtocolException
    *           for unmarshalling errors
@@ -232,7 +232,7 @@ public class SignResponseWrapper extends SignResponse {
       try {
         this.signResponseExtension = JAXBUnmarshaller.unmarshall(signResponseExtensionElement, SignResponseExtension.class);
       }
-      catch (JAXBException e) {
+      catch (final JAXBException e) {
         log.error("Failed to decode SignResponseExtension - {}", e.getMessage(), e);
         throw new SignServiceProtocolException("Failed to decode SignResponseExtension", e);
       }
@@ -245,7 +245,7 @@ public class SignResponseWrapper extends SignResponse {
    * <p>
    * Note: If the OptionalOutputs already contains data it is overwritten.
    * </p>
-   * 
+   *
    * @param signResponseExtension
    *          the extension to add
    * @throws SignServiceProtocolException
@@ -259,12 +259,12 @@ public class SignResponseWrapper extends SignResponse {
     }
 
     try {
-      AnyType optionalOutputs = dssObjectFactory.createAnyType();
+      final AnyType optionalOutputs = dssObjectFactory.createAnyType();
       optionalOutputs.getAnies().add(JAXBMarshaller.marshall(signResponseExtension).getDocumentElement());
       this.signResponse.setOptionalOutputs(optionalOutputs);
       this.signResponseExtension = signResponseExtension;
     }
-    catch (JAXBException e) {
+    catch (final JAXBException e) {
       log.error("Failed to marshall SignResponseExtension - {}", e.getMessage(), e);
       throw new SignServiceProtocolException("Failed to marshall SignResponseExtension", e);
     }
@@ -278,7 +278,7 @@ public class SignResponseWrapper extends SignResponse {
 
   /** {@inheritDoc} */
   @Override
-  public void setRequestID(String value) {
+  public void setRequestID(final String value) {
     this.signResponse.setRequestID(value);
   }
 
@@ -296,7 +296,7 @@ public class SignResponseWrapper extends SignResponse {
 
   /** {@inheritDoc} */
   @Override
-  public void setProfile(String value) {
+  public void setProfile(final String value) {
     this.signResponse.setProfile(value);
   }
 

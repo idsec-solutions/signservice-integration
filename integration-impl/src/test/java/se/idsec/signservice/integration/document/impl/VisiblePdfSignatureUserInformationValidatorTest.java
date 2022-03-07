@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ import se.idsec.signservice.integration.document.pdf.VisiblePdfSignatureUserInfo
 
 /**
  * Test cases for VisiblePdfSignatureUserInformationValidator.
- * 
+ *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
@@ -36,11 +36,11 @@ public class VisiblePdfSignatureUserInformationValidatorTest {
   @Test
   public void testMissingHint() throws Exception {
     final VisiblePdfSignatureUserInformationValidator validator = new VisiblePdfSignatureUserInformationValidator();
-    
+
     VisiblePdfSignatureUserInformation object = VisiblePdfSignatureUserInformation.toBuilder()
         .fieldValue("IDP", "eduSign IDP")
         .build();
-    
+
     try {
       validator.validateObject(object, "name", null);
       Assert.fail("Expected InputValidationException");
@@ -48,20 +48,20 @@ public class VisiblePdfSignatureUserInformationValidatorTest {
     catch (InputValidationException e) {
     }
   }
-  
+
   @Test
   public void testSignerNameError() throws Exception {
     final VisiblePdfSignatureUserInformationValidator validator = new VisiblePdfSignatureUserInformationValidator();
-    
+
     final PdfSignatureImageTemplate hint = PdfSignatureImageTemplate.builder()
         .reference("ref")
         .includeSignerName(true)
         .build();
-    
+
     VisiblePdfSignatureUserInformation object = VisiblePdfSignatureUserInformation.toBuilder()
         .fieldValue("IDP", "eduSign IDP")
         .build();
-    
+
     try {
       validator.validateObject(object, "name", hint);
       Assert.fail("Expected InputValidationException");
@@ -69,39 +69,39 @@ public class VisiblePdfSignatureUserInformationValidatorTest {
     catch (InputValidationException e) {
       Assert.assertNotNull(e.getDetails().get("name.signerName"));
     }
-    
+
     object = VisiblePdfSignatureUserInformation.toBuilder()
         .signerName(SignerName.builder().build())
         .fieldValue("IDP", "eduSign IDP")
         .build();
-    
+
     try {
       validator.validateObject(object, "name", hint);
       Assert.fail("Expected InputValidationException");
     }
     catch (InputValidationException e) {
       Assert.assertNotNull(e.getDetails().get("name.signerName"));
-    }    
-    
+    }
+
   }
-  
+
   @Test
   public void testMissingFields() throws Exception {
     final VisiblePdfSignatureUserInformationValidator validator = new VisiblePdfSignatureUserInformationValidator();
-    
+
     final PdfSignatureImageTemplate hint = PdfSignatureImageTemplate.builder()
         .reference("ref")
         .includeSignerName(true)
         .field("IDP", "Description")
         .field("Foo", "Description")
         .build();
-    
+
     VisiblePdfSignatureUserInformation object = VisiblePdfSignatureUserInformation.toBuilder()
         .signerName(SignerName.builder()
             .signerAttribute(SignerIdentityAttribute.createBuilder().name("urn:oid:2.16.840.1.113730.3.1.241").build())
             .build())
         .build();
-    
+
     try {
       validator.validateObject(object, "name", hint);
       Assert.fail("Expected InputValidationException");
@@ -110,14 +110,14 @@ public class VisiblePdfSignatureUserInformationValidatorTest {
       Assert.assertNotNull(e.getDetails().get("name.fieldValues.IDP"));
       Assert.assertNotNull(e.getDetails().get("name.fieldValues.Foo"));
     }
-    
+
     object = VisiblePdfSignatureUserInformation.toBuilder()
         .signerName(SignerName.builder()
             .signerAttribute(SignerIdentityAttribute.createBuilder().name("urn:oid:2.16.840.1.113730.3.1.241").build())
             .build())
         .fieldValue("IDP", "eduSign IDP")
         .build();
-    
+
     try {
       validator.validateObject(object, "name", hint);
       Assert.fail("Expected InputValidationException");
@@ -126,18 +126,18 @@ public class VisiblePdfSignatureUserInformationValidatorTest {
       Assert.assertNotNull(e.getDetails().get("name.fieldValues.Foo"));
     }
   }
-  
+
   @Test
   public void testSuccess() throws Exception {
     final VisiblePdfSignatureUserInformationValidator validator = new VisiblePdfSignatureUserInformationValidator();
-    
+
     final PdfSignatureImageTemplate hint = PdfSignatureImageTemplate.builder()
         .reference("ref")
         .includeSignerName(true)
         .field("IDP", "Description")
         .field("Foo", "Description")
         .build();
-        
+
     final VisiblePdfSignatureUserInformation object = VisiblePdfSignatureUserInformation.toBuilder()
         .signerName(SignerName.builder()
             .signerAttribute(SignerIdentityAttribute.createBuilder().name("urn:oid:2.16.840.1.113730.3.1.241").build())
@@ -145,7 +145,7 @@ public class VisiblePdfSignatureUserInformationValidatorTest {
         .fieldValue("IDP", "eduSign IDP")
         .fieldValue("foo", "value")
         .build();
-        
+
     validator.validateObject(object, "name", hint);
     final ValidationResult result = validator.validate(object, "name", hint);
     Assert.assertFalse(result.hasErrors());

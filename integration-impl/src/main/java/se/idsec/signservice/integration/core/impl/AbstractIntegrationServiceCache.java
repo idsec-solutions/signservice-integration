@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import se.idsec.signservice.integration.core.error.NoAccessException;
 
 /**
  * Base class for an implementation of the {@link IntegrationServiceCache} interface.
- * 
+ *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
@@ -78,7 +78,7 @@ public abstract class AbstractIntegrationServiceCache<T extends Serializable> im
 
   /**
    * Gets the cache entry identified by {@code id}.
-   * 
+   *
    * @param id
    *          the ID
    * @return the entry or null
@@ -100,7 +100,7 @@ public abstract class AbstractIntegrationServiceCache<T extends Serializable> im
 
   /**
    * Adds the supplied entry identified by {@code id} to the cache.
-   * 
+   *
    * @param id
    *          the ID
    * @param object
@@ -120,7 +120,7 @@ public abstract class AbstractIntegrationServiceCache<T extends Serializable> im
 
   /**
    * Removes the object identified by {@code id}.
-   * 
+   *
    * @param id
    *          the ID
    */
@@ -128,7 +128,7 @@ public abstract class AbstractIntegrationServiceCache<T extends Serializable> im
 
   /**
    * Assigns the maximum time (in millis) to keep an object in the cache. Default is {@value #MAX_AGE}.
-   * 
+   *
    * @param maxAge
    *          age in millis
    */
@@ -143,21 +143,21 @@ public abstract class AbstractIntegrationServiceCache<T extends Serializable> im
 
     /**
      * Gets the stored object.
-     * 
+     *
      * @return the stored object (never null)
      */
     T getObject();
 
     /**
      * Gets the owner identity.
-     * 
+     *
      * @return the owner id (may be null)
      */
     String getOwnerId();
 
     /**
      * Gets the expiration time (in millis since epoch).
-     * 
+     *
      * @return the expiration time (or null if the object should live until deleted)
      */
     Long getExpirationTime();

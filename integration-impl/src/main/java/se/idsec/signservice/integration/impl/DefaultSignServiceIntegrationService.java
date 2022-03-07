@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,7 +62,7 @@ import se.idsec.signservice.utils.AssertThat;
 public class DefaultSignServiceIntegrationService implements ExtendedSignServiceIntegrationService {
 
   /** The default version. */
-  public static final String VERSION = "1.2.0";
+  public static final String VERSION = "1.3.0";
 
   /** The version of this service. Defaults to {@value #VERSION}. */
   private String version;
@@ -151,12 +151,12 @@ public class DefaultSignServiceIntegrationService implements ExtendedSignService
       throws SignResponseCancelStatusException, SignResponseErrorStatusException, SignServiceIntegrationException {
 
     log.debug("Request to process SignResponse for ID '{}'", relayState);
-    
+
     // Get hold of the session state ...
     //
-    SignatureSessionState sessionState = this.signatureStateProcessor.getSignatureState(
+    final SignatureSessionState sessionState = this.signatureStateProcessor.getSignatureState(
       state, parameters != null ? parameters.getExtensionValue(OWNER_ID_EXTENSION_KEY) : null);
-    
+
     CorrelationID.init(sessionState.getCorrelationId());
 
     // Sanity check to make sure that the relayState and signature state corresponds ...
@@ -228,7 +228,7 @@ public class DefaultSignServiceIntegrationService implements ExtendedSignService
 
   /**
    * Assigns the policy configuration manager bean.
-   * 
+   *
    * @param configurationManager
    *          the policy configuration manager
    */
@@ -254,7 +254,7 @@ public class DefaultSignServiceIntegrationService implements ExtendedSignService
 
   /**
    * Assigns the signature state processor.
-   * 
+   *
    * @param signatureStateProcessor
    *          the processor
    */
@@ -264,7 +264,7 @@ public class DefaultSignServiceIntegrationService implements ExtendedSignService
 
   /**
    * Sets the sign request processor.
-   * 
+   *
    * @param signRequestProcessor
    *          the sign request processor
    */
@@ -274,7 +274,7 @@ public class DefaultSignServiceIntegrationService implements ExtendedSignService
 
   /**
    * Sets the sign response processor.
-   * 
+   *
    * @param signResponseProcessor
    *          the sign response processor
    */
@@ -284,7 +284,7 @@ public class DefaultSignServiceIntegrationService implements ExtendedSignService
 
   /**
    * Assigns the implementation for {@link #preparePdfSignaturePage(String, byte[], PdfSignaturePagePreferences)}.
-   * 
+   *
    * @param pdfSignaturePagePreparator
    *          the implementation for {@link #preparePdfSignaturePage(String, byte[], PdfSignaturePagePreferences)}
    */
@@ -294,12 +294,12 @@ public class DefaultSignServiceIntegrationService implements ExtendedSignService
 
   /**
    * Ensures that all required properties have been assigned.
-   * 
+   *
    * <p>
    * Note: If executing in a Spring Framework environment this method is automatically invoked after all properties have
    * been assigned. Otherwise it should be explicitly invoked.
    * </p>
-   * 
+   *
    * @throws Exception
    *           if not all settings are correct
    */

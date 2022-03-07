@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,7 @@ import se.idsec.signservice.integration.state.SignatureSessionState;
  * <p>
  * It uses the {@link SignRequestInput} class to store the state between calls.
  * </p>
- * 
+ *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
@@ -52,7 +52,7 @@ public class DefaultSignatureState implements CacheableSignatureState {
 
   /**
    * The state ID.
-   * 
+   *
    * @param id
    *          the state ID
    */
@@ -61,7 +61,7 @@ public class DefaultSignatureState implements CacheableSignatureState {
 
   /**
    * The session state.
-   * 
+   *
    * @param state
    *          the session state
    */

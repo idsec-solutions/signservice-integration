@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import se.idsec.signservice.xml.DOMUtils;
 
 /**
  * Encoder/decoder for XML documents.
- * 
+ *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
@@ -35,11 +35,11 @@ public class XmlDocumentEncoderDecoder implements DocumentDecoder<Document>, Doc
   @Override
   public Document decodeDocument(final String content) throws DocumentProcessingException {
     try {
-      return DOMUtils.base64ToDocument(content); 
+      return DOMUtils.base64ToDocument(content);
     }
-    catch (Exception e) {
+    catch (final Exception e) {
       throw new DocumentProcessingException(new ErrorCode.Code("decode"), "Failed to decode XML object", e);
-    }    
+    }
   }
 
   /** {@inheritDoc} */
@@ -48,7 +48,7 @@ public class XmlDocumentEncoderDecoder implements DocumentDecoder<Document>, Doc
     try {
       return DOMUtils.nodeToBase64(document);
     }
-    catch (Exception e) {
+    catch (final Exception e) {
       throw new DocumentProcessingException(new ErrorCode.Code("encode"), "Failed to encode XML object", e);
     }
   }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,7 +40,7 @@ import se.swedenconnect.schemas.csig.dssext_1_1.SignTaskData;
 
 /**
  * Abstract base class for {@link TbsDocumentProcessor} implementations.
- * 
+ *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
@@ -51,7 +51,8 @@ public abstract class AbstractTbsDocumentProcessor<T> implements TbsDocumentProc
   private TbsDocumentValidator tbsDocumentValidator;
 
   /** Object factory for DSS-Ext objects. */
-  private static se.swedenconnect.schemas.csig.dssext_1_1.ObjectFactory dssExtObjectFactory = new se.swedenconnect.schemas.csig.dssext_1_1.ObjectFactory();
+  private static se.swedenconnect.schemas.csig.dssext_1_1.ObjectFactory dssExtObjectFactory =
+      new se.swedenconnect.schemas.csig.dssext_1_1.ObjectFactory();
 
   /** {@inheritDoc} */
   @Override
@@ -60,7 +61,7 @@ public abstract class AbstractTbsDocumentProcessor<T> implements TbsDocumentProc
       throws InputValidationException {
 
     // Make a copy of the document before updating it.
-    TbsDocument updatedDocument = document.toBuilder().build();
+    final TbsDocument updatedDocument = document.toBuilder().build();
 
     if (document.getId() == null) {
       updatedDocument.setId(UUID.randomUUID().toString());
@@ -83,9 +84,9 @@ public abstract class AbstractTbsDocumentProcessor<T> implements TbsDocumentProc
         throw new RuntimeException("No document cache available");
       }
       try {
-        final String cachedDocument = documentCache.get(updatedDocument.getContentReference(), true, 
+        final String cachedDocument = documentCache.get(updatedDocument.getContentReference(), true,
           signRequestInput.getExtensionValue(SignServiceIntegrationService.OWNER_ID_EXTENSION_KEY));
-        
+
         if (cachedDocument == null) {
           final String msg = String.format("reference '%s' not found in cache", updatedDocument.getContentReference());
           log.error("{}: {}", CorrelationID.id(), msg);
@@ -95,7 +96,7 @@ public abstract class AbstractTbsDocumentProcessor<T> implements TbsDocumentProc
         updatedDocument.setContent(cachedDocument);
         updatedDocument.setContentReference(null);
       }
-      catch (NoAccessException e) {
+      catch (final NoAccessException e) {
         final String msg = String.format("Caller does not have access to referenced document '%s'", updatedDocument.getContentReference());
         log.error("{}: {}", CorrelationID.id(), msg);
         throw new InputValidationException(fieldName + ".contentReference", msg, e);
@@ -117,14 +118,14 @@ public abstract class AbstractTbsDocumentProcessor<T> implements TbsDocumentProc
     final TbsCalculationResult tbsCalculation = this.calculateToBeSigned(document, signatureAlgorithm, config);
     final TbsDocument tbsDocument = document.getTbsDocument();
 
-    SignTaskData signTaskData = dssExtObjectFactory.createSignTaskData();
+    final SignTaskData signTaskData = dssExtObjectFactory.createSignTaskData();
     signTaskData.setSignTaskId(tbsDocument.getId());
     signTaskData.setSigType(tbsCalculation.getSigType());
     signTaskData.setToBeSignedBytes(tbsCalculation.getToBeSignedBytes());
     if (tbsDocument.getAdesRequirement() != null) {
       signTaskData.setAdESType(tbsDocument.getAdesRequirement().getAdesFormat().name());
       if (tbsCalculation.getAdesSignatureId() != null) {
-        AdESObject adesObject = dssExtObjectFactory.createAdESObject();
+        final AdESObject adesObject = dssExtObjectFactory.createAdESObject();
         adesObject.setSignatureId(tbsCalculation.getAdesSignatureId());
         if (tbsCalculation.getAdesObjectBytes() != null) {
           adesObject.setAdESObjectBytes(tbsCalculation.getAdesObjectBytes());
@@ -145,7 +146,7 @@ public abstract class AbstractTbsDocumentProcessor<T> implements TbsDocumentProc
 
   /**
    * Calculates the ToBeSignedBytes, and optionally AdES data, that will be part of the {@code SignTaskData}.
-   * 
+   *
    * @param document
    *          the document to sign
    * @param signatureAlgorithm
@@ -161,14 +162,14 @@ public abstract class AbstractTbsDocumentProcessor<T> implements TbsDocumentProc
 
   /**
    * Gets the validator for checking AdES requirements.
-   * 
+   *
    * @return validator for AdES requirements
    */
   protected abstract EtsiAdesRequirementValidator getEtsiAdesRequirementValidator();
 
   /**
    * Validates the document contents. The default implementation invokes {@link DocumentDecoder#decodeDocument(String)}.
-   * 
+   *
    * @param document
    *          the document holding the content to validate
    * @param config
@@ -188,7 +189,7 @@ public abstract class AbstractTbsDocumentProcessor<T> implements TbsDocumentProc
       log.debug("{}: Successfully validated document (doc-id: {})", CorrelationID.id(), document.getId());
       return documentObject;
     }
-    catch (DocumentProcessingException e) {
+    catch (final DocumentProcessingException e) {
       final String msg = String.format("Failed to load content for document '%s' - %s", document.getId(), e.getMessage());
       log.error("{}: {}", CorrelationID.id(), msg, e);
       throw new InputValidationException(fieldName + ".content", msg, e);
@@ -197,7 +198,7 @@ public abstract class AbstractTbsDocumentProcessor<T> implements TbsDocumentProc
 
   /**
    * Gets the {@link TbsDocumentValidator} to use while processing.
-   * 
+   *
    * @return a TbsDocumentValidator
    */
   protected TbsDocumentValidator getTbsDocumentValidator() {
@@ -210,12 +211,12 @@ public abstract class AbstractTbsDocumentProcessor<T> implements TbsDocumentProc
   /**
    * Ensures that the {@link #getEtsiAdesRequirementValidator()} does not return {@code null} and sets up a
    * {@link TbsDocumentValidator}.
-   * 
+   *
    * <p>
    * Note: If executing in a Spring Framework environment this method is automatically invoked after all properties have
    * been assigned. Otherwise it should be explicitly invoked.
    * </p>
-   * 
+   *
    * @throws Exception
    *           for init errors
    */

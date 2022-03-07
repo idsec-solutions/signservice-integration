@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@ package se.idsec.signservice.integration.document.ades;
 
 /**
  * Marker interface for the AdES object that may be part of a signature.
- * 
+ *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
@@ -25,7 +25,7 @@ public interface AdesObject {
 
   /**
    * Gets the signing certificate digest found in the AdES object.
-   * 
+   *
    * @return the signing certificate digest, or null if this information is not available
    */
   AdesSigningCertificateDigest getSigningCertificateDigest();

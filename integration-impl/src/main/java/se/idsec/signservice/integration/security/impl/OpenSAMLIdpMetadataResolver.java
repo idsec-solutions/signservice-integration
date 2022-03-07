@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ import se.idsec.signservice.integration.security.MetadataException;
 
 /**
  * Implementation of the {@link IdpMetadataResolver} interface using an OpenSAML {@link MetadataResolver}.
- * 
+ *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
@@ -41,7 +41,7 @@ public class OpenSAMLIdpMetadataResolver implements IdpMetadataResolver {
 
   /**
    * Constructor.
-   * 
+   *
    * @param metadataResolver
    *          the metadata resolver
    */
@@ -53,7 +53,7 @@ public class OpenSAMLIdpMetadataResolver implements IdpMetadataResolver {
   @Override
   public EntityDescriptor resolveMetadata(final String entityID, final IntegrationServiceConfiguration config) throws MetadataException {
     try {
-      CriteriaSet criteria = new CriteriaSet();
+      final CriteriaSet criteria = new CriteriaSet();
       criteria.add(new EntityIdCriterion(entityID));
       final EntityDescriptor metadata = this.metadataResolver.resolveSingle(criteria);
       if (metadata == null) {
@@ -63,7 +63,7 @@ public class OpenSAMLIdpMetadataResolver implements IdpMetadataResolver {
       }
       return metadata;
     }
-    catch (ResolverException e) {
+    catch (final ResolverException e) {
       final String msg = String.format("Error during download of metadata for '%s' - %s", entityID, e.getMessage());
       log.error("{}:{}", CorrelationID.id(), msg, e);
       throw new MetadataException(msg, e);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,10 +25,10 @@ import se.swedenconnect.schemas.csig.dssext_1_1.SignTaskData;
 
 /**
  * Interface for a processor of a "to be signed" document.
- * 
+ *
  * @param <T>
  *          the type of documents handled by this processor
- * 
+ *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
@@ -36,7 +36,7 @@ public interface TbsDocumentProcessor<T> extends DocumentProcessor<T> {
 
   /**
    * Predicate that tells if the supplied document can be handled by this processor.
-   * 
+   *
    * @param document
    *          the document
    * @return if the document can be processed by this instance true is returned, otherwise false
@@ -46,7 +46,7 @@ public interface TbsDocumentProcessor<T> extends DocumentProcessor<T> {
   /**
    * Performs a pre-processing of the supplied document where the document is validated, and in some cases updated with
    * default settings.
-   * 
+   *
    * @param document
    *          the document to process
    * @param signRequestInput
@@ -67,7 +67,7 @@ public interface TbsDocumentProcessor<T> extends DocumentProcessor<T> {
 
   /**
    * Prepares the document for signing by creating a {@code SignTaskData} element.
-   * 
+   *
    * @param document
    *          the document to sign
    * @param signatureAlgorithm

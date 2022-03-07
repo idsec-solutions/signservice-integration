@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +38,7 @@ public class SignRequestInputValidator extends AbstractInputValidator<SignReques
 
   /** Validator for SigningCertificateRequirements. */
   private final SigningCertificateRequirementsValidator signingCertificateRequirementsValidator = new SigningCertificateRequirementsValidator();
-  
+
   /** Validator for SignMessageParametersValidator. */
   private final SignMessageParametersValidator signMessageParametersValidator = new SignMessageParametersValidator();
 
@@ -52,17 +52,17 @@ public class SignRequestInputValidator extends AbstractInputValidator<SignReques
       result.reject("Missing signRequestInput");
       return result;
     }
-    
+
     // SignRequesterID
     if (StringUtils.isBlank(object.getSignRequesterID()) && StringUtils.isBlank(hint.getDefaultSignRequesterID())) {
       result.rejectValue("signRequesterID", "No signRequesterID given and configuration does not contain a default value");
     }
-    
+
     // ReturnUrl
     if (StringUtils.isBlank(object.getReturnUrl()) && StringUtils.isBlank(hint.getDefaultReturnUrl())) {
       result.rejectValue("returnUrl", "No returnUrl given and configuration does not contain a default value");
     }
-    
+
     // AuthnRequirements
     result.setFieldErrors(this.authnRequirementsValidator.validate(
       object.getAuthnRequirements(), "authnRequirements", hint));
@@ -74,12 +74,12 @@ public class SignRequestInputValidator extends AbstractInputValidator<SignReques
     // SignMessageParametersValidator
     result.setFieldErrors(this.signMessageParametersValidator.validate(
       object.getSignMessageParameters(), "signMessageParameters", null));
-    
+
     // TbsDocuments
     if (object.getTbsDocuments() == null || object.getTbsDocuments().isEmpty()) {
       result.rejectValue("tbsDocuments", "Missing document(s) to sign");
     }
-    
+
     return result;
   }
 

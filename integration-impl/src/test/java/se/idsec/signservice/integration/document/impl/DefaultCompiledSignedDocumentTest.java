@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ import se.idsec.signservice.integration.testbase.TestDocumentType;
 
 /**
  * Test cases for {@code DefaultCompiledSignedDocument}.
- * 
+ *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
@@ -63,24 +63,24 @@ public class DefaultCompiledSignedDocumentTest {
       Assert.fail("Missing document - expected IllegalArgumentException");
     }
     catch (IllegalArgumentException e) {
-    }    
+    }
   }
-  
+
   @Test
   public void testBasicUse() throws Exception {
     DefaultCompiledSignedDocument<TestDocumentType, TestAdesObject> csd = new DefaultCompiledSignedDocument<>(
         "id", new TestDocumentType("DOCUMENT"), DocumentType.XML.getMimeType(), encoder, new TestAdesObject(null));
-    
+
     Assert.assertEquals("DOCUMENT", csd.getDocument().getContents());
     Assert.assertNotNull(csd.getAdesObject());
-    
+
     SignedDocument sd = csd.getSignedDocument();
-    
+
     Assert.assertEquals("id", sd.getId());
     Assert.assertEquals(DocumentType.XML.getMimeType(), sd.getMimeType());
     Assert.assertNull(sd.getExtension());
     Assert.assertEquals("DOCUMENT", sd.getSignedContent());
-    
+
     // The document encoding is internally cached. Make sure we get the same result ...
     sd = csd.getSignedDocument();
     Assert.assertEquals("id", sd.getId());
@@ -88,7 +88,7 @@ public class DefaultCompiledSignedDocumentTest {
     Assert.assertNull(sd.getExtension());
     Assert.assertEquals("DOCUMENT", sd.getSignedContent());
   }
-  
+
   @Test
   public void testErrorDecode() throws Exception {
     TestDocumentEncoderDecoder errEncoder = new TestDocumentEncoderDecoder();

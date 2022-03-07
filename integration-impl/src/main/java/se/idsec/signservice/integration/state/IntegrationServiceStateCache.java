@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,15 +19,15 @@ import se.idsec.signservice.integration.core.IntegrationServiceCache;
 
 /**
  * Interface for the SignService Integration Service state cache.
- * 
+ *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
 public interface IntegrationServiceStateCache extends IntegrationServiceCache<CacheableSignatureState> {
-  
+
   /**
    * Adds an object to the cache.
-   * 
+   *
    * @param id
    *          the object ID
    * @param state
@@ -36,5 +36,5 @@ public interface IntegrationServiceStateCache extends IntegrationServiceCache<Ca
   default void put(final String id, final CacheableSignatureState state) {
     this.put(id, state, state != null ? state.getOwnerId() : null);
   }
-  
+
 }

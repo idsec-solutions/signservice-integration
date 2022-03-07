@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import se.idsec.signservice.integration.state.SignatureSessionState;
 
 /**
  * Processor for handling the {@code SignerAssertionInfo} received in a {@code SignResponse}.
- * 
+ *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
@@ -35,7 +35,7 @@ public interface SignerAssertionInfoProcessor {
   /**
    * Processes and validates the {@code SignerAssertionInfo} received in the supplied {@code SignResponse} and creates a
    * {@code SignerAssertionInformation} object that is to be returned back to the caller.
-   * 
+   *
    * @param signResponse
    *          the SignResponse
    * @param state

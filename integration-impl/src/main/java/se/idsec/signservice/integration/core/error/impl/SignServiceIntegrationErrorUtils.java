@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ import se.idsec.signservice.integration.document.pdf.PdfSignaturePageFullExcepti
 
 /**
  * Utilities for error handling.
- * 
+ *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
@@ -43,7 +43,7 @@ public class SignServiceIntegrationErrorUtils {
   /**
    * A utility method that can be used by clients to a SignService Integration service running as a REST server. The
    * method converts the error body into an exception.
-   * 
+   *
    * @param errorBody
    *          the error body
    * @return an exception
@@ -100,7 +100,7 @@ public class SignServiceIntegrationErrorUtils {
 
     /**
      * Constructor.
-     * 
+     *
      * @param errorCode
      *          the error code
      * @param message

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ import se.idsec.signservice.integration.state.SignatureSessionState;
 
 /**
  * Implementation of an encoded signature session state.
- * 
+ *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
@@ -44,12 +44,12 @@ public class EncodedSignatureSessionState implements Serializable {
   private static final long serialVersionUID = -4038769805839320240L;
 
   /** JSON mapper. */
-  @JsonIgnore  
+  @JsonIgnore
   private final static ObjectMapper mapper = new ObjectMapper();
 
   /**
    * The state in the Base64-encoded form of the JSON-serialization of SignatureSessionState.
-   * 
+   *
    * @param encodedState
    *          the state in the Base64-encoded form of the JSON-serialization of SignatureSessionState
    * @return the state in the Base64-encoded form of the JSON-serialization of SignatureSessionState
@@ -67,7 +67,7 @@ public class EncodedSignatureSessionState implements Serializable {
 
   /**
    * Constructor.
-   * 
+   *
    * @param encodedState
    *          the encoded state
    */
@@ -78,7 +78,7 @@ public class EncodedSignatureSessionState implements Serializable {
 
   /**
    * Constructor.
-   * 
+   *
    * @param state
    *          the state
    * @throws IOException
@@ -91,7 +91,7 @@ public class EncodedSignatureSessionState implements Serializable {
 
   /**
    * Assigns the state to be compressed.
-   * 
+   *
    * @param state
    *          the state
    * @throws IOException
@@ -105,9 +105,10 @@ public class EncodedSignatureSessionState implements Serializable {
 
   /**
    * Decompresses and gets the session state.
-   * 
+   *
    * @return the state
-   * @throws IOException for deserialization errors
+   * @throws IOException
+   *           for deserialization errors
    */
   @JsonIgnore
   public SignatureSessionState getSignatureSessionState() throws IOException {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import se.idsec.signservice.integration.document.pdf.PreparedPdfDocument;
 /**
  * Implementation of
  * {@link ExtendedSignServiceIntegrationService#preparePdfSignaturePage(String, byte[], PdfSignaturePagePreferences)}.
- * 
+ *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
@@ -35,7 +35,7 @@ public interface PdfSignaturePagePreparator {
   /**
    * See
    * {@link ExtendedSignServiceIntegrationService#preparePdfSignaturePage(String, byte[], PdfSignaturePagePreferences)}.
-   * 
+   *
    * @param pdfDocument
    *          the contents of the PDF document that is to be prepared
    * @param signaturePagePreferences

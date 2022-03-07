@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ import se.swedenconnect.opensaml.xmlsec.config.SAML2IntSecurityConfiguration;
 
 /**
  * Test cases for {@link SignServiceIntegrationServiceInitializer}.
- * 
+ *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
@@ -36,20 +36,20 @@ public class SignServiceIntegrationServiceInitializerTest3 {
 
   @Test
   public void testInitSecurityConfigSaml2Int() throws Exception {
-    
+
     if (SignServiceIntegrationServiceInitializer.isInitialized()) {
       return;
     }
-    
+
     // Try creating OpenSAML object. Should not be possible.
     try {
       XMLObjectSupport.buildXMLObject(Issuer.DEFAULT_ELEMENT_NAME);
       Assert.fail("Expected XMLRuntimeException");
     }
-    catch (XMLRuntimeException e) {
+    catch (final XMLRuntimeException e) {
       // XMLObjectProviderRegistry was not available from the ConfigurationService.
     }
-    
+
     SignServiceIntegrationServiceInitializer.initialize(new SAML2IntSecurityConfiguration());
 
     // Now, it should work
@@ -57,10 +57,10 @@ public class SignServiceIntegrationServiceInitializerTest3 {
 
     // The SAML2IntSecurityConfiguration prefers AES-GCM before AES-CBC. Assert that.
     //
-    EncryptionConfiguration encConfig = ConfigurationService.get(EncryptionConfiguration.class);
-    int cbcPos = encConfig.getDataEncryptionAlgorithms().indexOf(EncryptionConstants.ALGO_ID_BLOCKCIPHER_AES128);
-    int gcmPos = encConfig.getDataEncryptionAlgorithms().indexOf(EncryptionConstants.ALGO_ID_BLOCKCIPHER_AES128_GCM);
+    final EncryptionConfiguration encConfig = ConfigurationService.get(EncryptionConfiguration.class);
+    final int cbcPos = encConfig.getDataEncryptionAlgorithms().indexOf(EncryptionConstants.ALGO_ID_BLOCKCIPHER_AES128);
+    final int gcmPos = encConfig.getDataEncryptionAlgorithms().indexOf(EncryptionConstants.ALGO_ID_BLOCKCIPHER_AES128_GCM);
     Assert.assertTrue(cbcPos > gcmPos);
   }
-  
+
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import se.idsec.signservice.integration.document.pdf.VisiblePdfSignatureUserInfo
 
 /**
  * Validator for {@link VisiblePdfSignatureUserInformation} objects.
- * 
+ *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
@@ -38,12 +38,12 @@ public class VisiblePdfSignatureUserInformationValidator
     if (object == null) {
       return result;
     }
-    
+
     if (hint == null) {
       result.reject("No PdfSignatureImageTemplate found for visiblePdfSignatureUserInformation");
       return result;
     }
-    
+
     // Check signerName ...
     //
     if (hint.isIncludeSignerName()) {

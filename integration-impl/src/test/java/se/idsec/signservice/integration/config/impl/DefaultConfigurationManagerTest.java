@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,11 +30,11 @@ import se.idsec.signservice.integration.certificate.RequestedCertificateAttribut
 import se.idsec.signservice.integration.certificate.SigningCertificateRequirements;
 import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
 import se.idsec.signservice.integration.security.impl.DefaultEncryptionParameters;
-import se.idsec.signservice.security.sign.impl.KeyStoreSigningCredential;
+import se.swedenconnect.security.credential.KeyStoreCredential;
 
 /**
  * Test cases for DefaultConfigurationManager.
- * 
+ *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
@@ -43,10 +43,11 @@ public class DefaultConfigurationManagerTest {
   private DefaultIntegrationServiceConfiguration coreConfig;
 
   public DefaultConfigurationManagerTest() throws Exception {
-    
-    KeyStoreSigningCredential signingCred = new KeyStoreSigningCredential(
-      new ClassPathResource("signing.jks"), "secret".toCharArray(), "default");
-    
+
+    KeyStoreCredential signingCred = new KeyStoreCredential(
+      new ClassPathResource("signing.jks"), "secret".toCharArray(), "default", "secret".toCharArray());
+    signingCred.init();
+
     this.coreConfig = DefaultIntegrationServiceConfiguration.builder()
       .policy("default")
       .defaultSignRequesterID("defaultSignRequesterID")
@@ -72,8 +73,8 @@ public class DefaultConfigurationManagerTest {
           .build())
       .defaultEncryptionParameters(new DefaultEncryptionParameters())
       .signingCredential(signingCred)
-      .signServiceCertificate(signingCred.getSigningCertificate() /* Just need a cert */)
-      .trustAnchor(signingCred.getSigningCertificate() /* Just need a cert */)
+      .signServiceCertificate(signingCred.getCertificate() /* Just need a cert */)
+      .trustAnchor(signingCred.getCertificate() /* Just need a cert */)
       .build();
   }
 
@@ -82,7 +83,7 @@ public class DefaultConfigurationManagerTest {
 
     Map<String, IntegrationServiceConfiguration> map = new HashMap<>();
 
-    DefaultIntegrationServiceConfiguration c1 = this.coreConfig.toBuilder() 
+    DefaultIntegrationServiceConfiguration c1 = this.coreConfig.toBuilder()
       .policy("default")
       .defaultSignRequesterID("Kalle")
       .defaultAuthnContextRef("loa3")

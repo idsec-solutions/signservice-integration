@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,11 +24,11 @@ import org.opensaml.saml.saml2.core.Issuer;
 import org.opensaml.xmlsec.EncryptionConfiguration;
 import org.opensaml.xmlsec.encryption.support.EncryptionConstants;
 
-import se.litsec.swedisheid.opensaml.xmlsec.config.SwedishEidSecurityConfiguration;
+import se.swedenconnect.opensaml.sweid.xmlsec.config.SwedishEidSecurityConfiguration;
 
 /**
  * Test cases for {@link SignServiceIntegrationServiceInitializer}.
- * 
+ *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
@@ -36,11 +36,11 @@ public class SignServiceIntegrationServiceInitializerTest2 {
 
   @Test
   public void testInitSecurityConfig() throws Exception {
-    
+
     if (SignServiceIntegrationServiceInitializer.isInitialized()) {
       return;
     }
-    
+
     // Try creating OpenSAML object. Should not be possible.
     try {
       XMLObjectSupport.buildXMLObject(Issuer.DEFAULT_ELEMENT_NAME);
@@ -49,7 +49,7 @@ public class SignServiceIntegrationServiceInitializerTest2 {
     catch (XMLRuntimeException e) {
       // XMLObjectProviderRegistry was not available from the ConfigurationService.
     }
-    
+
     SignServiceIntegrationServiceInitializer.initialize(new SwedishEidSecurityConfiguration());
 
     // Now, it should work
@@ -62,5 +62,5 @@ public class SignServiceIntegrationServiceInitializerTest2 {
     int gcmPos = encConfig.getDataEncryptionAlgorithms().indexOf(EncryptionConstants.ALGO_ID_BLOCKCIPHER_AES128_GCM);
     Assert.assertTrue(cbcPos < gcmPos);
   }
-  
+
 }

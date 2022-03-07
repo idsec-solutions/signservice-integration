@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ import se.idsec.signservice.integration.state.SignatureSessionState;
 
 /**
  * Interface for sign response processing.
- * 
+ *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
@@ -36,7 +36,7 @@ public interface SignResponseProcessor {
 
   /**
    * Processes the supplied SignResponse according to the supplied processing parameters and the session state.
-   * 
+   *
    * @param signResponse
    *          the encoded SignResponse message
    * @param sessionState
@@ -62,7 +62,7 @@ public interface SignResponseProcessor {
 
   /**
    * Gets the processing configuration that this processor is configured with.
-   * 
+   *
    * @return the processing configuration
    */
   @Nonnull

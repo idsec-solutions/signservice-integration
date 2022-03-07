@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import java.util.Map;
 
 /**
  * Class holding validation results (errors).
- * 
+ *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
@@ -37,7 +37,7 @@ public class ValidationResult {
 
   /**
    * Constructor.
-   * 
+   *
    * @param objectName
    *          the name for the object that is validated (null for no name)
    */
@@ -47,7 +47,7 @@ public class ValidationResult {
 
   /**
    * Gets the name for the object that was validated.
-   * 
+   *
    * @return the name for the object that was validated (null if the object isn't given a name)
    */
   public String getObjectName() {
@@ -56,7 +56,7 @@ public class ValidationResult {
 
   /**
    * Predicate telling if this object holds any errors.
-   * 
+   *
    * @return true if this object holds errors and false otherwise
    */
   public boolean hasErrors() {
@@ -65,7 +65,7 @@ public class ValidationResult {
 
   /**
    * Returns the global error message for this object (if any)
-   * 
+   *
    * @return the global error message or null
    */
   public String getGlobalError() {
@@ -74,7 +74,7 @@ public class ValidationResult {
 
   /**
    * Returns the "field" errors of this object.
-   * 
+   *
    * @return a map (possibly empty) with field names and their error messages
    */
   public Map<String, String> getFieldErrors() {
@@ -83,7 +83,7 @@ public class ValidationResult {
 
   /**
    * Register an error for the entire object.
-   * 
+   *
    * @param msg
    *          the error message
    */
@@ -93,7 +93,7 @@ public class ValidationResult {
 
   /**
    * Register an error for a specific field.
-   * 
+   *
    * @param field
    *          the field name
    * @param msg
@@ -110,7 +110,7 @@ public class ValidationResult {
 
   /**
    * If an underlying object (to this object) has been verified, its result should be installed.
-   * 
+   *
    * @param result
    *          the result from the underlying object
    */

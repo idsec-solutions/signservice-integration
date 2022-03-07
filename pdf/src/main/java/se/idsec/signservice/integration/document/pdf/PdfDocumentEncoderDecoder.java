@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import se.idsec.signservice.integration.document.DocumentProcessingException;
 
 /**
  * Encoder/decoder for PDF documents.
- * 
+ *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
@@ -36,7 +36,7 @@ public class PdfDocumentEncoderDecoder implements DocumentDecoder<byte[]>, Docum
     try {
       return Base64.getDecoder().decode(content);
     }
-    catch (Exception e) {
+    catch (final Exception e) {
       throw new DocumentProcessingException(new ErrorCode.Code("decode"), "Failed to load PDF object", e);
     }
   }
@@ -47,9 +47,9 @@ public class PdfDocumentEncoderDecoder implements DocumentDecoder<byte[]>, Docum
     try {
       return Base64.getEncoder().encodeToString(document);
     }
-    catch (Exception e) {
+    catch (final Exception e) {
       throw new DocumentProcessingException(new ErrorCode.Code("encode"), "Failed to encode PDF object", e);
     }
   }
-  
+
 }

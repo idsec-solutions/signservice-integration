@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
  */
 package se.idsec.signservice.integration.process.impl;
 
-import java.io.ByteArrayInputStream;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
@@ -23,13 +22,11 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
+import javax.xml.bind.JAXBException;
 
 import org.apache.commons.lang.StringUtils;
-import org.opensaml.core.xml.io.UnmarshallingException;
-import org.opensaml.saml.saml2.core.Assertion;
 
 import lombok.extern.slf4j.Slf4j;
-import net.shibboleth.utilities.java.support.xml.XMLParserException;
 import se.idsec.signservice.integration.SignResponseProcessingParameters;
 import se.idsec.signservice.integration.authentication.SignerAssertionInformation;
 import se.idsec.signservice.integration.authentication.SignerAssertionInformation.SignerAssertionInformationBuilder;
@@ -42,19 +39,22 @@ import se.idsec.signservice.integration.dss.DssUtils;
 import se.idsec.signservice.integration.dss.SignRequestWrapper;
 import se.idsec.signservice.integration.dss.SignResponseWrapper;
 import se.idsec.signservice.integration.process.SignResponseProcessingConfig;
+import se.idsec.signservice.integration.signmessage.SignMessageProcessor;
 import se.idsec.signservice.integration.state.SignatureSessionState;
-import se.litsec.opensaml.saml2.attribute.AttributeUtils;
-import se.litsec.opensaml.utils.ObjectUtils;
-import se.litsec.swedisheid.opensaml.saml2.attribute.AttributeConstants;
+import se.idsec.signservice.xml.DOMUtils;
+import se.idsec.signservice.xml.InternalXMLException;
+import se.idsec.signservice.xml.JAXBUnmarshaller;
 import se.swedenconnect.schemas.csig.dssext_1_1.ContextInfo;
 import se.swedenconnect.schemas.csig.dssext_1_1.MappedAttributeType;
 import se.swedenconnect.schemas.csig.dssext_1_1.PreferredSAMLAttributeNameType;
 import se.swedenconnect.schemas.csig.dssext_1_1.RequestedCertAttributes;
 import se.swedenconnect.schemas.csig.dssext_1_1.SignerAssertionInfo;
+import se.swedenconnect.schemas.saml_2_0.assertion.Assertion;
+import se.swedenconnect.schemas.saml_2_0.assertion.AttributeStatement;
 
 /**
  * Default implementation of the {@link SignerAssertionInfoProcessor} interface.
- * 
+ *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
@@ -66,7 +66,8 @@ public class DefaultSignerAssertionInfoProcessor implements SignerAssertionInfoP
 
   /** {@inheritDoc} */
   @Override
-  public SignerAssertionInformation processSignerAssertionInfo(final SignResponseWrapper signResponse, final SignatureSessionState state,
+  public SignerAssertionInformation processSignerAssertionInfo(
+      final SignResponseWrapper signResponse, final SignatureSessionState state,
       final SignResponseProcessingParameters parameters) throws SignServiceIntegrationException {
 
     final SignerAssertionInfo signerAssertionInfo = signResponse.getSignResponseExtension().getSignerAssertionInfo();
@@ -83,7 +84,7 @@ public class DefaultSignerAssertionInfoProcessor implements SignerAssertionInfoP
     // Attributes
     // Validate that we got all required attributes ...
     //
-    List<SignerIdentityAttributeValue> attributes = this.processAttributes(signerAssertionInfo, signRequest);
+    final List<SignerIdentityAttributeValue> attributes = this.processAttributes(signerAssertionInfo, signRequest);
     builder.signerAttributes(attributes);
 
     // Get ContextInfo values ...
@@ -147,9 +148,9 @@ public class DefaultSignerAssertionInfoProcessor implements SignerAssertionInfoP
       }
       // Find the assertion matching the AssertionRef ...
       else {
-        for (byte[] a : signerAssertionInfo.getSamlAssertions().getAssertions()) {
+        for (final byte[] a : signerAssertionInfo.getSamlAssertions().getAssertions()) {
           try {
-            final Assertion assertion = ObjectUtils.unmarshall(new ByteArrayInputStream(a), Assertion.class);
+            final Assertion assertion = JAXBUnmarshaller.unmarshall(DOMUtils.bytesToDocument(a), Assertion.class);
             if (assertionRef.equals(assertion.getID())) {
               idpAssertion = a;
               break;
@@ -159,7 +160,7 @@ public class DefaultSignerAssertionInfoProcessor implements SignerAssertionInfoP
                 assertion.getID(), signRequest.getRequestID());
             }
           }
-          catch (XMLParserException | UnmarshallingException e) {
+          catch (final InternalXMLException | JAXBException e) {
             final String msg =
                 String.format("Invalid SAML assertion found in SignerAssertionInfo/SamlAssertions - %s [request-id='%s']",
                   e.getMessage(), signRequest.getRequestID());
@@ -200,8 +201,9 @@ public class DefaultSignerAssertionInfoProcessor implements SignerAssertionInfoP
     }
 
     // Get hold of the LoA from the request.
-    final List<String> requestedAuthnContextClassRefs = 
-        Optional.ofNullable(signRequest.getSignRequestExtension().getCertRequestProperties().getAuthnContextClassRefs()).orElse(Collections.emptyList());
+    final List<String> requestedAuthnContextClassRefs =
+        Optional.ofNullable(signRequest.getSignRequestExtension().getCertRequestProperties().getAuthnContextClassRefs())
+          .orElse(Collections.emptyList());
 
     // Did we require a sign message to be displayed?
     final boolean requireDisplaySignMessageProof = this.requireDisplaySignMessageProof(state);
@@ -210,7 +212,7 @@ public class DefaultSignerAssertionInfoProcessor implements SignerAssertionInfoP
       // If display of SignMessage was required, we need the signMessageDigest attribute to be released.
       if (requireDisplaySignMessageProof) {
         String signMessageDigest = attributes.stream()
-          .filter(a -> AttributeConstants.ATTRIBUTE_NAME_SIGNMESSAGE_DIGEST.equals(a.getName()))
+          .filter(a -> SignMessageProcessor.SIGN_MESSAGE_DIGEST_ATTRIBUTE.equals(a.getName()))
           .map(a -> a.getValue())
           .findFirst()
           .orElse(null);
@@ -229,16 +231,13 @@ public class DefaultSignerAssertionInfoProcessor implements SignerAssertionInfoP
         //
         if (idpAssertion != null) {
           try {
-            final Assertion assertion = ObjectUtils.unmarshall(new ByteArrayInputStream(idpAssertion), Assertion.class);
-            if (!assertion.getAttributeStatements().isEmpty()) {
-              signMessageDigest = assertion.getAttributeStatements().get(0).getAttributes().stream()
-                .filter(a -> AttributeConstants.ATTRIBUTE_NAME_SIGNMESSAGE_DIGEST.equals(a.getName()))
-                .map(a -> AttributeUtils.getAttributeStringValue(a))
-                .findFirst()
-                .orElse(null);
+            final Assertion assertion = JAXBUnmarshaller.unmarshall(DOMUtils.bytesToDocument(idpAssertion), Assertion.class);
+            final AttributeStatement attributeStatement = DssUtils.getAttributeStatement(assertion);
+            if (attributeStatement != null) {
+              signMessageDigest = DssUtils.getAttributeValue(attributeStatement, SignMessageProcessor.SIGN_MESSAGE_DIGEST_ATTRIBUTE);
             }
           }
-          catch (XMLParserException | UnmarshallingException e) {
+          catch (final InternalXMLException | JAXBException e) {
             final String msg =
                 String.format("Invalid SAML assertion found in SignerAssertionInfo/SamlAssertions - %s [request-id='%s']",
                   e.getMessage(), signRequest.getRequestID());
@@ -251,7 +250,7 @@ public class DefaultSignerAssertionInfoProcessor implements SignerAssertionInfoP
           final String msg = String.format(
             "Missing proof for displayed sign message (no signMessageDigest and no sigmessage authnContext) [request-id='%s']",
             signRequest.getRequestID());
-          
+
           if (this.processingConfig.isRequireAssertion()) {
             log.error("{}: {}", CorrelationID.id(), msg);
             throw new SignResponseProcessingException(new ErrorCode.Code("invalid-authncontext"), msg);
@@ -270,43 +269,10 @@ public class DefaultSignerAssertionInfoProcessor implements SignerAssertionInfoP
       }
     }
     else {
-      // If we don't allow sigmessage URI:s, we need a match ...
-      if (!this.processingConfig.isAllowSigMessageUris()) {
-        final String msg = String.format("Unexpected authnContextRef received - %s. %s was expected [request-id='%s']",
-          authnContextClassRef, requestedAuthnContextClassRefs, signRequest.getRequestID());
-        log.error("{}: {}", CorrelationID.id(), msg);
-        throw new SignResponseProcessingException(new ErrorCode.Code("invalid-authncontext"), msg);
-      }
-      // OK, we allow sigmessage URI:s. Check if we find a valid mapping.
-      //
-      final List<String> possibleSigUris = requestedAuthnContextClassRefs.stream()
-        .map(r -> this.processingConfig.getSigMessageUriMap().get(r))
-        .filter(r -> r != null)
-        .collect(Collectors.toList());
-      
-      if (possibleSigUris.isEmpty()) {
-        final String msg = String.format("Unrecognized authnContextRef received %s [request-id='%s']",
-          authnContextClassRef, signRequest.getRequestID());
-        log.error("{}: {}", CorrelationID.id(), msg);
-        throw new SignResponseProcessingException(new ErrorCode.Code("invalid-authncontext"), msg);
-      }
-      boolean foundSigUri = possibleSigUris.stream().filter(u -> u.equals(authnContextClassRef)).findFirst().isPresent(); 
-      if (!foundSigUri) {
-        final String msg = String.format("Unexpected authnContextRef received - %s. %s was expected [request-id='%s']",
-          authnContextClassRef, possibleSigUris, signRequest.getRequestID());
-        log.error("{}: {}", CorrelationID.id(), msg);
-        throw new SignResponseProcessingException(new ErrorCode.Code("invalid-authncontext"), msg);
-      }
-            
-      // OK, the mapping is OK. Finally, check that we actually sent a SignMessage.
-      //
-      if (state.getSignMessage() == null) {
-        final String msg = String.format(
-          "Invalid authnContextRef received - %s. No SignMessage was sent, so returning a sigmessage URI is illegal [request-id='%s']",
-          authnContextClassRef, signRequest.getRequestID());
-        log.error("{}: {}", CorrelationID.id(), msg);
-        throw new SignResponseProcessingException(new ErrorCode.Code("invalid-authncontext"), msg);
-      }
+      final String msg = String.format("Unexpected authnContextRef received - %s. %s was expected [request-id='%s']",
+        authnContextClassRef, requestedAuthnContextClassRefs, signRequest.getRequestID());
+      log.error("{}: {}", CorrelationID.id(), msg);
+      throw new SignResponseProcessingException(new ErrorCode.Code("invalid-authncontext"), msg);
     }
     builder.authnContextRef(authnContextClassRef);
 
@@ -319,7 +285,7 @@ public class DefaultSignerAssertionInfoProcessor implements SignerAssertionInfoP
 
   /**
    * Tells if the display of a sign message with a MustShow flag set was requested.
-   * 
+   *
    * @param state
    *          the state
    * @return if sign message display is required true is returned, otherwise false
@@ -334,7 +300,7 @@ public class DefaultSignerAssertionInfoProcessor implements SignerAssertionInfoP
   /**
    * Extracts the attributes from the response and validates that we received all attributes that were requested (if
    * strict processing is enabled).
-   * 
+   *
    * @param signerAssertionInfo
    *          the signer info (including the received attributes)
    * @param signRequest
@@ -357,14 +323,14 @@ public class DefaultSignerAssertionInfoProcessor implements SignerAssertionInfoP
     if (this.processingConfig.isStrictProcessing()) {
       final RequestedCertAttributes requestedAttributes =
           signRequest.getSignRequestExtension().getCertRequestProperties().getRequestedCertAttributes();
-      for (MappedAttributeType mat : requestedAttributes.getRequestedCertAttributes()) {
+      for (final MappedAttributeType mat : requestedAttributes.getRequestedCertAttributes()) {
         if (!mat.isRequired() || StringUtils.isNotBlank(mat.getDefaultValue())) {
           // For non required attributes or those having a default value there is no requirement to
           // get it from the IdP or AA.
           continue;
         }
         boolean attrDelivered = false;
-        for (PreferredSAMLAttributeNameType attr : mat.getSamlAttributeNames()) {
+        for (final PreferredSAMLAttributeNameType attr : mat.getSamlAttributeNames()) {
           if (attributes.stream().filter(a -> a.getName().equals(attr.getValue())).findFirst().isPresent()) {
             log.trace("{}: Requested attribute '{}' was delivered by IdP/AA [request-id='{}']",
               CorrelationID.id(), attr.getValue(), signRequest.getRequestID());
@@ -386,7 +352,7 @@ public class DefaultSignerAssertionInfoProcessor implements SignerAssertionInfoP
 
   /**
    * Validates that the received authentication instant is OK.
-   * 
+   *
    * @param contextInfo
    *          the context info holding the authn instant
    * @param signRequest
@@ -411,13 +377,13 @@ public class DefaultSignerAssertionInfoProcessor implements SignerAssertionInfoP
     final long requestTime = signRequest.getSignRequestExtension().getRequestTime().toGregorianCalendar().getTimeInMillis();
     final long responseTime = signResponse.getSignResponseExtension().getResponseTime().toGregorianCalendar().getTimeInMillis();
 
-    if ((authnInstant + this.processingConfig.getAllowedClockSkew()) < requestTime) {
+    if (authnInstant + this.processingConfig.getAllowedClockSkew() < requestTime) {
       final String msg = String.format("Invalid authentication instant (%d). It is before the SignRequest was sent (%d) [request-id='%s']",
         authnInstant, requestTime, signRequest.getRequestID());
       log.error("{}: {}", CorrelationID.id(), msg);
       throw new SignResponseProcessingException(new ErrorCode.Code("invalid-response"), msg);
     }
-    if ((authnInstant - this.processingConfig.getAllowedClockSkew()) > responseTime) {
+    if (authnInstant - this.processingConfig.getAllowedClockSkew() > responseTime) {
       final String msg = String.format("Invalid authentication instant (%d). It is after the SignResponse time (%d) [request-id='%s']",
         authnInstant, responseTime, signRequest.getRequestID());
       log.error("{}: {}", CorrelationID.id(), msg);
@@ -439,10 +405,10 @@ public class DefaultSignerAssertionInfoProcessor implements SignerAssertionInfoP
 
     // Get hold of the LoA from the request.
     //
-    final List<String> requestedAuthnContextClassRefs = signRequest.getSignRequestExtension().getCertRequestProperties().getAuthnContextClassRefs();
+    final List<String> requestedAuthnContextClassRefs =
+        signRequest.getSignRequestExtension().getCertRequestProperties().getAuthnContextClassRefs();
 
-    
-    if (requestedAuthnContextClassRefs != null && requestedAuthnContextClassRefs.contains(authnContextClassRef)) { 
+    if (requestedAuthnContextClassRefs != null && requestedAuthnContextClassRefs.contains(authnContextClassRef)) {
       // OK if:
       // If SM was required: signMessageDigest is present
       // If not required - OK always
@@ -461,7 +427,7 @@ public class DefaultSignerAssertionInfoProcessor implements SignerAssertionInfoP
 
   /**
    * Assigns the processing config settings.
-   * 
+   *
    * @param processingConfig
    *          the processing config settings
    */
@@ -472,7 +438,7 @@ public class DefaultSignerAssertionInfoProcessor implements SignerAssertionInfoP
   /**
    * Ensures that the {@code processingConfig} property is assigned. By default
    * {@link SignResponseProcessingConfig#defaultSignResponseProcessingConfig()} is used.
-   * 
+   *
    * <p>
    * Note: If executing in a Spring Framework environment this method is automatically invoked after all properties have
    * been assigned. Otherwise it should be explicitly invoked.

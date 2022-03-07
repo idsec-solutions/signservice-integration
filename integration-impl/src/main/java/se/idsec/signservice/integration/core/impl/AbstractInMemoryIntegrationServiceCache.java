@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import se.idsec.signservice.integration.core.IntegrationServiceCache;
 
 /**
  * Base class for an in-memory implementation of the {@link IntegrationServiceCache} interface.
- * 
+ *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
@@ -85,7 +85,7 @@ public abstract class AbstractInMemoryIntegrationServiceCache<T extends Serializ
 
     /**
      * Constructor.
-     * 
+     *
      * @param object
      *          the object to cache.
      *          @param ownerId the owner identity (may be null)
@@ -102,7 +102,7 @@ public abstract class AbstractInMemoryIntegrationServiceCache<T extends Serializ
     public T getObject() {
       return this.object;
     }
-    
+
     /** {@inheritDoc} */
     @Override
     public String getOwnerId() {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,18 +24,18 @@ import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
 import se.idsec.signservice.integration.config.impl.DefaultIntegrationServiceConfiguration;
 import se.idsec.signservice.integration.core.validation.ValidationResult;
 import se.idsec.signservice.integration.testbase.TestBase;
-import se.litsec.swedisheid.opensaml.saml2.attribute.AttributeConstants;
+import se.swedenconnect.opensaml.sweid.saml2.attribute.AttributeConstants;
 
 /**
  * Test cases for {@code AuthnRequirementsValidator}.
- * 
+ *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
 public class AuthnRequirementsValidatorTest extends TestBase {
-  
+
   private IntegrationServiceConfiguration defaultConfig;
-  
+
   public AuthnRequirementsValidatorTest() {
     this.defaultConfig = DefaultIntegrationServiceConfiguration.builder()
         .defaultAuthnServiceID("http://authn-service-id.com")
@@ -49,7 +49,7 @@ public class AuthnRequirementsValidatorTest extends TestBase {
     ValidationResult result = validator.validate(null, "a", this.defaultConfig);
     Assert.assertFalse(result.hasErrors());
   }
-  
+
   @Test
   public void testNullAndNoDefaults() throws Exception {
     AuthnRequirementsValidator validator = new AuthnRequirementsValidator();
@@ -59,24 +59,24 @@ public class AuthnRequirementsValidatorTest extends TestBase {
     Assert.assertNotNull(result.getFieldErrors().get("a.authnServiceID"));
     Assert.assertNotNull(result.getFieldErrors().get("a.authnContextClassRefs"));
   }
-  
+
   @Test
   public void testUnsetAndNoDefaults() throws Exception {
     AuthnRequirementsValidator validator = new AuthnRequirementsValidator();
-    
+
     AuthnRequirements ar = new AuthnRequirements();
-    
+
     ValidationResult result = validator.validate(ar, "a", new DefaultIntegrationServiceConfiguration());
     Assert.assertTrue(result.hasErrors());
     Assert.assertTrue(result.getFieldErrors().size() == 2);
     Assert.assertNotNull(result.getFieldErrors().get("a.authnServiceID"));
     Assert.assertNotNull(result.getFieldErrors().get("a.authnContextClassRefs"));
   }
-  
+
   @Test
   public void testValidRequestedSignerAttributes() throws Exception {
     AuthnRequirementsValidator validator = new AuthnRequirementsValidator();
-    
+
     AuthnRequirements ar = AuthnRequirements.builder()
         .authnContextClassRef("loa3")
         .authnServiceID("http://xyz")
@@ -95,11 +95,11 @@ public class AuthnRequirementsValidatorTest extends TestBase {
     ValidationResult result = validator.validate(ar, "a", new DefaultIntegrationServiceConfiguration());
     Assert.assertFalse(result.hasErrors());
   }
-  
+
   @Test
   public void testInvalidRequestedSignerAttributes() throws Exception {
     AuthnRequirementsValidator validator = new AuthnRequirementsValidator();
-    
+
     AuthnRequirements ar = AuthnRequirements.builder()
         .authnContextClassRef("loa3")
         .authnServiceID("http://xyz")
@@ -116,7 +116,7 @@ public class AuthnRequirementsValidatorTest extends TestBase {
         .requestedSignerAttribute(
           SignerIdentityAttributeValue.builder()
           .value("Kalle")
-          .build())        
+          .build())
         .build();
     ValidationResult result = validator.validate(ar, "a", new DefaultIntegrationServiceConfiguration());
     Assert.assertTrue(result.hasErrors());
@@ -124,6 +124,6 @@ public class AuthnRequirementsValidatorTest extends TestBase {
     Assert.assertNotNull(result.getFieldErrors().get("a.requestedSignerAttributes[0].type"));
     Assert.assertNotNull(result.getFieldErrors().get("a.requestedSignerAttributes[1].value"));
     Assert.assertNotNull(result.getFieldErrors().get("a.requestedSignerAttributes[2].name"));
-  }  
-  
+  }
+
 }

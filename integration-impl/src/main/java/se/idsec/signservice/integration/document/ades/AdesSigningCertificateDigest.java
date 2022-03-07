@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import lombok.Setter;
 
 /**
  * Representation of the AdES digest of the signing certificate.
- * 
+ *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
@@ -34,7 +34,7 @@ public class AdesSigningCertificateDigest {
 
   /**
    * The URI for the digest method used to hash the signer certificate.
-   * 
+   *
    * @param digestMethod
    *          the URI for the digest method used to hash the signer certificate
    * @return the URI for the digest method used to hash the signer certificate
@@ -45,7 +45,7 @@ public class AdesSigningCertificateDigest {
 
   /**
    * The digest value.
-   * 
+   *
    * @param digestValue
    *          the digest value
    * @return the digest value

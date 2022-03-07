@@ -9,7 +9,7 @@
   <parent>
     <groupId>se.idsec.signservice.integration</groupId>
     <artifactId>signservice-integration-parent</artifactId>
-    <version>1.2.1</version>
+    <version>1.3.0-SNAPSHOT</version>
   </parent>
 
   <name>IDsec Solutions :: SignService :: Integration :: API Implementation</name>
@@ -57,23 +57,35 @@
   <dependencies>
   
     <!-- Spring --> 
-    <!-- 
-      Optional - Needed for code under se.idsec.signservice.integration.spring
-      and for PdfSignatureImageTemplateExt 
-    -->
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-core</artifactId>
-      <optional>true</optional>
     </dependency>
     
-    <!-- 
-      Optional - Needed for code under se.idsec.signservice.integration.spring 
-    -->
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-beans</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>org.springframework</groupId>
+          <artifactId>spring-core</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>    
+    
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-context</artifactId>
-      <optional>true</optional>
+      <exclusions>
+        <exclusion>
+          <groupId>org.springframework</groupId>
+          <artifactId>spring-core</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.springframework</groupId>
+          <artifactId>spring-beans</artifactId>
+        </exclusion>        
+      </exclusions>
     </dependency>
 
     <!-- The API -->
@@ -84,6 +96,25 @@
     
     <!-- SignService commons -->
     <dependency>
+      <groupId>se.swedenconnect.security</groupId>
+      <artifactId>credentials-support</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>org.springframework</groupId>
+          <artifactId>spring-core</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.springframework</groupId>
+          <artifactId>spring-context</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.springframework</groupId>
+          <artifactId>spring-beans</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+        
+    <dependency>
       <groupId>se.idsec.signservice.commons</groupId>
       <artifactId>signservice-commons</artifactId>
     </dependency>
@@ -91,6 +122,32 @@
     <dependency>
       <groupId>se.idsec.signservice.commons</groupId>
       <artifactId>signservice-xml-commons</artifactId>
+    </dependency>
+    
+    <dependency>
+      <groupId>se.swedenconnect.security</groupId>
+      <artifactId>algorithm-registry</artifactId>
+    </dependency>
+    
+    <dependency>
+      <groupId>se.swedenconnect.opensaml</groupId>
+      <artifactId>opensaml-security-ext</artifactId>
+    </dependency>
+    
+    <dependency>
+      <groupId>se.swedenconnect.opensaml</groupId>
+      <artifactId>opensaml-addons</artifactId>
+    </dependency>    
+        
+    <dependency>
+      <groupId>se.swedenconnect.opensaml</groupId>
+      <artifactId>opensaml-swedish-eid</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>se.swedenconnect.opensaml</groupId>
+          <artifactId>opensaml-addons</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     
     <!-- Jackson -->
@@ -135,43 +192,12 @@
       <artifactId>etsi-xades-ext-jaxb</artifactId>
     </dependency>
 
-    <!-- OpenSAML -->
-    <dependency>
-      <groupId>se.swedenconnect.opensaml</groupId>
-      <artifactId>opensaml-security-ext</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>se.litsec.opensaml</groupId>
-      <artifactId>opensaml3-ext</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>se.litsec.opensaml.sweid</groupId>
-      <artifactId>swedish-eid-opensaml3</artifactId>
-    </dependency>
-
     <!-- Misc -->
     <dependency>
       <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>
     </dependency>
-    
-    <dependency>
-      <groupId>joda-time</groupId>
-      <artifactId>joda-time</artifactId>
-    </dependency>
-    
-    <dependency>
-      <groupId>com.google.guava</groupId>
-      <artifactId>guava</artifactId>
-    </dependency>
-    
-    <dependency>
-      <groupId>com.google.code.findbugs</groupId>
-      <artifactId>jsr305</artifactId>
-    </dependency>
-    
+        
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>

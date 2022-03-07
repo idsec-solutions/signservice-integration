@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ import se.idsec.signservice.integration.core.SignatureState;
 
 /**
  * A signature state that is cacheable.
- * 
+ *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
@@ -27,7 +27,7 @@ public interface CacheableSignatureState extends SignatureState {
 
   /**
    * Gets the owner identity of the state object.
-   * 
+   *
    * @return the owner identity or null if not available
    */
   String getOwnerId();

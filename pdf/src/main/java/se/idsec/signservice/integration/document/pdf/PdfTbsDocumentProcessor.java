@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -66,7 +66,8 @@ public class PdfTbsDocumentProcessor extends AbstractTbsDocumentProcessor<byte[]
   private final StaticCredentials staticKeys = new StaticCredentials();
 
   /** Validator for visible PDF signature requirements. */
-  protected final VisiblePdfSignatureRequirementValidator visiblePdfSignatureRequirementValidator = new VisiblePdfSignatureRequirementValidator();
+  protected final VisiblePdfSignatureRequirementValidator visiblePdfSignatureRequirementValidator =
+      new VisiblePdfSignatureRequirementValidator();
 
   /** Document decoder. */
   protected final static PdfDocumentEncoderDecoder documentEncoderDecoder = new PdfDocumentEncoderDecoder();
@@ -77,7 +78,7 @@ public class PdfTbsDocumentProcessor extends AbstractTbsDocumentProcessor<byte[]
     try {
       return DocumentType.fromMimeType(document.getMimeType()) == DocumentType.PDF;
     }
-    catch (IllegalArgumentException e) {
+    catch (final IllegalArgumentException e) {
       return false;
     }
   }
@@ -159,7 +160,7 @@ public class PdfTbsDocumentProcessor extends AbstractTbsDocumentProcessor<byte[]
           visiblePdfSignatureRequirement, signRequestInput.getAuthnRequirements().getRequestedSignerAttributes());
         tbsDocument.addExtensionValue(PDFExtensionParams.visibleSignImage.name(), encodedVisibleSignImage);
       }
-      catch (VisiblePdfSignatureRequirementException e) {
+      catch (final VisiblePdfSignatureRequirementException e) {
         throw new InputValidationException(fieldName + ".visiblePdfSignatureRequirement", e.getMessage(), e);
       }
     }
@@ -170,14 +171,14 @@ public class PdfTbsDocumentProcessor extends AbstractTbsDocumentProcessor<byte[]
   /** {@inheritDoc} */
   @Override
   protected TbsCalculationResult calculateToBeSigned(final ProcessedTbsDocument document, final String signatureAlgorithm,
-      IntegrationServiceConfiguration config) throws DocumentProcessingException {
+      final IntegrationServiceConfiguration config) throws DocumentProcessingException {
 
     final TbsDocument tbsDocument = document.getTbsDocument();
 
     // Sign the document using a fake key - in order to obtain the to-be-signed bytes.
     //
     try {
-      final DefaultPDFSigner signer = new DefaultPDFSigner(staticKeys.getSigningCredential(signatureAlgorithm), signatureAlgorithm);
+      final DefaultPDFSigner signer = new DefaultPDFSigner(this.staticKeys.getSigningCredential(signatureAlgorithm), signatureAlgorithm);
       signer.setIncludeCertificateChain(false);
 
       final String padesString = tbsDocument.getExtensionValue(PDFExtensionParams.adesRequirement.name());
@@ -191,7 +192,7 @@ public class PdfTbsDocumentProcessor extends AbstractTbsDocumentProcessor<byte[]
 
       final PDFSignerResult pdfSignerResult = signer.sign(document.getDocumentObject(byte[].class), signerParameters);
 
-      TbsCalculationResult tbsResult = TbsCalculationResult.builder()
+      final TbsCalculationResult tbsResult = TbsCalculationResult.builder()
         .toBeSignedBytes(pdfSignerResult.getSignedAttributes())
         .sigType("PDF")
         .build();
@@ -225,7 +226,7 @@ public class PdfTbsDocumentProcessor extends AbstractTbsDocumentProcessor<byte[]
     try {
       pdfDocument = PDDocumentUtils.load(pdfDocumentBytes);
     }
-    catch (Exception e) {
+    catch (final Exception e) {
       final String msg = String.format("Failed to load content for document '%s' - %s", document.getId(), e.getMessage());
       log.error("{}: {}", CorrelationID.id(), msg, e);
       throw new InputValidationException(fieldName + ".content", msg, e);
@@ -261,8 +262,8 @@ public class PdfTbsDocumentProcessor extends AbstractTbsDocumentProcessor<byte[]
 
     /** {@inheritDoc} */
     @Override
-    public ValidationResult validate(EtsiAdesRequirement object, String objectName, Void hint) {
-      ValidationResult result = new ValidationResult(objectName);
+    public ValidationResult validate(final EtsiAdesRequirement object, final String objectName, final Void hint) {
+      final ValidationResult result = new ValidationResult(objectName);
       if (object == null) {
         return result;
       }

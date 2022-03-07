@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,19 @@
 package se.idsec.signservice.integration.signmessage.impl;
 
 import javax.annotation.PostConstruct;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
 
+import org.opensaml.core.xml.io.MarshallingException;
 import org.opensaml.core.xml.util.XMLObjectSupport;
 import org.opensaml.saml.criterion.RoleDescriptorCriterion;
 import org.opensaml.saml.saml2.metadata.EntityDescriptor;
 import org.opensaml.saml.saml2.metadata.SSODescriptor;
 import org.opensaml.saml.security.impl.MetadataCredentialResolver;
+import org.opensaml.saml.security.impl.SAMLMetadataEncryptionParametersResolver;
 import org.opensaml.security.credential.UsageType;
 import org.opensaml.security.criteria.UsageCriterion;
+import org.opensaml.xmlsec.EncryptionConfiguration;
 import org.opensaml.xmlsec.config.impl.DefaultSecurityConfigurationBootstrap;
 import org.opensaml.xmlsec.criterion.EncryptionConfigurationCriterion;
 import org.opensaml.xmlsec.criterion.EncryptionOptionalCriterion;
@@ -32,6 +37,7 @@ import org.opensaml.xmlsec.encryption.support.DataEncryptionParameters;
 import org.opensaml.xmlsec.encryption.support.Encrypter;
 import org.opensaml.xmlsec.encryption.support.EncryptionException;
 import org.opensaml.xmlsec.encryption.support.KeyEncryptionParameters;
+import org.w3c.dom.Element;
 
 import lombok.extern.slf4j.Slf4j;
 import net.shibboleth.utilities.java.support.component.ComponentInitializationException;
@@ -40,8 +46,8 @@ import net.shibboleth.utilities.java.support.resolver.ResolverException;
 import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
 import se.idsec.signservice.integration.core.error.ErrorCode;
 import se.idsec.signservice.integration.core.error.SignServiceIntegrationException;
+import se.idsec.signservice.integration.core.error.impl.SignServiceProtocolException;
 import se.idsec.signservice.integration.core.impl.CorrelationID;
-import se.idsec.signservice.integration.dss.DssUtils;
 import se.idsec.signservice.integration.security.IdpMetadataResolver;
 import se.idsec.signservice.integration.security.MetadataException;
 import se.idsec.signservice.integration.security.SignServiceEncryptException;
@@ -50,17 +56,16 @@ import se.idsec.signservice.integration.security.impl.OpenSAMLEncryptionParamete
 import se.idsec.signservice.integration.signmessage.SignMessageParameters;
 import se.idsec.signservice.integration.signmessage.SignMessageProcessor;
 import se.idsec.signservice.utils.AssertThat;
-import se.litsec.opensaml.saml2.metadata.MetadataUtils;
-import se.litsec.swedisheid.opensaml.saml2.signservice.SignMessageBuilder;
-import se.litsec.swedisheid.opensaml.saml2.signservice.dss.EncryptedMessage;
-import se.litsec.swedisheid.opensaml.saml2.signservice.dss.SignMessageMimeTypeEnum;
-import se.swedenconnect.opensaml.xmlsec.ExtendedEncryptionConfiguration;
-import se.swedenconnect.opensaml.xmlsec.ExtendedSAMLMetadataEncryptionParametersResolver;
+import se.idsec.signservice.xml.JAXBContextUtils;
+import se.swedenconnect.opensaml.saml2.metadata.EntityDescriptorUtils;
+import se.swedenconnect.opensaml.sweid.saml2.signservice.build.SignMessageBuilder;
+import se.swedenconnect.opensaml.sweid.saml2.signservice.dss.EncryptedMessage;
+import se.swedenconnect.opensaml.sweid.saml2.signservice.dss.SignMessageMimeTypeEnum;
 import se.swedenconnect.schemas.csig.dssext_1_1.SignMessage;
 
 /**
  * SignMessageProcessor default implementation.
- * 
+ *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
@@ -71,7 +76,7 @@ public class DefaultSignMessageProcessor implements SignMessageProcessor {
   protected IdpMetadataResolver idpMetadataResolver;
 
   /** The resolver for encryption parameters. */
-  protected ExtendedSAMLMetadataEncryptionParametersResolver encryptionParametersResolver;
+  protected SAMLMetadataEncryptionParametersResolver encryptionParametersResolver;
 
   /** The encrypter to use. */
   protected Encrypter encrypter = new Encrypter();
@@ -80,17 +85,16 @@ public class DefaultSignMessageProcessor implements SignMessageProcessor {
    * Constructor.
    */
   public DefaultSignMessageProcessor() {
-    MetadataCredentialResolver credentialResolver = new MetadataCredentialResolver();
+    final MetadataCredentialResolver credentialResolver = new MetadataCredentialResolver();
     credentialResolver.setKeyInfoCredentialResolver(DefaultSecurityConfigurationBootstrap.buildBasicInlineKeyInfoCredentialResolver());
     try {
       credentialResolver.initialize();
     }
-    catch (ComponentInitializationException e) {
+    catch (final ComponentInitializationException e) {
       // Can not happen
     }
-    this.encryptionParametersResolver = new ExtendedSAMLMetadataEncryptionParametersResolver(credentialResolver);
+    this.encryptionParametersResolver = new SAMLMetadataEncryptionParametersResolver(credentialResolver);
     this.encryptionParametersResolver.setMergeMetadataRSAOAEPParametersWithConfig(true);
-    this.encryptionParametersResolver.setUseKeyAgreementDefaults(true);
     this.encryptionParametersResolver.setAutoGenerateDataEncryptionCredential(true);
   }
 
@@ -99,7 +103,7 @@ public class DefaultSignMessageProcessor implements SignMessageProcessor {
   public SignMessage create(final SignMessageParameters input, final IntegrationServiceConfiguration config)
       throws SignServiceIntegrationException {
 
-    se.litsec.swedisheid.opensaml.saml2.signservice.dss.SignMessage signMessage = SignMessageBuilder.builder()
+    final se.swedenconnect.opensaml.sweid.saml2.signservice.dss.SignMessage signMessage = SignMessageBuilder.builder()
       .message(input.getSignMessage())
       .mimeType(SignMessageMimeTypeEnum.parse(input.getMimeType()))
       .mustShow(input.getMustShow())
@@ -112,33 +116,33 @@ public class DefaultSignMessageProcessor implements SignMessageProcessor {
       // Find IdP metadata ...
       //
       final EntityDescriptor metadata = this.idpMetadataResolver.resolveMetadata(input.getDisplayEntity(), config);
-      final SSODescriptor descriptor = MetadataUtils.getSSODescriptor(metadata);
+      final SSODescriptor descriptor = EntityDescriptorUtils.getSSODescriptor(metadata);
       if (descriptor == null) {
         final String msg = String.format("Metadata for '%s' does not contain an SSO descriptor", input.getDisplayEntity());
         log.error("{}: {}", CorrelationID.id(), msg);
         throw new MetadataException(msg);
       }
 
-      ExtendedEncryptionConfiguration econfig = null;
+      EncryptionConfiguration econfig = null;
       if (OpenSAMLEncryptionParameters.class.isInstance(config.getDefaultEncryptionParameters())
-          && ExtendedEncryptionConfiguration.class
+          && EncryptionConfiguration.class
             .isInstance(((OpenSAMLEncryptionParameters) config.getDefaultEncryptionParameters()).getSystemConfiguration())) {
 
-        econfig = (ExtendedEncryptionConfiguration) ((OpenSAMLEncryptionParameters) config.getDefaultEncryptionParameters())
+        econfig = ((OpenSAMLEncryptionParameters) config.getDefaultEncryptionParameters())
           .getSystemConfiguration();
       }
       else {
         econfig = new EncryptionConfigurationWrapper(config.getDefaultEncryptionParameters());
       }
 
-      CriteriaSet criteriaSet = new CriteriaSet();
+      final CriteriaSet criteriaSet = new CriteriaSet();
       criteriaSet.add(new RoleDescriptorCriterion(descriptor));
       criteriaSet.add(new UsageCriterion(UsageType.ENCRYPTION));
       criteriaSet.add(new EncryptionConfigurationCriterion(econfig));
       criteriaSet.add(new EncryptionOptionalCriterion(false));
 
       try {
-        org.opensaml.xmlsec.EncryptionParameters openSAMLEncryptionParameters =
+        final org.opensaml.xmlsec.EncryptionParameters openSAMLEncryptionParameters =
             this.encryptionParametersResolver.resolveSingle(criteriaSet);
 
         // Let's encrypt!
@@ -146,19 +150,19 @@ public class DefaultSignMessageProcessor implements SignMessageProcessor {
         final DataEncryptionParameters dataEncryptionParameters = new DataEncryptionParameters(openSAMLEncryptionParameters);
         final KeyEncryptionParameters kekParams = new KeyEncryptionParameters(openSAMLEncryptionParameters, input.getDisplayEntity());
 
-        EncryptedData encryptedData = this.encrypter.encryptElement(signMessage.getMessage(), dataEncryptionParameters, kekParams);
+        final EncryptedData encryptedData = this.encrypter.encryptElement(signMessage.getMessage(), dataEncryptionParameters, kekParams);
 
-        EncryptedMessage encryptedMessage = (EncryptedMessage) XMLObjectSupport.buildXMLObject(EncryptedMessage.DEFAULT_ELEMENT_NAME);
+        final EncryptedMessage encryptedMessage = (EncryptedMessage) XMLObjectSupport.buildXMLObject(EncryptedMessage.DEFAULT_ELEMENT_NAME);
         encryptedMessage.setEncryptedData(encryptedData);
 
         signMessage.setMessage(null);
         signMessage.setEncryptedMessage(encryptedMessage);
       }
-      catch (ResolverException e) {
+      catch (final ResolverException e) {
         log.error("{}: Error during resolve of encryption parameters", CorrelationID.id(), e);
         throw new SignServiceEncryptException(new ErrorCode.Code("resolve"), "Failed to resolve encryption parameters", e);
       }
-      catch (EncryptionException e) {
+      catch (final EncryptionException e) {
         final String msg = String.format("Encryption failure - %s", e.getMessage());
         log.error("{}: {}", CorrelationID.id(), msg);
         throw new SignServiceEncryptException(new ErrorCode.Code("crypt"), msg, e);
@@ -166,12 +170,20 @@ public class DefaultSignMessageProcessor implements SignMessageProcessor {
       log.debug("{}: SignMessage successfully encrypted for IdP '{}'", CorrelationID.id(), input.getDisplayEntity());
     }
 
-    return DssUtils.toJAXB(signMessage, SignMessage.class);
+    try {
+      final Element element = XMLObjectSupport.marshall(signMessage);
+      final JAXBContext context = JAXBContextUtils.createJAXBContext(SignMessage.class);
+      final Object jaxb = context.createUnmarshaller().unmarshal(element);
+      return SignMessage.class.cast(jaxb);
+    }
+    catch (MarshallingException | JAXBException e) {
+      throw new SignServiceProtocolException("Failed to marshall DSS protocol object", e);
+    }
   }
 
   /**
    * Assigns the metadata resolver for IdP metadata
-   * 
+   *
    * @param idpMetadataResolver
    *          metadata resolver
    */
@@ -184,7 +196,7 @@ public class DefaultSignMessageProcessor implements SignMessageProcessor {
    * <p>
    * If not assigned, an instance of {@link org.opensaml.xmlsec.encryption.support.Encrypter} is used.
    * </p>
-   * 
+   *
    * @param encrypter
    *          the encrypter
    */
@@ -196,12 +208,12 @@ public class DefaultSignMessageProcessor implements SignMessageProcessor {
 
   /**
    * Ensures that all required properties have been assigned.
-   * 
+   *
    * <p>
    * Note: If executing in a Spring Framework environment this method is automatically invoked after all properties have
    * been assigned. Otherwise it should be explicitly invoked.
    * </p>
-   * 
+   *
    * @throws Exception
    *           if not all settings are correct
    */

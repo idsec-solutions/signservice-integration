@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,7 +39,7 @@ import se.swedenconnect.schemas.dss_1_0.SignRequest;
 
 /**
  * A wrapper for easier access to the DSS extensions.
- * 
+ *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
@@ -70,7 +70,7 @@ public class SignRequestWrapper extends SignRequest implements Serializable {
 
   /**
    * Constructor.
-   * 
+   *
    * @param signRequest
    *          the request to wrap.
    */
@@ -80,7 +80,7 @@ public class SignRequestWrapper extends SignRequest implements Serializable {
 
   /**
    * Gets the wrapped SignRequest object.
-   * 
+   *
    * @return the wrapped SignRequest object
    */
   public SignRequest getWrappedSignRequest() {
@@ -89,7 +89,7 @@ public class SignRequestWrapper extends SignRequest implements Serializable {
 
   /**
    * Utility method that obtains the SignRequestExtension (from the OptionalInputs).
-   * 
+   *
    * @return the SignRequestExtension
    * @throws SignServiceProtocolException
    *           for unmarshalling errors
@@ -125,7 +125,7 @@ public class SignRequestWrapper extends SignRequest implements Serializable {
    * <p>
    * Note: If the OptionalInputs already contains data it is overwritten.
    * </p>
-   * 
+   *
    * @param signRequestExtension
    *          the extension to add
    * @throws SignServiceProtocolException
@@ -186,7 +186,7 @@ public class SignRequestWrapper extends SignRequest implements Serializable {
 
   /**
    * Utility method that obtains the SignTasks element from the InputDocuments.
-   * 
+   *
    * @return the SignTasks element or null
    * @throws SignServiceProtocolException
    *           for unmarshalling errors
@@ -224,7 +224,7 @@ public class SignRequestWrapper extends SignRequest implements Serializable {
 
   /**
    * Utility method that add a SignTasks object to the InputDocuments.
-   * 
+   *
    * @param signTasks
    *          the object to add
    * @throws SignServiceProtocolException
@@ -305,7 +305,7 @@ public class SignRequestWrapper extends SignRequest implements Serializable {
 
   /**
    * For serialization of the object.
-   * 
+   *
    * @param out
    *          the output stream
    * @throws IOException
@@ -324,7 +324,7 @@ public class SignRequestWrapper extends SignRequest implements Serializable {
 
   /**
    * For deserialization of the object
-   * 
+   *
    * @param in
    *          the input stream
    * @throws IOException

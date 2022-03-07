@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,10 +26,11 @@ import org.springframework.util.StringUtils;
 
 import lombok.extern.slf4j.Slf4j;
 import se.idsec.signservice.security.sign.SigningCredential;
+import se.swedenconnect.security.credential.PkiCredential;
 
 /**
- * For Spring Framework users. A {@link Converter} that lets the user reference a {@link SigningCredential} instance
- * using its bean name, or if no bean is found, the signing credential name (@link {@link SigningCredential#getName()}.
+ * For Spring Framework users. A {@link Converter} that lets the user reference a {@link PkiCredential} instance
+ * using its bean name, or if no bean is found, the signing credential name (@link {@link PkiCredential#getName()}.
  * <p>
  * To use this converter it has to be instantiated as a bean and then registered in the registry using
  * {@link ConverterRegistry#addConverter(Converter)}.
@@ -44,43 +45,44 @@ import se.idsec.signservice.security.sign.SigningCredential;
  *   return new NameToSigningCredentialConverter();
  * }
  * </pre>
- * 
+ *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
+@SuppressWarnings("removal")
 @Slf4j
-public class NameToSigningCredentialConverter implements Converter<String, SigningCredential>, ApplicationContextAware {
+public class NameToSigningCredentialConverter implements Converter<String, PkiCredential>, ApplicationContextAware {
 
   /** The application context. */
   private ApplicationContext applicationContext;
 
   /** {@inheritDoc} */
   @Override
-  public SigningCredential convert(final String source) {
+  public PkiCredential convert(final String source) {
     if (source == null || !StringUtils.hasText(source)) {
       return null;
     }
-    log.debug("Converting '{}' into a SigningCredential instance ...", source);
+    log.debug("Converting '{}' into a PkiCredential instance ...", source);
     try {
-      final SigningCredential cred = this.applicationContext.getBean(source, SigningCredential.class);
-      log.debug("Found bean of type '{}' and bean name '{}' in the application context", SigningCredential.class.getSimpleName(), source);
+      final PkiCredential cred = this.applicationContext.getBean(source, SigningCredential.class);
+      log.debug("Found bean of type '{}' and bean name '{}' in the application context", PkiCredential.class.getSimpleName(), source);
       return cred;
     }
-    catch (BeansException e) {
-      log.debug("No bean of type '{}' and bean name '{}' has been registered", SigningCredential.class.getSimpleName(), source);
+    catch (final BeansException e) {
+      log.debug("No bean of type '{}' and bean name '{}' has been registered", PkiCredential.class.getSimpleName(), source);
     }
-    log.debug("Listing all SigningCredential beans ...");
+    log.debug("Listing all PkiCredential beans ...");
     try {
       final Map<String, SigningCredential> map = this.applicationContext.getBeansOfType(SigningCredential.class);
-      for (final SigningCredential c : map.values()) {
+      for (final PkiCredential c : map.values()) {
         if (source.equalsIgnoreCase(c.getName())) {
-          log.debug("Found bean of type '{}' and given name '{}' in the application context", SigningCredential.class.getSimpleName(),
-            source);
+          log.debug("Found bean of type '{}' and given name '{}' in the application context",
+            PkiCredential.class.getSimpleName(), source);
           return c;
         }
       }
     }
-    catch (BeansException e) {
+    catch (final BeansException e) {
     }
     final String msg = String.format("No SigningCredential instance matching '%s' was found", source);
     log.error("%s", msg);

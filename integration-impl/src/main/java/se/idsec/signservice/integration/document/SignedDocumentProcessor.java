@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,12 +31,12 @@ import se.swedenconnect.schemas.csig.dssext_1_1.SignTaskData;
 
 /**
  * Interface for a processor of a signed document.
- * 
+ *
  * @param <T>
  *          the type of documents that this processor handles
  * @param <X>
  *          the type of AdES objects used for this document type
- * 
+ *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
@@ -44,7 +44,7 @@ public interface SignedDocumentProcessor<T, X extends AdesObject> extends Docume
 
   /**
    * Predicate that tells if the supplied sign data can be handled by this processor.
-   * 
+   *
    * @param signData
    *          the signed data
    * @return if the data can be processed by this instance true is returned, otherwise false
@@ -54,7 +54,7 @@ public interface SignedDocumentProcessor<T, X extends AdesObject> extends Docume
   /**
    * Given a {@code SignTaskData} received in a sign response containing a signature and a {@code TbsDocument} from the
    * corresponding sign request the method compiles a complete signed document.
-   * 
+   *
    * @param tbsDocument
    *          the to-be-signed document
    * @param signedData
@@ -80,7 +80,7 @@ public interface SignedDocumentProcessor<T, X extends AdesObject> extends Docume
    * <p>
    * The signer certificate has already been validated so explicit validation of the signer certificate is not needed.
    * </p>
-   * 
+   *
    * @param signedDocument
    *          the document to validate
    * @param signerCertificate
@@ -102,7 +102,7 @@ public interface SignedDocumentProcessor<T, X extends AdesObject> extends Docume
 
   /**
    * Given a AdES object from the signature the method validates that it is valid.
-   * 
+   *
    * @param adesObject
    *          the AdES object
    * @param signingCertificate
@@ -127,7 +127,7 @@ public interface SignedDocumentProcessor<T, X extends AdesObject> extends Docume
 
   /**
    * Gets the processing configuration that this processor is configured with.
-   * 
+   *
    * @return the processing configuration
    */
   @Nonnull

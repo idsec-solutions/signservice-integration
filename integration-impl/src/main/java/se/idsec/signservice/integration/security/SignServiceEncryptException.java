@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import se.idsec.signservice.integration.core.error.SignServiceIntegrationCategor
 
 /**
  * Exceptions for encryption errors.
- * 
+ *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
@@ -36,7 +36,7 @@ public class SignServiceEncryptException extends SignServiceIntegrationCategoryE
    *          the error code (within the given category)
    * @param message
    *          the error message
-   */  
+   */
   public SignServiceEncryptException(ErrorCode.Code code, String message) {
     super(code, message);
   }
@@ -50,7 +50,7 @@ public class SignServiceEncryptException extends SignServiceIntegrationCategoryE
    *          the error message
    * @param cause
    *          the cause of the error
-   */  
+   */
   public SignServiceEncryptException(ErrorCode.Code code, String message, Throwable cause) {
     super(code, message, cause);
   }

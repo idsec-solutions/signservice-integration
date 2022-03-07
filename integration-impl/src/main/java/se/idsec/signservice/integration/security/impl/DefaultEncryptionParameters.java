@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,8 @@
  */
 package se.idsec.signservice.integration.security.impl;
 
-import org.opensaml.xmlsec.encryption.support.EncryptionConstants;
-import org.opensaml.xmlsec.signature.support.SignatureConstants;
+import org.apache.xml.security.algorithms.MessageDigestAlgorithm;
+import org.apache.xml.security.encryption.XMLCipher;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -28,7 +28,7 @@ import se.idsec.signservice.integration.security.EncryptionParameters;
 
 /**
  * Default implementation of the {@link EncryptionParameters} interface.
- * 
+ *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
@@ -39,20 +39,20 @@ import se.idsec.signservice.integration.security.EncryptionParameters;
 public class DefaultEncryptionParameters implements EncryptionParameters {
 
   /** The default data encryption algorithm is AES-128 GCM. */
-  public static final String DEFAULT_DATA_ENCRYPTION_ALGORITHM = EncryptionConstants.ALGO_ID_BLOCKCIPHER_AES128_GCM;
+  public static final String DEFAULT_DATA_ENCRYPTION_ALGORITHM = XMLCipher.AES_128_GCM;
 
   /** The default key transport encryption algorithm is RSA OAEP MGF1P. */
-  public static final String DEFAULT_KEY_TRANSPORT_ENCRYPTION_ALGORITHM = EncryptionConstants.ALGO_ID_KEYTRANSPORT_RSAOAEP;
+  public static final String DEFAULT_KEY_TRANSPORT_ENCRYPTION_ALGORITHM = XMLCipher.RSA_OAEP;
 
   /** The default RSA OAEP parameters. */
   public static final RSAOAEPParameters DEFAULT_RSA_OAEP_PARAMETERS = RSAOAEPParameters.builder()
-    .digestMethod(SignatureConstants.ALGO_ID_DIGEST_SHA1)
-    .maskGenerationFunction(EncryptionConstants.ALGO_ID_MGF1_SHA1)
+    .digestMethod(MessageDigestAlgorithm.ALGO_ID_DIGEST_SHA1)
+    .maskGenerationFunction("http://www.w3.org/2009/xmlenc11#mgf1sha1")
     .build();
 
   /**
    * The data encryption algorithm that should be used when encrypting the sign message for a given Identity Provider.
-   * 
+   *
    * @param dataEncryptionAlgorithm
    *          URI for the data encryption algorithm to use
    */
@@ -63,7 +63,7 @@ public class DefaultEncryptionParameters implements EncryptionParameters {
   /**
    * The key transport encryption algorithm that should be used when encrypting the sign message for a given Identity
    * Provider.
-   * 
+   *
    * @param keyTransportEncryptionAlgorithm
    *          URI for the key transport encryption algorithm to use.
    */
@@ -92,11 +92,11 @@ public class DefaultEncryptionParameters implements EncryptionParameters {
 
   /**
    * Assigns the RSA OAEP parameters.
-   * 
+   *
    * @param rsaOAEPParameters
    *          the RSA OAEP parameters
    */
-  public void setRSAOAEPParameters(RSAOAEPParameters rsaOAEPParameters) {
+  public void setRSAOAEPParameters(final RSAOAEPParameters rsaOAEPParameters) {
     this.rsaOaepParameters = rsaOAEPParameters;
   }
 
@@ -105,7 +105,7 @@ public class DefaultEncryptionParameters implements EncryptionParameters {
   public RSAOAEPParameters getRsaOaepParameters() {
     return this.rsaOaepParameters;
   }
-  
+
   /**
    * Builder for {@code DefaultEncryptionParameters} objects.
    */

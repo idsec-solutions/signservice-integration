@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,10 +21,10 @@ import se.idsec.signservice.integration.core.error.NoAccessException;
 
 /**
  * Generic cache interface for the SignService Integration Service.
- * 
+ *
  * @param <T>
  *          the type of the cached objects
- * 
+ *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
@@ -35,7 +35,7 @@ public interface IntegrationServiceCache<T extends Serializable> {
    * <p>
    * Corresponds to {@code get(id, false)}.
    * </p>
-   * 
+   *
    * @param id
    *          the object if
    * @param requesterId
@@ -51,7 +51,7 @@ public interface IntegrationServiceCache<T extends Serializable> {
    * <p>
    * If the {@code remove} flag is set, the cached object is removed from the cache.
    * </p>
-   * 
+   *
    * @param id
    *          the object ID
    * @param remove
@@ -66,7 +66,7 @@ public interface IntegrationServiceCache<T extends Serializable> {
 
   /**
    * Adds an object to the cache.
-   * 
+   *
    * @param id
    *          the object ID
    * @param object
@@ -78,7 +78,7 @@ public interface IntegrationServiceCache<T extends Serializable> {
 
   /**
    * Deletes an object having the given ID from the cache.
-   * 
+   *
    * @param id
    *          the object ID
    */

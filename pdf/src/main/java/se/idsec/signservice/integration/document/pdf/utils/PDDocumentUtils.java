@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ import se.idsec.signservice.integration.document.DocumentProcessingException;
 
 /**
  * Utility methods for working with {@link PDDocument} objects.
- * 
+ *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
@@ -44,7 +44,7 @@ public class PDDocumentUtils {
    * <p>
    * The returned object must later be closes (see {@link #close(PDDocument)}).
    * </p>
-   * 
+   *
    * @param contents
    *          the PDF file contents
    * @return a loaded PDDocument object
@@ -55,7 +55,7 @@ public class PDDocumentUtils {
     try {
       return PDDocument.load(contents);
     }
-    catch (IOException e) {
+    catch (final IOException e) {
       log.error("Failed to load PDF document", e);
       throw new DocumentProcessingException(new ErrorCode.Code("decode"), "Failed to load PDF object", e);
     }
@@ -63,7 +63,7 @@ public class PDDocumentUtils {
 
   /**
    * Closes an open {@link PDDocument} object and releases its allocated resources.
-   * 
+   *
    * @param document
    *          the document to close
    */
@@ -72,7 +72,7 @@ public class PDDocumentUtils {
       try {
         document.close();
       }
-      catch (IOException e) {
+      catch (final IOException e) {
         log.warn("Failed to close PDDocument object", e);
       }
     }
@@ -80,7 +80,7 @@ public class PDDocumentUtils {
 
   /**
    * Encodes the supplied PDF document into a byte array.
-   * 
+   *
    * @param document
    *          the document to encode
    * @return a byte array of the contents
@@ -94,7 +94,7 @@ public class PDDocumentUtils {
       document.save(os);
       return bos.toByteArray();
     }
-    catch (IOException e) {
+    catch (final IOException e) {
       throw new DocumentProcessingException(new ErrorCode.Code("encode"), "Failed to encode PDF document", e);
     }
   }
@@ -102,7 +102,7 @@ public class PDDocumentUtils {
   /**
    * Inserts the {@code insertDocument} in {@code document} at position {@code page} (1-based). This means that the
    * given page number is the page number for the first page of the {@code insertDocument} after insertion.
-   * 
+   *
    * @param document
    *          the document to be updated (will be closed)
    * @param insertDocument
@@ -136,19 +136,19 @@ public class PDDocumentUtils {
           tree.remove(--pageCount);
         }
         int insertionPos = page - 1;
-        for (PDPage newPage : newPages) {
+        for (final PDPage newPage : newPages) {
           tree.insertBefore(newPage, tree.get(insertionPos));
           insertionPos++;
         }
       }
-      
+
       return PDDocumentUtils.load(PDDocumentUtils.toBytes(document));
     }
     catch (IndexOutOfBoundsException | IllegalStateException | IllegalArgumentException e) {
       throw new DocumentProcessingException(new ErrorCode.Code("pdf"),
         String.format("Failed to insert sign page at page %d of document (no such page)", page), e);
     }
-    catch (IOException e) {
+    catch (final IOException e) {
       throw new DocumentProcessingException(new ErrorCode.Code("pdf"),
         String.format("Failed to insert sign page into document"), e);
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,10 +20,9 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
+import java.util.Optional;
 
 import javax.annotation.PostConstruct;
-
-import org.opensaml.xmlsec.algorithm.AlgorithmSupport;
 
 import lombok.extern.slf4j.Slf4j;
 import se.idsec.signservice.integration.SignResponseProcessingParameters;
@@ -39,10 +38,13 @@ import se.idsec.signservice.integration.dss.SignRequestWrapper;
 import se.idsec.signservice.integration.dss.SignResponseWrapper;
 import se.idsec.signservice.integration.process.SignResponseProcessingConfig;
 import se.swedenconnect.schemas.csig.dssext_1_1.SignTaskData;
+import se.swedenconnect.security.algorithms.AlgorithmRegistry;
+import se.swedenconnect.security.algorithms.AlgorithmRegistrySingleton;
+import se.swedenconnect.security.algorithms.MessageDigestAlgorithm;
 
 /**
  * Abstract base class for {@link SignedDocumentProcessor} implementations.
- * 
+ *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
@@ -51,6 +53,9 @@ public abstract class AbstractSignedDocumentProcessor<T, X extends AdesObject> i
 
   /** Processing configuration. */
   private SignResponseProcessingConfig processingConfiguration;
+
+  /** The algorithm registry. */
+  private AlgorithmRegistry algorithmRegistry;
 
   /** {@inheritDoc} */
   @Override
@@ -67,10 +72,13 @@ public abstract class AbstractSignedDocumentProcessor<T, X extends AdesObject> i
       throw new DocumentProcessingException(new ErrorCode.Code("invalid-ades-object"), msg);
     }
 
-    // Use OpenSAML's algorithm registry to instantiate a digest and then compare the calculated
+    // Use the algorithm registry to instantiate a digest and then compare the calculated
     // digest with the claimed value.
     //
-    final String jcaName = AlgorithmSupport.getAlgorithmID(certDigest.getDigestMethod());
+    final String jcaName = Optional.ofNullable(
+      this.getAlgorithmRegistry().getAlgorithm(certDigest.getDigestMethod(), MessageDigestAlgorithm.class))
+      .map(MessageDigestAlgorithm::getJcaName)
+      .orElse(null);
     if (jcaName == null) {
       final String msg = String.format(
         "While performing AdES validation for sign task '%s' - Can not check digest of signer certificate - Algorithm '%s' is unsupported [request-id='%s']",
@@ -79,8 +87,8 @@ public abstract class AbstractSignedDocumentProcessor<T, X extends AdesObject> i
       throw new InternalSignServiceIntegrationException(new ErrorCode.Code("unsupported-algorithm"), msg);
     }
     try {
-      MessageDigest digest = MessageDigest.getInstance(jcaName);
-      byte[] calculatedDigest = digest.digest(signingCertificate.getEncoded());
+      final MessageDigest digest = MessageDigest.getInstance(jcaName);
+      final byte[] calculatedDigest = digest.digest(signingCertificate.getEncoded());
       if (!Arrays.equals(certDigest.getDigestValue(), calculatedDigest)) {
         final String msg =
             String.format("AdES digest validation of signer certificate failed for sign task '%s' [request-id='%s']",
@@ -91,7 +99,7 @@ public abstract class AbstractSignedDocumentProcessor<T, X extends AdesObject> i
       log.debug("{}: Successfully validated certificate digest in AdES object for sign task '{}' '[request-id='{}']",
         CorrelationID.id(), signTaskData.getSignTaskId(), signRequest.getRequestID());
     }
-    catch (NoSuchAlgorithmException | CertificateEncodingException e) {
+    catch (final NoSuchAlgorithmException | CertificateEncodingException e) {
       // Should not happen (otherwise the getAlgorithmID would have failed, or certificate would have been rejected).
       log.error("{}: {}", e.getMessage(), e);
       throw new SecurityException(e);
@@ -111,7 +119,7 @@ public abstract class AbstractSignedDocumentProcessor<T, X extends AdesObject> i
    * Validaton errors should use the error code "ades-validation-error", e.g.
    * {@code throw new DocumentProcessingException(new ErrorCode.Code("ades-validation-error"), msg)}.
    * </p>
-   * 
+   *
    * @param adesObject
    *          the AdES object
    * @param signingCertificate
@@ -136,14 +144,15 @@ public abstract class AbstractSignedDocumentProcessor<T, X extends AdesObject> i
 
   /** {@inheritDoc} */
   @Override
-  public SignResponseProcessingConfig getProcessingConfiguration() {    
-    return this.processingConfiguration != null 
-        ? this.processingConfiguration : SignResponseProcessingConfig.defaultSignResponseProcessingConfig();
+  public SignResponseProcessingConfig getProcessingConfiguration() {
+    return this.processingConfiguration != null
+        ? this.processingConfiguration
+        : SignResponseProcessingConfig.defaultSignResponseProcessingConfig();
   }
 
   /**
    * Assigns the processing configuration.
-   * 
+   *
    * @param processingConfiguration
    *          processing configuration
    */
@@ -154,15 +163,37 @@ public abstract class AbstractSignedDocumentProcessor<T, X extends AdesObject> i
   }
 
   /**
+   * Gets the algorithm registry. If none has been configured, the {@link AlgorithmRegistrySingleton} will be used.
+   *
+   * @return the algorithm registry to use
+   */
+  protected AlgorithmRegistry getAlgorithmRegistry() {
+    return this.algorithmRegistry != null
+        ? this.algorithmRegistry
+        : AlgorithmRegistrySingleton.getInstance();
+  }
+
+  /**
+   * Assigns the algorithm registry to use.
+   *
+   * @param algorithmRegistry
+   *          the algorithm registry to use
+   */
+  public void setAlgorithmRegistry(final AlgorithmRegistry algorithmRegistry) {
+    this.algorithmRegistry = algorithmRegistry;
+  }
+
+  /**
    * Ensures that the {@code processingConfiguration} property is assigned. By default
    * {@link SignResponseProcessingConfig#defaultSignResponseProcessingConfig()} is used.
-   * 
+   *
    * <p>
    * Note: If executing in a Spring Framework environment this method is automatically invoked after all properties have
    * been assigned. Otherwise it should be explicitly invoked.
    * </p>
-   * 
-   * @throws Exception for init errors
+   *
+   * @throws Exception
+   *           for init errors
    */
   @PostConstruct
   public void afterPropertiesSet() throws Exception {

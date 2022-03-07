@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,7 +46,7 @@ import se.idsec.signservice.integration.document.pdf.utils.PDDocumentUtils;
 
 /**
  * Test cases for DefaultPdfSignaturePagePreparator.
- * 
+ *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
@@ -214,12 +214,12 @@ public class DefaultPdfSignaturePagePreparatorTest {
 
   @Test
   public void testInsertPageReturnReference() throws Exception {
-    
+
     final DocumentCache docCache = new InMemoryDocumentCache();
-    
+
     final DefaultPdfSignaturePagePreparator preparator = new DefaultPdfSignaturePagePreparator();
     preparator.setDocumentCache(docCache);
-    
+
     final PdfSignaturePagePreferences prefs = getDefaultPrefs();
     prefs.setReturnDocumentReference(true);
     final PreparedPdfDocument result = preparator.preparePdfSignaturePage(
@@ -318,39 +318,39 @@ public class DefaultPdfSignaturePagePreparatorTest {
     Assert.assertEquals(xPosition + xIncrement, reqs.getXPosition().intValue());
     Assert.assertEquals(yPosition + 3 * yIncrement, reqs.getYPosition().intValue());
   }
-  
+
   @Test
   public void testNoNewPageUpdatedPosReference() throws Exception {
     final DocumentCache docCache = new InMemoryDocumentCache();
-    
+
     final DefaultPdfSignaturePagePreparator preparator = new DefaultPdfSignaturePagePreparator();
     preparator.setDocumentCache(docCache);
-    
+
     final PdfSignaturePagePreferences prefs = getDefaultPrefs();
     prefs.setReturnDocumentReference(null);
     prefs.addExtensionValue(SignServiceIntegrationService.OWNER_ID_EXTENSION_KEY, "userid");
-    final byte[] uploadedDocument = loadContents("pdf/sample-1-signature.pdf"); 
+    final byte[] uploadedDocument = loadContents("pdf/sample-1-signature.pdf");
     PreparedPdfDocument result = preparator.preparePdfSignaturePage(
       uploadedDocument, prefs, this.configStateful);
 
-    Assert.assertNull(result.getUpdatedPdfDocument());    
+    Assert.assertNull(result.getUpdatedPdfDocument());
     Assert.assertNotNull(result.getUpdatedPdfDocumentReference());
     try {
       docCache.get(result.getUpdatedPdfDocumentReference(), null);
       Assert.fail("Expected NoAccessException");
     }
-    catch (NoAccessException e) {      
+    catch (NoAccessException e) {
     }
     try {
       docCache.get(result.getUpdatedPdfDocumentReference(), "otheruser");
       Assert.fail("Expected NoAccessException");
     }
-    catch (NoAccessException e) {      
+    catch (NoAccessException e) {
     }
     final String cachedDocument = docCache.get(result.getUpdatedPdfDocumentReference(), "userid");
     final byte[] cachedDocumentBytes = Base64.getDecoder().decode(cachedDocument);
     Assert.assertArrayEquals(uploadedDocument, cachedDocumentBytes);
-    
+
     Assert.assertEquals("stateful-policy", result.getPolicy());
   }
 

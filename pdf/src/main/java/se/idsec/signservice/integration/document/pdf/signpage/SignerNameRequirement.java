@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,7 @@ public class SignerNameRequirement {
   /**
    * List of name attributes included in the sign request representing the signer identity. Signer name attributes must
    * be among these attributes.
-   * 
+   *
    * @param signerNameAttributeList
    *          name attributes included in the sign request representing the signer identity
    * @return name attributes included in the sign request representing the signer identity
@@ -48,7 +48,7 @@ public class SignerNameRequirement {
    * <p>
    * Example "%1 %2 (%3)" causes the result "AttributeVal-1 AttriubteVal-2 (AttributeVal-3)".
    * </p>
-   * 
+   *
    * @param formatString
    *          the format string determining the formatting of the signer name in the visible sign image.
    * @return the format string determining the formatting of the signer name in the visible sign image, or null

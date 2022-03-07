@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import se.idsec.signservice.integration.core.error.SignServiceIntegrationCategor
 
 /**
  * Base exception class for internal errors.
- * 
+ *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
@@ -52,7 +52,7 @@ public class InternalSignServiceIntegrationException extends SignServiceIntegrat
    *          the error message
    * @param cause
    *          the cause of the error
-   */  
+   */
   public InternalSignServiceIntegrationException(@Nonnull final ErrorCode.Code code, final String message, final Throwable cause) {
     super(code, message, cause);
   }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,10 +22,10 @@ import se.idsec.signservice.integration.document.DocumentEncoder;
 import se.idsec.signservice.integration.document.DocumentProcessingException;
 
 public class TestDocumentEncoderDecoder implements DocumentEncoder<TestDocumentType>, DocumentDecoder<TestDocumentType> {
-  
+
   @Setter
   private boolean failEncode = false;
-  
+
   @Setter
   private boolean failDecode = false;
 

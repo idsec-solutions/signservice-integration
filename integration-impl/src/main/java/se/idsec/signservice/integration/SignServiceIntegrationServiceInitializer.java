@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,10 +19,10 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 
 import lombok.extern.slf4j.Slf4j;
-import se.litsec.swedisheid.opensaml.xmlsec.config.SwedishEidSecurityConfiguration;
 import se.swedenconnect.opensaml.OpenSAMLInitializer;
 import se.swedenconnect.opensaml.OpenSAMLSecurityDefaultsConfig;
 import se.swedenconnect.opensaml.OpenSAMLSecurityExtensionConfig;
+import se.swedenconnect.opensaml.sweid.xmlsec.config.SwedishEidSecurityConfiguration;
 import se.swedenconnect.opensaml.xmlsec.config.DefaultSecurityConfiguration;
 import se.swedenconnect.opensaml.xmlsec.config.SAML2IntSecurityConfiguration;
 import se.swedenconnect.opensaml.xmlsec.config.SecurityConfiguration;
@@ -35,19 +35,19 @@ import se.swedenconnect.opensaml.xmlsec.config.SecurityConfiguration;
  * <b>Note:</b> Make sure to initialize the library the first thing you do in your application. Below an example of how
  * a Spring Boot application best initializes the library is presented:
  * </p>
- * 
+ *
  * <pre>
  * &#64;Component
  * &#64;Order(Ordered.HIGHEST_PRECEDENCE)
  * public class SignServiceIntegrationInitComponent {
- * 
+ *
  *   public SignServiceIntegrationInitComponent() throws Exception {
  *     SignServiceIntegrationServiceInitializer.initialize(
  *       new SwedishEidSecurityConfiguration());
  *   }
  * }
  * </pre>
- * 
+ *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
@@ -59,7 +59,7 @@ public class SignServiceIntegrationServiceInitializer {
 
   /**
    * Initializes Apache xmlsec and OpenSAML with default algorithm settings.
-   * 
+   *
    * @throws Exception
    *           for initialization errors
    */
@@ -77,7 +77,7 @@ public class SignServiceIntegrationServiceInitializer {
    * <li>{@link SwedishEidSecurityConfiguration} - Security defaults according to the Swedish eID Framework, see
    * <a href="docs.swedenconnect.se">https://docs.swedenconnect.se</a>.</li>
    * </ul>
-   * 
+   *
    * @param securityConfiguration
    *          the OpenSAML security configuration to apply
    * @throws Exception
@@ -113,7 +113,7 @@ public class SignServiceIntegrationServiceInitializer {
 
   /**
    * Predicate that tells if the SignService Integration library has been initialized.
-   * 
+   *
    * @return true if the library has been initialized, and false otherwise
    */
   public static boolean isInitialized() {

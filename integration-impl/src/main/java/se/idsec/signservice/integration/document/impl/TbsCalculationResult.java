@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import se.idsec.signservice.integration.core.ObjectBuilder;
 /**
  * Representation of the result object for
  * {@link AbstractTbsDocumentProcessor#calculateToBeSigned(se.idsec.signservice.integration.document.ProcessedTbsDocument, String, se.idsec.signservice.integration.config.IntegrationServiceConfiguration)}.
- * 
+ *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
@@ -36,7 +36,7 @@ public class TbsCalculationResult {
 
   /**
    * The {@code SignTaskData.SigType} attribute.
-   * 
+   *
    * @param sigType
    *          the signature type
    * @return the signature type
@@ -47,7 +47,7 @@ public class TbsCalculationResult {
 
   /**
    * The {@code SignTaskData.ToBeSignedBytes} element.
-   * 
+   *
    * @param toBeSignedBytes
    *          the to-be-signed-bytes
    * @return the to-be-signed-bytes
@@ -58,7 +58,7 @@ public class TbsCalculationResult {
 
   /**
    * The {@code SignTaskData.AdESObject.SignatureId} element.
-   * 
+   *
    * @param adesSignatureId
    *          the AdES signature id
    * @return the AdES signature id
@@ -69,7 +69,7 @@ public class TbsCalculationResult {
 
   /**
    * The {@code SignTaskData.AdESObject.AdESObjectBytes} element.
-   * 
+   *
    * @param adesObjectBytes
    *          the AdES object bytes
    * @return the AdES object bytes

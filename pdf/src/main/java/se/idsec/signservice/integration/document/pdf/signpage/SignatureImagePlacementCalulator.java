@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ public interface SignatureImagePlacementCalulator {
   /**
    * Calculates the relative placement of a sign image based on the number of previously existing signatures on this
    * document.
-   * 
+   *
    * @param sigCount
    *          number of already existing signatures on this document
    * @param basePlacement

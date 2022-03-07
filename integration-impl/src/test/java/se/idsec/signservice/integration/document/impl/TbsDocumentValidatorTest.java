@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import se.idsec.signservice.integration.testbase.TestEtsiAdesRequirementValidato
 
 /**
  * Test cases for {@code TbsDocumentValidator}.
- * 
+ *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
@@ -37,17 +37,17 @@ public class TbsDocumentValidatorTest {
       new TbsDocumentValidator(null);
       Assert.fail("Expected IllegalArgumentException");
     }
-    catch (IllegalArgumentException e) {      
+    catch (IllegalArgumentException e) {
     }
   }
-  
+
   @Test
   public void testNull() throws Exception {
     TbsDocumentValidator validator = new TbsDocumentValidator(new TestEtsiAdesRequirementValidator());
     ValidationResult result = validator.validate(null, "tbs", null);
     Assert.assertFalse(result.hasErrors());
   }
-  
+
   @Test
   public void missingContent() throws Exception {
     TbsDocumentValidator validator = new TbsDocumentValidator(new TestEtsiAdesRequirementValidator());
@@ -61,7 +61,7 @@ public class TbsDocumentValidatorTest {
     Assert.assertNull(result.getGlobalError());
     Assert.assertTrue(result.getFieldErrors().size() == 1);
     Assert.assertNotNull(result.getFieldErrors().get("tbs.content"));
-    
+
     // The same with an empty string ...
     tbs = TbsDocument.builder()
         .id("ID")
@@ -73,7 +73,7 @@ public class TbsDocumentValidatorTest {
     Assert.assertTrue(result.getFieldErrors().size() == 1);
     Assert.assertNotNull(result.getFieldErrors().get("tbs.content"));
   }
-  
+
   @Test
   public void missingMimeType() throws Exception {
     TbsDocumentValidator validator = new TbsDocumentValidator(new TestEtsiAdesRequirementValidator());
@@ -87,7 +87,7 @@ public class TbsDocumentValidatorTest {
     Assert.assertNull(result.getGlobalError());
     Assert.assertTrue(result.getFieldErrors().size() == 1);
     Assert.assertNotNull(result.getFieldErrors().get("tbs.mimeType"));
-    
+
     // The same with an empty string ...
     tbs = TbsDocument.builder()
         .id("ID")
@@ -99,7 +99,7 @@ public class TbsDocumentValidatorTest {
     Assert.assertTrue(result.getFieldErrors().size() == 1);
     Assert.assertNotNull(result.getFieldErrors().get("tbs.mimeType"));
   }
-  
+
   @Test
   public void missingContentAndMimeType() throws Exception {
     TbsDocumentValidator validator = new TbsDocumentValidator(new TestEtsiAdesRequirementValidator());
@@ -113,8 +113,8 @@ public class TbsDocumentValidatorTest {
     Assert.assertNull(result.getGlobalError());
     Assert.assertTrue(result.getFieldErrors().size() == 2);
     Assert.assertNotNull(result.getFieldErrors().get("tbs.content"));
-    Assert.assertNotNull(result.getFieldErrors().get("tbs.mimeType"));    
-    
+    Assert.assertNotNull(result.getFieldErrors().get("tbs.mimeType"));
+
     // The same with an empty string ...
     tbs = TbsDocument.builder()
         .id("ID")
@@ -126,6 +126,6 @@ public class TbsDocumentValidatorTest {
     Assert.assertTrue(result.getFieldErrors().size() == 2);
     Assert.assertNotNull(result.getFieldErrors().get("tbs.content"));
     Assert.assertNotNull(result.getFieldErrors().get("tbs.mimeType"));
-  }  
-  
+  }
+
 }

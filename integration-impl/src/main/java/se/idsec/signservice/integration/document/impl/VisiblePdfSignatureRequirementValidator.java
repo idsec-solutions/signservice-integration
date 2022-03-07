@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,9 +33,9 @@ import se.idsec.signservice.integration.document.pdf.VisiblePdfSignatureRequirem
  */
 public class VisiblePdfSignatureRequirementValidator extends
     AbstractInputValidator<VisiblePdfSignatureRequirement, IntegrationServiceConfiguration> {
-  
+
   /** Validator for VisiblePdfSignatureUserInformation objects. */
-  private VisiblePdfSignatureUserInformationValidator visiblePdfSignatureUserInformationValidator = 
+  private VisiblePdfSignatureUserInformationValidator visiblePdfSignatureUserInformationValidator =
       new VisiblePdfSignatureUserInformationValidator();
 
   /** {@inheritDoc} */
@@ -80,7 +80,7 @@ public class VisiblePdfSignatureRequirementValidator extends
 
     result.setFieldErrors(
       this.visiblePdfSignatureUserInformationValidator.validate(object, null, template));
-    
+
     return result;
   }
 

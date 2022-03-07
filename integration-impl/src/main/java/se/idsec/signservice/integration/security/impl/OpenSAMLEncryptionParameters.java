@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import se.idsec.signservice.integration.security.EncryptionParameters;
 
 /**
  * Implementation of {@link EncryptionParameters} that uses OpenSAML's system configuration.
- * 
+ *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
@@ -63,7 +63,7 @@ public class OpenSAMLEncryptionParameters implements EncryptionParameters {
 
   /**
    * Gets the OpenSAML system configuration.
-   * 
+   *
    * @return OpenSAML encryption configuration
    */
   @JsonIgnore

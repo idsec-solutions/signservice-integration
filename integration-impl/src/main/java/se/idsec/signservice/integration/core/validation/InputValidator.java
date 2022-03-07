@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import se.idsec.signservice.integration.core.error.InputValidationException;
 
 /**
  * Interface for input validators.
- * 
+ *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
@@ -31,7 +31,7 @@ public interface InputValidator<T, H> {
   /**
    * Validates the supplied object using the supplied hint. The returned {@code ValidationResult} should be queried for
    * errors.
-   * 
+   *
    * @param object
    *          the object to validate
    * @param objectName
@@ -46,7 +46,7 @@ public interface InputValidator<T, H> {
   /**
    * Validates the supplied object using the supplied hint and throws an {@code InputValidationException} for validation
    * errors.
-   * 
+   *
    * @param object
    *          the object to validate
    * @param objectName

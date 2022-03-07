@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import javax.annotation.Nullable;
 
 /**
  * Interface for managing integration service configurations/policies.
- * 
+ *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
@@ -49,7 +49,7 @@ public interface ConfigurationManager {
 
   /**
    * Gets the default policy name.
-   * 
+   *
    * @return the default policy name
    */
   @Nonnull
@@ -58,7 +58,7 @@ public interface ConfigurationManager {
   /**
    * Assigns the default policy name. If not assigned,
    * {@value IntegrationServiceDefaultConfiguration#DEFAULT_POLICY_NAME} will be used.
-   * 
+   *
    * @param defaultPolicyName
    *          the default policy name
    */

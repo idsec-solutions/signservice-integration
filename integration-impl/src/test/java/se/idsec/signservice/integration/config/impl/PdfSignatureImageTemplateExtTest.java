@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import org.junit.Test;
 
 /**
  * Test cases for {@code PdfSignatureImageTemplateExt}.
- * 
+ *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
@@ -28,7 +28,7 @@ import org.junit.Test;
 public class PdfSignatureImageTemplateExtTest {
 
   @Test
-  public void testResource() throws Exception {    
+  public void testResource() throws Exception {
     PdfSignatureImageTemplateExt p = new PdfSignatureImageTemplateExt();
     p.setResource("classpath:idsec.svg");
 
