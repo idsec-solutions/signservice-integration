@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
 /**
  * Interface used by the SignService Integration Service to obtain SAML metadata for an IdP before the encryption
  * process.
- * 
+ *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
@@ -33,7 +33,7 @@ public interface IdpMetadataResolver {
 
   /**
    * Gets the (valid) metadata for the given SAML IdP.
-   * 
+   *
    * @param entityID
    *          the entityID for the IdP
    * @param config

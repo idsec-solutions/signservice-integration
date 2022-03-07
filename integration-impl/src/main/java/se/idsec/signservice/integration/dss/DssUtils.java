@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,49 +15,35 @@
  */
 package se.idsec.signservice.integration.dss;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import javax.annotation.Nonnull;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.apache.commons.lang.StringUtils;
-import org.joda.time.DateTime;
-import org.opensaml.core.xml.XMLObject;
-import org.opensaml.core.xml.io.MarshallingException;
-import org.opensaml.core.xml.io.Unmarshaller;
-import org.opensaml.core.xml.io.UnmarshallingException;
-import org.opensaml.core.xml.schema.XSBase64Binary;
-import org.opensaml.core.xml.schema.XSBoolean;
-import org.opensaml.core.xml.schema.XSBooleanValue;
-import org.opensaml.core.xml.schema.XSDateTime;
-import org.opensaml.core.xml.schema.XSInteger;
-import org.opensaml.core.xml.schema.XSString;
-import org.opensaml.core.xml.util.XMLObjectSupport;
-import org.opensaml.saml.saml2.core.Attribute;
-import org.opensaml.saml.saml2.core.NameID;
-import org.w3c.dom.Element;
 
 import se.idsec.signservice.integration.authentication.SignerIdentityAttribute;
 import se.idsec.signservice.integration.authentication.SignerIdentityAttributeValue;
 import se.idsec.signservice.integration.certificate.CertificateAttributeMapping;
 import se.idsec.signservice.integration.certificate.SigningCertificateRequirements;
 import se.idsec.signservice.integration.core.error.impl.SignServiceProtocolException;
-import se.idsec.signservice.xml.JAXBContextUtils;
-import se.idsec.signservice.xml.JAXBMarshaller;
-import se.litsec.opensaml.saml2.attribute.AttributeBuilder;
-import se.litsec.opensaml.saml2.attribute.AttributeUtils;
 import se.swedenconnect.schemas.csig.dssext_1_1.CertRequestProperties;
 import se.swedenconnect.schemas.csig.dssext_1_1.MappedAttributeType;
 import se.swedenconnect.schemas.csig.dssext_1_1.PreferredSAMLAttributeNameType;
 import se.swedenconnect.schemas.csig.dssext_1_1.RequestedCertAttributes;
+import se.swedenconnect.schemas.saml_2_0.assertion.Assertion;
+import se.swedenconnect.schemas.saml_2_0.assertion.Attribute;
 import se.swedenconnect.schemas.saml_2_0.assertion.AttributeStatement;
 import se.swedenconnect.schemas.saml_2_0.assertion.NameIDType;
 
 /**
  * Utilities for creating DSS elements.
- * 
+ *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
@@ -71,92 +57,109 @@ public class DssUtils {
 
   /**
    * Creates a NameID object.
-   * 
+   *
    * @param name
    *          the name
    * @return the NameID object
    */
-  public static NameIDType toEntity(@Nonnull final String name) {
+  public static NameIDType toEntity(final String name) {
     NameIDType entity = new NameIDType();
     entity.setValue(name);
-    entity.setFormat(NameID.ENTITY);
+    entity.setFormat("urn:oasis:names:tc:SAML:2.0:nameid-format:entity");
     return entity;
   }
 
   /**
-   * Transforms an OpenSAML object into a JAXB object.
-   * 
-   * @param object
-   *          the OpenSAML object
-   * @param destination
-   *          the class for the JAXB object
-   * @return the JAXB object
-   * @throws SignServiceProtocolException
-   *           for protocol errors
+   * Given an assertion the {@code AttributeStatement} is extracted.
+   *
+   * @param assertion
+   *          the assertion
+   * @return an AttributeStatement
    */
-  public static <T> T toJAXB(@Nonnull final XMLObject object, @Nonnull final Class<T> destination) throws SignServiceProtocolException {
-    try {
-      Element element = XMLObjectSupport.marshall(object);
-      JAXBContext context = JAXBContextUtils.createJAXBContext(destination);
-      Object jaxb = context.createUnmarshaller().unmarshal(element);
-      return destination.cast(jaxb);
-    }
-    catch (MarshallingException e) {
-      throw new SignServiceProtocolException("Failed to marshall DSS protocol object", e);
-    }
-    catch (JAXBException e) {
-      throw new SignServiceProtocolException("JAXB error", e);
-    }
+  public static AttributeStatement getAttributeStatement(final Assertion assertion) {
+    return assertion.getStatementsAndAuthnStatementsAndAuthzDecisionStatements().stream()
+      .filter(AttributeStatement.class::isInstance)
+      .map(AttributeStatement.class::cast)
+      .findFirst()
+      .orElse(null);
   }
 
   /**
-   * Transforms a JAXB object to its corresponding OpenSAML object.
-   * 
-   * @param jaxbObject
-   *          JAXB object
-   * @param destination
-   *          the OpenSAML class
-   * @return OpenSAML object
-   * @throws SignServiceProtocolException
-   *           for unmarshalling errors
+   * Gets a String-attribute value from the given statement.
+   *
+   * @param statement
+   *          the statement
+   * @param name
+   *          the attribute name
+   * @return the value or null if no value is found
    */
-  public static <T> T toOpenSAML(@Nonnull final Object jaxbObject, @Nonnull final Class<T> destination)
-      throws SignServiceProtocolException {
-    try {
-      Element element = JAXBMarshaller.marshall(jaxbObject).getDocumentElement();
-      Unmarshaller unmarshaller = XMLObjectSupport.getUnmarshaller(element);
-      XMLObject object = unmarshaller.unmarshall(element);
-      return destination.cast(object);
-    }
-    catch (JAXBException | UnmarshallingException e) {
-      throw new SignServiceProtocolException(String.format("Failed to decode %s - %s", destination.getSimpleName(), e.getMessage()), e);
-    }
+  public static String getAttributeValue(final AttributeStatement statement, final String name) {
+    return getAttributeValue(statement, name, String.class);
   }
 
   /**
-   * Converts a list of {@link SignerIdentityAttributeValue} objects into a {@code Signer} element.
-   * 
+   * Gets an attribute value from the given statement having the given type.
+   *
+   * @param statement
+   *          the statement
+   * @param name
+   *          the attribute name
+   * @param type
+   *          the type of the attribute value
+   * @return the value or null if no value is found
+   */
+  public static <T> T getAttributeValue(final AttributeStatement statement, final String name, final Class<T> type) {
+    return statement.getAttributesAndEncryptedAttributes().stream()
+      .filter(Attribute.class::isInstance)
+      .map(Attribute.class::cast)
+      .filter(a -> Objects.equals(a.getName(), name))
+      .filter(Attribute::isSetAttributeValues)
+      .map(a -> a.getAttributeValues().get(0))
+      .filter(type::isInstance)
+      .map(type::cast)
+      .findFirst()
+      .orElse(null);
+  }
+
+  /**
+   * Converts a list of {@link SignerIdentityAttributeValue} objects into a {@code AttributeStatement} element.
+   *
    * @param attributes
    *          list of attributes
-   * @return a ns:Signer element
+   * @return an AttributeStatement element
    * @throws SignServiceProtocolException
    *           for encoding/decoding errors
    */
   public static AttributeStatement toAttributeStatement(@Nonnull final List<SignerIdentityAttributeValue> attributes)
       throws SignServiceProtocolException {
 
-    org.opensaml.saml.saml2.core.AttributeStatement attributeStatement = (org.opensaml.saml.saml2.core.AttributeStatement) XMLObjectSupport
-      .buildXMLObject(org.opensaml.saml.saml2.core.AttributeStatement.DEFAULT_ELEMENT_NAME);
+    final AttributeStatement attributeStatement = new AttributeStatement();
+    for (final SignerIdentityAttributeValue siav : attributes) {
 
-    for (SignerIdentityAttributeValue av : attributes) {
-      attributeStatement.getAttributes().add(toOpenSAMLAttribute(av));
+      final Attribute attribute = toAttribute(siav);
+
+      // We want to handle multi-valued attributes in both directions ...
+      final Attribute existing = attributeStatement.getAttributesAndEncryptedAttributes().stream()
+        .filter(Attribute.class::isInstance)
+        .map(Attribute.class::cast)
+        .filter(a -> Objects.equals(a.getName(), siav.getName()))
+        .findFirst()
+        .orElse(null);
+
+      if (existing != null) {
+        existing.getAttributeValues().add(attribute.getAttributeValues().get(0));
+      }
+      else {
+        attributeStatement.getAttributesAndEncryptedAttributes().add(attribute);
+      }
     }
-    return toJAXB(attributeStatement, AttributeStatement.class);
+
+    return attributeStatement;
   }
 
   /**
    * Converts from an {@code AttributeStatement} object to a list of {@code SignerIdentityAttributeValue} objects.
-   * 
+   *
    * @param attributeStatement
    *          the statement to convert
    * @return a list of SignerIdentityAttributeValue objects
@@ -166,27 +169,20 @@ public class DssUtils {
   public static List<SignerIdentityAttributeValue> fromAttributeStatement(@Nonnull final AttributeStatement attributeStatement)
       throws SignServiceProtocolException {
 
-    final org.opensaml.saml.saml2.core.AttributeStatement openSaml =
-        DssUtils.toOpenSAML(attributeStatement, org.opensaml.saml.saml2.core.AttributeStatement.class);
+    final List<SignerIdentityAttributeValue> list = new ArrayList<>();
 
-    List<SignerIdentityAttributeValue> list = new ArrayList<>();
-    for (org.opensaml.saml.saml2.core.Attribute a : openSaml.getAttributes()) {
-      AttributeUtils.getAttributeStringValues(a).stream()
-        .map(v -> SignerIdentityAttributeValue.builder()
-          .type(SignerIdentityAttribute.SAML_TYPE)
-          .name(a.getName())
-          .nameFormat(a.getNameFormat())
-          .value(v)
-          .build())
-        .forEach(av -> list.add(av));
-    }
+    attributeStatement.getAttributesAndEncryptedAttributes().stream()
+      .filter(Attribute.class::isInstance)
+      .map(Attribute.class::cast)
+      .map(a -> toSignerIdentityAttributeValue(a))
+      .forEach(av -> list.addAll(av));
 
     return list;
   }
 
   /**
    * Converts a {@link SigningCertificateRequirements} object into a {@code CertRequestProperties} element.
-   * 
+   *
    * @param certReqs
    *          signing certificate requirements
    * @param authnContextClassRefs
@@ -238,72 +234,112 @@ public class DssUtils {
   }
 
   /**
-   * Given a {@link SignerIdentityAttributeValue} object an OpenSAML attribute is created.
-   * 
-   * @param attributeValue
-   *          the attribute value received in the input
-   * @return an OpenSAML attribute
+   * Creates a SAML {@link Attribute} given a {@link SignerIdentityAttributeValue}.
+   *
+   * @param value
+   *          the value to transform into an Attribute
+   * @return an Attribute
    * @throws SignServiceProtocolException
-   *           for encoding errors
+   *           for protocol errors
    */
-  public static Attribute toOpenSAMLAttribute(@Nonnull final SignerIdentityAttributeValue attributeValue)
-      throws SignServiceProtocolException {
-    try {
-      AttributeBuilder builder = new AttributeBuilder(attributeValue.getName());
-      if (StringUtils.isBlank(attributeValue.getNameFormat())) {
-        builder.nameFormat(AttributeBuilder.DEFAULT_NAME_FORMAT);
-      }
-      String type = attributeValue.getAttributeValueType();
-      if (StringUtils.isBlank(type)) {
-        type = SignerIdentityAttributeValue.DEFAULT_ATTRIBUTE_VALUE_TYPE;
-      }
-      builder.value(getValueObject(type, attributeValue.getValue()));
-
-      return builder.build();
+  public static Attribute toAttribute(final SignerIdentityAttributeValue value) throws SignServiceProtocolException {
+    if (value.getType() != null && !SignerIdentityAttribute.SAML_TYPE.equalsIgnoreCase(value.getType())) {
+      throw new SignServiceProtocolException(
+        String.format("Unsupported attribute type '%s' - Only '%s' is supported",
+          value.getType(), SignerIdentityAttribute.SAML_TYPE));
     }
-    catch (Exception e) {
-      throw new SignServiceProtocolException("Failed to process attribute - " + e.getMessage(), e);
+    final Attribute attribute = new Attribute();
+    attribute.setName(value.getName());
+    attribute.setNameFormat(value.getNameFormat());
+    attribute.getAttributeValues().add(toAttributeValue(value));
+    return attribute;
+  }
+
+  /**
+   * Given a {@link SignerIdentityAttributeValue} the method extracts its value and converts it to the correct type.
+   *
+   * @param siav
+   *          the object to convert
+   * @return the attribute value
+   * @throws SignServiceProtocolException
+   *           for non supported values
+   */
+  public static Object toAttributeValue(final SignerIdentityAttributeValue siav) throws SignServiceProtocolException {
+    try {
+      if (siav.getAttributeValueType() == null
+          || SignerIdentityAttributeValue.DEFAULT_ATTRIBUTE_VALUE_TYPE.equals(siav.getAttributeValueType())) {
+        return siav.getValue();
+      }
+      else if ("integer".equals(siav.getAttributeValueType())) {
+        return new BigInteger(siav.getValue());
+      }
+      else if ("boolean".equals(siav.getAttributeValueType())) {
+        if ("1".equals(siav.getValue())) {
+          return Boolean.TRUE;
+        }
+        else if ("0".equals(siav.getAttributeValueType())) {
+          return Boolean.FALSE;
+        }
+        else {
+          return Boolean.parseBoolean(siav.getValue());
+        }
+      }
+      else if ("dateTime".equalsIgnoreCase(siav.getAttributeValueType())
+          || "date".equalsIgnoreCase(siav.getAttributeValueType())) {
+        return DatatypeFactory.newInstance().newXMLGregorianCalendar(siav.getValue());
+      }
+      else {
+        throw new SignServiceProtocolException(String.format("Attribute '%s' has type '%s' - Not supported",
+          siav.getName(), siav.getAttributeValueType()));
+      }
+    }
+    catch (final IllegalArgumentException | DatatypeConfigurationException e) {
+      throw new SignServiceProtocolException(String.format("Attribute '%s' has type '%s' - could not parse value",
+        siav.getName(), siav.getAttributeValueType()), e);
     }
   }
 
   /**
-   * Based on the type an XML object is created.
-   * 
-   * @param type
-   *          the XML type
-   * @param value
-   *          the value (in string representation)
-   * @return the XML value
+   * Given an attribute, the method transforms it into a {@link SignerIdentityAttributeValue}.
+   * <p>
+   * Note: If the attribute is multi-valued, several {@link SignerIdentityAttributeValue} instances will be created.
+   * </p>
+   *
+   * @param attribute
+   *          the attribute to convert
+   * @return a list of SignerIdentityAttributeValue objects
    */
-  private static XMLObject getValueObject(final String type, final String value) {
-    if (XSBase64Binary.TYPE_LOCAL_NAME.equalsIgnoreCase(type)) {
-      XSString object = AttributeBuilder.createValueObject(XSString.TYPE_NAME, XSString.class);
-      object.setValue(value);
-      return object;
+  public static List<SignerIdentityAttributeValue> toSignerIdentityAttributeValue(final Attribute attribute) {
+    List<SignerIdentityAttributeValue> result = new ArrayList<>();
+    for (final Object v : attribute.getAttributeValues()) {
+      final SignerIdentityAttributeValue siav = new SignerIdentityAttributeValue();
+      siav.setType(SignerIdentityAttribute.SAML_TYPE);
+      siav.setName(attribute.getName());
+      siav.setNameFormat(attribute.getNameFormat());
+      if (String.class.isInstance(v)) {
+        siav.setAttributeValueType("string");
+        siav.setValue(String.class.cast(v));
+      }
+      else if (Boolean.class.isInstance(v)) {
+        siav.setAttributeValueType("boolean");
+        siav.setValue(Boolean.class.cast(v).toString());
+      }
+      else if (BigInteger.class.isInstance(v)) {
+        siav.setAttributeValueType("integer");
+        siav.setValue(BigInteger.class.cast(v).toString());
+      }
+      else if (XMLGregorianCalendar.class.isInstance(v)) {
+        final XMLGregorianCalendar t = XMLGregorianCalendar.class.cast(v);
+        siav.setAttributeValueType(t.getXMLSchemaType().getLocalPart());
+        siav.setValue(t.toXMLFormat());
+      }
+      else {
+        // Hmm ...
+        siav.setValue(v.toString());
+      }
+      result.add(siav);
     }
-    else if (XSBoolean.TYPE_LOCAL_NAME.equalsIgnoreCase(type)) {
-      XSBoolean object = AttributeBuilder.createValueObject(XSBoolean.TYPE_NAME, XSBoolean.class);
-      XSBooleanValue _value = new XSBooleanValue();
-      _value.setValue(Boolean.getBoolean(value));
-      object.setValue(_value);
-      return object;
-    }
-    else if (XSInteger.TYPE_LOCAL_NAME.equalsIgnoreCase(type)) {
-      XSInteger object = AttributeBuilder.createValueObject(XSInteger.TYPE_NAME, XSInteger.class);
-      object.setValue(Integer.valueOf(value));
-      return object;
-    }
-    else if (XSDateTime.TYPE_LOCAL_NAME.equalsIgnoreCase(type)) {
-      XSDateTime object = AttributeBuilder.createValueObject(XSDateTime.TYPE_NAME, XSDateTime.class);
-      object.setValue(DateTime.parse(value));
-      return object;
-    }
-    else { // TODO: check if unsupported type
-      // String
-      XSString object = AttributeBuilder.createValueObject(XSString.TYPE_NAME, XSString.class);
-      object.setValue(value);
-      return object;
-    }
+    return result;
   }
 
   private DssUtils() {

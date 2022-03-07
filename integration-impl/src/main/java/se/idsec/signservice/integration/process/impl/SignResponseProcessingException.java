@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import se.idsec.signservice.integration.core.error.SignServiceIntegrationCategor
 
 /**
  * Exception class for processing errors of a SignResponse message.
- * 
+ *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
@@ -36,7 +36,7 @@ public class SignResponseProcessingException extends SignServiceIntegrationCateg
    *          the error code (within the given category)
    * @param message
    *          the error message
-   */  
+   */
   public SignResponseProcessingException(final ErrorCode.Code code, final String message) {
     super(code, message);
   }
@@ -50,7 +50,7 @@ public class SignResponseProcessingException extends SignServiceIntegrationCateg
    *          the error message
    * @param cause
    *          the cause of the error
-   */  
+   */
   public SignResponseProcessingException(final ErrorCode.Code code, final String message, final Throwable cause) {
     super(code, message, cause);
   }
@@ -60,11 +60,11 @@ public class SignResponseProcessingException extends SignServiceIntegrationCateg
   public int getHttpStatus() {
     return 500;
   }
-  
+
   /** {@inheritDoc} */
   @Override
   protected ErrorCode.Category getCategory() {
     return new ErrorCode.Category("signresponse");
-  }  
+  }
 
 }

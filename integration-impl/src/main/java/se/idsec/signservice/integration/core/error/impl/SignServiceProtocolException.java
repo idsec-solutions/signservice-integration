@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ import se.idsec.signservice.integration.core.error.ErrorCode;
 
 /**
  * Exception class for protocol related errors.
- * 
+ *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
@@ -30,7 +30,7 @@ public class SignServiceProtocolException extends InternalSignServiceIntegration
 
   /**
    * Constructor.
-   * 
+   *
    * @param message
    *          the error message
    */
@@ -40,7 +40,7 @@ public class SignServiceProtocolException extends InternalSignServiceIntegration
 
   /**
    * Constructor.
-   * 
+   *
    * @param message
    *          the error message
    * @param cause

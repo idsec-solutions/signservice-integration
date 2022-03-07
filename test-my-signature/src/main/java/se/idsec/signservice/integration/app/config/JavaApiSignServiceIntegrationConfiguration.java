@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package se.idsec.signservice.integration.app.config;
 import java.util.Arrays;
 import java.util.Collections;
 
+import org.opensaml.security.x509.X509Credential;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -47,13 +48,13 @@ import se.idsec.signservice.integration.security.impl.OpenSAMLIdpMetadataResolve
 import se.idsec.signservice.integration.signmessage.impl.DefaultSignMessageProcessor;
 import se.idsec.signservice.integration.state.impl.DefaultSignatureStateProcessor;
 import se.idsec.signservice.integration.state.impl.InMemoryIntegrationServiceStateCache;
-import se.idsec.signservice.security.sign.impl.OpenSAMLSigningCredential;
-import se.litsec.opensaml.saml2.metadata.provider.MetadataProvider;
-import se.swedenconnect.eid.sp.config.SpCredential;
+import se.swedenconnect.eid.sp.config.SpCredentialConfiguration.CredentialsWrapper;
+import se.swedenconnect.opensaml.saml2.metadata.provider.MetadataProvider;
+import se.swedenconnect.security.credential.opensaml.OpenSamlCredential;
 
 /**
  * Configuration for the SignService integration when using the Java API (not REST).
- * 
+ *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
@@ -64,14 +65,14 @@ public class JavaApiSignServiceIntegrationConfiguration {
   @Autowired
   @Setter
   private MetadataProvider metadataProvider;
-  
+
   @Value("${signservice.default-policy-name:default}")
   @Setter
   private String policyName;
 
   /**
    * Gets the bean for the SignService Integration Service.
-   * 
+   *
    * @return SignServiceIntegrationService bean
    * @throws Exception
    *           for bean init errors
@@ -114,7 +115,7 @@ public class JavaApiSignServiceIntegrationConfiguration {
 
   /**
    * Gets the bean for the integration service cache.
-   * 
+   *
    * @return the cache
    */
   @Bean
@@ -124,7 +125,7 @@ public class JavaApiSignServiceIntegrationConfiguration {
 
   /**
    * Creates a sign request processor.
-   * 
+   *
    * @return a SignRequestProcessor bean
    * @throws Exception
    *           for bean init errors
@@ -142,29 +143,33 @@ public class JavaApiSignServiceIntegrationConfiguration {
 
   /**
    * Gets the bean for the service configuration.
-   * 
+   *
    * @return IntegrationServiceConfiguration bean
    */
   @Bean
   @ConfigurationProperties(prefix = "signservice.config")
   public IntegrationServiceConfiguration integrationServiceConfiguration(
-      @Qualifier("signIntegrationBaseUrl") final String signIntegrationBaseUrl) {
+      @Qualifier("signIntegrationBaseUrl") final String signIntegrationBaseUrl) throws Exception {
     DefaultIntegrationServiceConfiguration config = new DefaultIntegrationServiceConfiguration();
     config.setDefaultReturnUrl(signIntegrationBaseUrl + "/sign/response");
     config.setDefaultEncryptionParameters(new OpenSAMLEncryptionParameters());
-    config.setSigningCredential(new OpenSAMLSigningCredential(this.signIntegrationCredential().getCredential()));
+    config.setSigningCredential(this.signIntegrationCredentialWrapper().getCredential());
     return config;
   }
 
   /**
    * Gets the signing credential that the SignService Integration service uses.
-   * 
-   * @return a SpCredential bean
+   *
+   * @return a credential bean
    */
   @Bean("signIntegrationCredential")
-  @ConfigurationProperties(prefix = "signservice.credential")
-  public SpCredential signIntegrationCredential() {
-    return new SpCredential();
+  public X509Credential signIntegrationCredential(@Qualifier("signIntegrationCredentialWrapper") final CredentialsWrapper c) throws Exception {
+    return new OpenSamlCredential(c.getCredential());
   }
 
+  @Bean("signIntegrationCredentialWrapper")
+  @ConfigurationProperties(prefix = "signservice.credential")
+  public CredentialsWrapper signIntegrationCredentialWrapper() {
+    return new CredentialsWrapper();
+  }
 }

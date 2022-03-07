@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,8 +28,9 @@ import se.idsec.signservice.integration.document.pdf.PdfSignaturePage.PdfSignatu
 import se.idsec.signservice.integration.document.pdf.utils.PDDocumentUtils;
 
 /**
- * An extension to {@link PdfSignaturePageValidator} that also validates that the PDF document is valid and may be loaded.
- * 
+ * An extension to {@link PdfSignaturePageValidator} that also validates that the PDF document is valid and may be
+ * loaded.
+ *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
@@ -40,7 +41,7 @@ public class ExtendedPdfSignaturePageValidator extends PdfSignaturePageValidator
   public ValidationResult validate(
       final PdfSignaturePage object, final String objectName, final List<? extends PdfSignatureImageTemplate> hint) {
     final ValidationResult result = super.validate(object, objectName, hint);
-    
+
     if (object.getPdfDocument() != null) {
       final String contents = object.getPdfDocument().getContents();
       // If contents is null, the base implementation has already reported an error ...
@@ -48,21 +49,21 @@ public class ExtendedPdfSignaturePageValidator extends PdfSignaturePageValidator
       PDDocument document = null;
       if (contents != null) {
         try {
-          byte[] bytes = Base64.getDecoder().decode(contents);
+          final byte[] bytes = Base64.getDecoder().decode(contents);
           document = PDDocumentUtils.load(bytes);
-          
+
           // Check the placement configuration ...
           if (object.getImagePlacementConfiguration() != null) {
             final PdfSignatureImagePlacementConfiguration config = object.getImagePlacementConfiguration();
             if (config.getPage() != null) {
               if (config.getPage().intValue() > document.getNumberOfPages()) {
                 result.rejectValue("imagePlacementConfiguration.page", String.format(
-                  "Invalid page number. Document has %d page(s), but page is %d", document.getNumberOfPages(), config.getPage())); 
+                  "Invalid page number. Document has %d page(s), but page is %d", document.getNumberOfPages(), config.getPage()));
               }
             }
           }
         }
-        catch (Exception e) {
+        catch (final Exception e) {
           result.rejectValue("pdfDocument", String.format("Invalid PDF document - can not be loaded - %s", e.getMessage()));
         }
         finally {
@@ -70,10 +71,8 @@ public class ExtendedPdfSignaturePageValidator extends PdfSignaturePageValidator
         }
       }
     }
-    
+
     return result;
   }
-
-  
 
 }

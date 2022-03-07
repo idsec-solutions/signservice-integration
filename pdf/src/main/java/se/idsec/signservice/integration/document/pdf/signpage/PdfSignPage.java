@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -321,7 +321,7 @@ public class PdfSignPage {
 
     if (this.imageTemplate == null) {
       // No sign image template specified
-      return getNoVisibleSignatureRequirement();
+      return this.getNoVisibleSignatureRequirement();
     }
 
     // Get pdf document and check if the image should be displayed
@@ -329,7 +329,7 @@ public class PdfSignPage {
     if (signImagePlacement == null || signImagePlacement.isHide() == true) {
       // Sign image placement is null or there is a sign page configuration that prevents the sign image from being
       // added to this page. Abort
-      return getNoVisibleSignatureRequirement();
+      return this.getNoVisibleSignatureRequirement();
     }
 
     VisiblePdfSignatureRequirement.SignerName signerName = null;
@@ -361,7 +361,7 @@ public class PdfSignPage {
   }
 
   private VisiblePdfSignatureRequirement getNoVisibleSignatureRequirement() {
-    VisiblePdfSignatureRequirement visiblePdfSignatureRequirement = VisiblePdfSignatureRequirement.builder().build();
+    final VisiblePdfSignatureRequirement visiblePdfSignatureRequirement = VisiblePdfSignatureRequirement.builder().build();
     visiblePdfSignatureRequirement.addExtensionValue(VisiblePdfSignatureRequirement.NULL_INDICATOR_EXTENSION, "true");
     return visiblePdfSignatureRequirement;
   }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import lombok.Getter;
 /**
  * Representation of a "processed" TBS document. This is basically the {@link TbsDocument} instance and its document
  * object (as a Java object).
- * 
+ *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
@@ -39,7 +39,7 @@ public class ProcessedTbsDocument {
 
   /**
    * Constructor.
-   * 
+   *
    * @param tbsDocument
    *          the TbsDocument
    * @param documentObject
@@ -52,14 +52,14 @@ public class ProcessedTbsDocument {
 
   /**
    * Gets the document object.
-   * 
+   *
    * @param type
    *          the required type
    * @param <T>
    *          the type
    * @return the document object or null
    */
-  public <T> T getDocumentObject(Class<T> type) {
+  public <T> T getDocumentObject(final Class<T> type) {
     return this.documentObject != null ? type.cast(this.documentObject) : null;
   }
 

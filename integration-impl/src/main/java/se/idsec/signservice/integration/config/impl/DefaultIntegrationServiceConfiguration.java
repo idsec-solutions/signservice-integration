@@ -46,11 +46,11 @@ import se.idsec.signservice.integration.document.pdf.PdfSignatureImageTemplate;
 import se.idsec.signservice.integration.document.pdf.PdfSignaturePage;
 import se.idsec.signservice.integration.document.pdf.VisiblePdfSignatureRequirement;
 import se.idsec.signservice.integration.security.EncryptionParameters;
-import se.idsec.signservice.security.sign.SigningCredential;
+import se.swedenconnect.security.credential.PkiCredential;
 
 /**
  * Default implementation of the {@code IntegrationServiceDefaultConfiguration} interface.
- * 
+ *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
@@ -63,7 +63,7 @@ public class DefaultIntegrationServiceConfiguration implements IntegrationServic
 
   /**
    * The integration policy name for which this configuration applies.
-   * 
+   *
    * @param policy the policy identifier
    */
   @Getter
@@ -73,7 +73,7 @@ public class DefaultIntegrationServiceConfiguration implements IntegrationServic
   /**
    * If several policies are created where most settings are the same, the {@code parentPolicy} can be used to inherit
    * values from. In this way, only the values that should be overridden needs to be supplied.
-   * 
+   *
    * @param parentPolicy the name of the parent policy
    */
   @Setter
@@ -82,7 +82,7 @@ public class DefaultIntegrationServiceConfiguration implements IntegrationServic
   /**
    * The default ID of the entity that requests a signature. If SAML is used as the authentication protocol, this is the
    * SAML entityID of the sign requester.
-   * 
+   *
    * @param defaultSignRequesterID the default sign requester ID
    */
   @Getter
@@ -92,7 +92,7 @@ public class DefaultIntegrationServiceConfiguration implements IntegrationServic
   /**
    * The default URL to which the user agent along with the sign response message should be directed after a signature
    * operation.
-   * 
+   *
    * @param defaultReturnUrl the default URL to which a sign response is to be returned
    */
   @Getter
@@ -101,7 +101,7 @@ public class DefaultIntegrationServiceConfiguration implements IntegrationServic
 
   /**
    * The default algorithm identifier for the signature algorithm that should be used during signing of specified tasks.
-   * 
+   *
    * @param defaultSignatureAlgorithm signature algorithm identifier
    */
   @Getter
@@ -111,7 +111,7 @@ public class DefaultIntegrationServiceConfiguration implements IntegrationServic
   /**
    * The entityID of the signature service. If SAML is used as the authentication protocol, this is the SAML entityID of
    * the SAML Service Provider that is running in the signature service.
-   * 
+   *
    * @param signServiceID the ID of the signature service
    */
   @Getter
@@ -120,7 +120,7 @@ public class DefaultIntegrationServiceConfiguration implements IntegrationServic
 
   /**
    * The default signature service URL to where SignRequest messages should be posted.
-   * 
+   *
    * @param defaultDestinationUrl the default destination URL of the signature service to where sign messages should be posted
    */
   @Getter
@@ -131,7 +131,7 @@ public class DefaultIntegrationServiceConfiguration implements IntegrationServic
    * In a setup where only one authentication service (IdP) is used to authenticate users, a default value could be
    * used. If the {@link AuthnRequirements#getAuthnServiceID()} method returns {@code null}, the default value will the
    * be used.
-   * 
+   *
    * @param defaultAuthnServiceID the entityID for the default authentication service
    */
   @Getter
@@ -140,9 +140,9 @@ public class DefaultIntegrationServiceConfiguration implements IntegrationServic
 
   /**
    * In a setup where all users are authenticated according to the same authentication contect, a default value could be
-   * used. If the {@link AuthnRequirements#getAuthnContextClassRefs()} method returns {@code null} or an empty list, the 
+   * used. If the {@link AuthnRequirements#getAuthnContextClassRefs()} method returns {@code null} or an empty list, the
    * default value will be used.
-   * 
+   *
    * @param defaultAuthnContextRef the default authentication context reference URI
    */
   @Getter
@@ -152,7 +152,7 @@ public class DefaultIntegrationServiceConfiguration implements IntegrationServic
   /**
    * The default signing certificate requirements to use for SignRequest messages created under this
    * policy/configuration.
-   * 
+   *
    * @param defaultCertificateRequirements the default signing certificate requirements
    */
   @Getter
@@ -162,7 +162,7 @@ public class DefaultIntegrationServiceConfiguration implements IntegrationServic
   /**
    * A policy may be configured to include a default "visible PDF signature requirement" for all PDF documents that are
    * signed under this policy.
-   * 
+   *
    * @param defaultVisiblePdfSignatureRequirement the default visible PDF signature requirement to use for PDF signatures
    */
   @Getter
@@ -172,7 +172,7 @@ public class DefaultIntegrationServiceConfiguration implements IntegrationServic
   /**
    * A policy may have one, or more, image templates for visible PDF signatures in its configuration. See
    * {@link PdfSignatureImageTemplate}. This method gets these templates.
-   * 
+   *
    * @param pdfSignatureImageTemplates a list of image templates for visible PDF signatures
    */
   @Getter
@@ -185,7 +185,7 @@ public class DefaultIntegrationServiceConfiguration implements IntegrationServic
    * {@link ExtendedSignServiceIntegrationService#preparePdfSignaturePage(String, byte[], se.idsec.signservice.integration.document.pdf.PdfSignaturePagePreferences)}
    * for a description of PDF signature pages. The first object in the list is regarded as the default page for the
    * policy.
-   * 
+   *
    * @param pdfSignaturePages a list of PDF signature pages for the policy
    */
   @Getter
@@ -195,7 +195,7 @@ public class DefaultIntegrationServiceConfiguration implements IntegrationServic
 
   /**
    * Tells whether the SignService Integration Service is running in stateless mode or not.
-   * 
+   *
    * @param stateless stateless mode
    */
   @Setter
@@ -205,7 +205,7 @@ public class DefaultIntegrationServiceConfiguration implements IntegrationServic
    * The default encryption parameters (algorithms) that is used by the SignService Integration Service when encrypting
    * a SignMessage. The sign requester can not override these values, but the recipient may declare other algorithms to
    * use (in the SAML case, this is done in IdP metadata).
-   * 
+   *
    * @param defaultEncryptionParameters the default encryption parameters
    */
   @Getter
@@ -222,11 +222,11 @@ public class DefaultIntegrationServiceConfiguration implements IntegrationServic
    */
   @JsonIgnore
   @Getter
-  private SigningCredential signingCredential;
+  private PkiCredential signingCredential;
 
   /**
    * The signature service signing certificate(s) used by the signature service to sign {@code SignResponse} messages.
-   * 
+   *
    * @param signServiceCertificates the signature service signing certificate(s)
    */
   @JsonIgnore
@@ -238,7 +238,7 @@ public class DefaultIntegrationServiceConfiguration implements IntegrationServic
    * The trust anchor certificate(s) of the SignService CA (Certificate Authority). With trust anchor we mean the
    * trusted root certificate that is the root of the certificate chain that starts with the generated user signature
    * certificate.
-   * 
+   *
    * @param trustAnchors the SignService CA root certificates
    */
   @JsonIgnore
@@ -248,7 +248,7 @@ public class DefaultIntegrationServiceConfiguration implements IntegrationServic
 
   /**
    * The extension parameters for the instance.
-   * 
+   *
    * @param extension the extension
    */
   @Getter
@@ -257,7 +257,7 @@ public class DefaultIntegrationServiceConfiguration implements IntegrationServic
 
   /**
    * Copy constructor.
-   * 
+   *
    * @param config the config object to initialize this object from
    */
   public DefaultIntegrationServiceConfiguration(final IntegrationServiceConfiguration config) {
@@ -279,14 +279,15 @@ public class DefaultIntegrationServiceConfiguration implements IntegrationServic
 
   /**
    * Gets the signing certificate that the SignService Integration Service uses to sign SignRequest messages.
-   * 
+   *
    * @return the Base64-encoded signing certificate
    */
+  @Override
   public String getSignatureCertificate() {
     if (this.signatureCertificate == null) {
-      if (this.signingCredential != null && this.signingCredential.getSigningCertificate() != null) {
+      if (this.signingCredential != null && this.signingCredential.getCertificate() != null) {
         try {
-          this.signatureCertificate = Base64.getEncoder().encodeToString(this.signingCredential.getSigningCertificate().getEncoded());
+          this.signatureCertificate = Base64.getEncoder().encodeToString(this.signingCredential.getCertificate().getEncoded());
         }
         catch (CertificateEncodingException e) {
           log.error("Failed to encode signing certificate", e);
@@ -299,14 +300,14 @@ public class DefaultIntegrationServiceConfiguration implements IntegrationServic
   /**
    * Assigns the signing credential that the SignService Integration Service policy instance uses to sign SignRequest
    * messages.
-   * 
+   *
    * @param signingCredential the signing credential for the SignService Integration Service policy
    */
-  public void setSigningCredential(final SigningCredential signingCredential) {
+  public void setSigningCredential(final PkiCredential signingCredential) {
     this.signingCredential = signingCredential;
-    if (this.signingCredential != null && this.signingCredential.getSigningCertificate() != null) {
+    if (this.signingCredential != null && this.signingCredential.getCertificate() != null) {
       try {
-        this.signatureCertificate = Base64.getEncoder().encodeToString(this.signingCredential.getSigningCertificate().getEncoded());
+        this.signatureCertificate = Base64.getEncoder().encodeToString(this.signingCredential.getCertificate().getEncoded());
       }
       catch (CertificateEncodingException e) {
         log.error("Failed to encode signing certificate", e);
@@ -449,11 +450,11 @@ public class DefaultIntegrationServiceConfiguration implements IntegrationServic
   public static class DefaultIntegrationServiceConfigurationBuilder implements ObjectBuilder<DefaultIntegrationServiceConfiguration> {
     // Lombok
 
-    public DefaultIntegrationServiceConfigurationBuilder signingCredential(final SigningCredential signingCredential) {
+    public DefaultIntegrationServiceConfigurationBuilder signingCredential(final PkiCredential signingCredential) {
       this.signingCredential = signingCredential;
-      if (this.signingCredential != null && this.signingCredential.getSigningCertificate() != null) {
+      if (this.signingCredential != null && this.signingCredential.getCertificate() != null) {
         try {
-          this.signatureCertificate = Base64.getEncoder().encodeToString(this.signingCredential.getSigningCertificate().getEncoded());
+          this.signatureCertificate = Base64.getEncoder().encodeToString(this.signingCredential.getCertificate().getEncoded());
         }
         catch (CertificateEncodingException e) {
           log.error("Failed to encode signing certificate", e);

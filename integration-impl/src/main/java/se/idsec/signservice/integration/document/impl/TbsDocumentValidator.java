@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@ public class TbsDocumentValidator extends AbstractInputValidator<TbsDocument, In
 
   /**
    * Constructor.
-   * 
+   *
    * @param adesRequirementValidator
    *          validatorfor AdES requirements
    */
@@ -64,11 +64,11 @@ public class TbsDocumentValidator extends AbstractInputValidator<TbsDocument, In
     }
     if (StringUtils.isBlank(object.getMimeType())) {
       result.rejectValue("mimeType", "No mimeType set in TbsDocument");
-    }    
+    }
     result.setFieldErrors(
       this.adesRequirementValidator.validate(object.getAdesRequirement(), "adesRequirement", null));
 
     return result;
   }
-  
+
 }

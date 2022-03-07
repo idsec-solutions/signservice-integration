@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,12 +24,12 @@ import lombok.Setter;
 
 /**
  * Singleton that holds a correlation ID in TLS.
- * 
+ *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
 public class CorrelationID {
-  
+
   /** The correlation ID. */
   @Setter
   @Getter
@@ -42,7 +42,7 @@ public class CorrelationID {
       return new CorrelationID();
     }
   };
-  
+
   /**
    * Is called to initialize the correlation ID. If no correlation ID is assigned, a random value will be inserted.
    * @param id the correlation ID (or null)
@@ -58,14 +58,14 @@ public class CorrelationID {
   public static String id() {
     return THREAD_LOCAL.get().getCorrelationID();
   }
-  
+
   /**
    * Removes the current correlation ID.
    */
   public static void clear() {
     THREAD_LOCAL.remove();
   }
-  
+
   // Hidden constructor
   private CorrelationID() {
   }

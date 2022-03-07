@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ import se.idsec.signservice.integration.core.validation.ValidationResult;
  * <p>
  * The validator is used both when checking input (hint is set) and when checking the configuration (hint is null).
  * </p>
- * 
+ *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
@@ -39,11 +39,11 @@ public class SigningCertificateRequirementsValidator extends
 
   /** {@inheritDoc} */
   @Override
-  public ValidationResult validate(final SigningCertificateRequirements object, final String objectName, 
+  public ValidationResult validate(final SigningCertificateRequirements object, final String objectName,
       final IntegrationServiceConfiguration hint) {
-    
+
     final ValidationResult result = new ValidationResult(objectName);
-    
+
     if (object == null) {
       if (hint != null) {
         // Null is OK - the default will be used.
@@ -54,19 +54,19 @@ public class SigningCertificateRequirementsValidator extends
         return result;
       }
     }
-    
+
     if (object.getCertificateType() == null) {
       if (hint == null) {
         result.rejectValue("certificateType", "Missing certificate type");
       }
     }
-    
+
     if (object.getAttributeMappings() == null || object.getAttributeMappings().isEmpty()) {
       if (hint == null) {
         result.rejectValue("attributeMappings", "No attribute mappings provided");
       }
     }
-    
+
     int pos = 0;
     for (CertificateAttributeMapping mapping : object.getAttributeMappings()) {
       if (mapping.getDestination() == null) {
@@ -78,7 +78,7 @@ public class SigningCertificateRequirementsValidator extends
         }
         else {
           try {
-            RequestedCertificateAttributeType.fromType(mapping.getDestination().getType());            
+            RequestedCertificateAttributeType.fromType(mapping.getDestination().getType());
           }
           catch (IllegalArgumentException e) {
             result.rejectValue("attributeMappings[" + pos + "].destination.type", e.getMessage());
@@ -88,7 +88,7 @@ public class SigningCertificateRequirementsValidator extends
           result.rejectValue("attributeMappings[" + pos + "].destination.name", "Missing name for destination attribute");
         }
       }
-      
+
       if (mapping.getSources() == null || mapping.getSources().isEmpty()) {
         if (mapping.getDestination() != null && Boolean.TRUE.equals(mapping.getDestination().getRequired())
             && mapping.getDestination().getDefaultValue() == null) {
@@ -110,7 +110,7 @@ public class SigningCertificateRequirementsValidator extends
       }
       pos++;
     }
-    
+
     return result;
   }
 

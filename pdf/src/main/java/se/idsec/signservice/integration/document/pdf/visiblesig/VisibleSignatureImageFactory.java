@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,7 +56,7 @@ public class VisibleSignatureImageFactory {
 
   /**
    * Obtain an instance of {@link VisibleSignatureImage}.
-   * 
+   *
    * @param visiblePdfSignatureRequirement
    *          the requirements for a visible sign image
    * @param signerAttributes
@@ -85,10 +85,11 @@ public class VisibleSignatureImageFactory {
       //
       if (signerAttributes == null || signerAttributes.isEmpty()) {
         final String msg = String.format("The VisiblePdfSignatureRequirement for template '%s' requires "
-            + "signer name info, but no requested signer attributes are available", template.getReference());
+            + "signer name info, but no requested signer attributes are available",
+          template.getReference());
         throw new VisiblePdfSignatureRequirementException(msg);
       }
-      for (SignerIdentityAttribute attrName : signerAttributeNames) {
+      for (final SignerIdentityAttribute attrName : signerAttributeNames) {
         if (!signerAttributes.stream().filter(a -> Objects.equals(a.getName(), attrName.getName())).findFirst().isPresent()) {
           final String msg = String.format("The VisiblePdfSignatureRequirement for template '%s' requires "
               + "signer name info for attribute '%s', but this has not been provied among the requested signer attributes",
@@ -131,7 +132,7 @@ public class VisibleSignatureImageFactory {
 
   /**
    * Obtain an instance of {@link VisibleSignatureImage} and return its encoding.
-   * 
+   *
    * @param visiblePdfSignatureRequirement
    *          the requirements for a visible sign image
    * @param signerAttributes
@@ -148,7 +149,7 @@ public class VisibleSignatureImageFactory {
       return VisibleSignatureImageSerializer.serializeVisibleSignatureObject(
         this.getVisibleSignImage(visiblePdfSignatureRequirement, signerAttributes));
     }
-    catch (IOException e) {
+    catch (final IOException e) {
       final String msg = String.format("Failed to serialize the PDF signature image - %s", e.getMessage());
       log.error("{}: {}", CorrelationID.id(), msg);
       throw new VisiblePdfSignatureRequirementException(msg, e);
@@ -157,7 +158,7 @@ public class VisibleSignatureImageFactory {
 
   /**
    * Gets a PDF signature image template based on its reference.
-   * 
+   *
    * @param reference
    *          the reference
    * @return a PdfSignatureImageTemplate object
@@ -170,7 +171,7 @@ public class VisibleSignatureImageFactory {
       .orElseThrow(() -> new RuntimeException("Internal error - PDF Image template not found - " + reference));
   }
 
-  private static String getAttributeValue(final String attributeName, List<SignerIdentityAttributeValue> signerAttributes) {
+  private static String getAttributeValue(final String attributeName, final List<SignerIdentityAttributeValue> signerAttributes) {
     return signerAttributes.stream()
       .filter(a -> attributeName.equals(a.getName()))
       .map(SignerIdentityAttributeValue::getValue)

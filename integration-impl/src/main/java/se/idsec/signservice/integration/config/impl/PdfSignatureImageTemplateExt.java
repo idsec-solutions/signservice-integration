@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,11 +21,11 @@ import se.idsec.signservice.integration.document.pdf.PdfSignatureImageTemplate;
 
 /**
  * An extension to {@link PdfSignatureImageTemplate} that lets us assign the resource of the SVG image file.
- * 
+ *
  * @deprecated since 1.1.0, the {@link PdfSignatureImageTemplate} has a
  *             {@link PdfSignatureImageTemplate#setSvgImageFile(se.idsec.signservice.integration.core.FileResource)}
  *             method that should be used
- * 
+ *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
@@ -42,7 +42,7 @@ public class PdfSignatureImageTemplateExt extends PdfSignatureImageTemplate {
 
   /**
    * Assigns the resource holding the SVG image.
-   * 
+   *
    * @param resource
    *          the SVG resource
    * @throws IllegalArgumentException
@@ -59,7 +59,7 @@ public class PdfSignatureImageTemplateExt extends PdfSignatureImageTemplate {
         fileResource.afterPropertiesSet();
         this.setSvgImageFile(fileResource);
       }
-      catch (Exception e) {
+      catch (final Exception e) {
         throw new IllegalArgumentException("Failed to read resource", e);
       }
     }

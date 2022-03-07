@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,13 +30,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @Controller
 @RequestMapping("/signed")
 public class SignedDocumentController {
-  
+
   private static final byte[] NO_SESSION =
       "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><Message>No active session exists</Message>".getBytes();
 
   @GetMapping(produces = { MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_PDF_VALUE })
   public HttpEntity<byte[]> displaySignedDocument(HttpServletRequest request) {
-    
+
     HttpSession session = request.getSession();
     String msg = (String) session.getAttribute("signedDocument");
     byte[] contents;
@@ -46,9 +46,9 @@ public class SignedDocumentController {
     else {
       contents = NO_SESSION;
     }
-    
+
     HttpHeaders header = new HttpHeaders();
-    
+
     String msgType = (String) session.getAttribute("signedDocumentType");
     if ("application/pdf".equals(msgType)) {
       header.setContentType(MediaType.APPLICATION_PDF);
@@ -57,7 +57,7 @@ public class SignedDocumentController {
       header.setContentType(MediaType.APPLICATION_XML);
     }
     header.setContentLength(contents.length);
-    
+
     return new HttpEntity<byte[]>(contents, header);
   }
 

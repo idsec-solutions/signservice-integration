@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import se.idsec.signservice.integration.document.ades.AdesSigningCertificateDige
 /**
  * This object holds PAdES specific data that is necessary to perform the extra validation procedures imposed by a PAdES
  * document such as validation of the signed certificate reference.
- * 
+ *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
@@ -32,13 +32,13 @@ public class PAdESData implements AdesObject {
 
   /**
    * Constructor for the PAdES data object.
-   * 
+   *
    * @param digestMethod
    *          the URI for the digest method used to hash the signer certificate
    * @param digestValue
    *          the digest value
    */
-  public PAdESData(String digestMethod, byte[] digestValue) {
+  public PAdESData(final String digestMethod, final byte[] digestValue) {
     this.adesSigningCertificateDigest = new AdesSigningCertificateDigest(digestMethod, digestValue);
   }
 

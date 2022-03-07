@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 IDsec Soslutions AB
+ * Copyright 2019-2022 IDsec Soslutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,7 +42,7 @@ import se.swedenconnect.schemas.dss_1_0.SignRequest;
 
 /**
  * Representation of the signature session state. See {@link DefaultSignatureState}.
- * 
+ *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
@@ -61,7 +61,7 @@ public class SignatureSessionState implements Serializable {
    * The owner identity of this operaration. This is set in the cases when the SignService Integration Service is
    * running in stateful mode. It is primary useful when the SignService Integration Service is running as a stand-alone
    * service.
-   * 
+   *
    * @param ownerId the owner ID
    * @return the owner ID or null
    */
@@ -72,7 +72,7 @@ public class SignatureSessionState implements Serializable {
 
   /**
    * The correlation ID for this session/process.
-   * 
+   *
    * @param correlationId the correlation ID for this session
    * @return the correlation ID for this session
    */
@@ -82,7 +82,7 @@ public class SignatureSessionState implements Serializable {
 
   /**
    * The policy under which the operation is executing.
-   * 
+   *
    * @param policy the policy under which the operation is executing
    * @return he policy under which the operation is executing
    */
@@ -93,7 +93,7 @@ public class SignatureSessionState implements Serializable {
   /**
    * The URL to which the user agent along with the sign response message should be directed after a signature
    * operation.
-   * 
+   *
    * @param expectedReturnUrl the URL to which a sign response is to be returned
    * @return the URL to which a sign response is to be returned
    */
@@ -103,7 +103,7 @@ public class SignatureSessionState implements Serializable {
 
   /**
    * The document(s) to be signed along with a per document signing requirements and parameters.
-   * 
+   *
    * @param tbsDocuments a list of To-be-signed documents
    * @return a list of To-be-signed documents
    */
@@ -114,7 +114,7 @@ public class SignatureSessionState implements Serializable {
 
   /**
    * The sign message that was ordered by the initiator.
-   * 
+   *
    * @param signMessage the sign message parameters
    * @return the sign message parameters
    */
@@ -124,7 +124,7 @@ public class SignatureSessionState implements Serializable {
 
   /**
    * The SignRequest that was passed to the signature service.
-   * 
+   *
    * @param signRequest the SignRequest that was passed to the signature service
    */
   @Setter
@@ -133,7 +133,7 @@ public class SignatureSessionState implements Serializable {
 
   /**
    * The Base64-encoded SignRequest. Used in cases when the state is passed back to the caller (via REST).
-   * 
+   *
    * @param encodedSignRequest the encoded SignRequest
    */
   @Setter
@@ -141,7 +141,7 @@ public class SignatureSessionState implements Serializable {
 
   /**
    * Gets the encoded SignRequest.
-   * 
+   *
    * @return the encoded SignRequest
    */
   public String getEncodedSignRequest() {
@@ -161,7 +161,7 @@ public class SignatureSessionState implements Serializable {
 
   /**
    * Gets the SignRequest that was passed to the signature service.
-   * 
+   *
    * @return the SignRequest
    */
   public SignRequestWrapper getSignRequest() {

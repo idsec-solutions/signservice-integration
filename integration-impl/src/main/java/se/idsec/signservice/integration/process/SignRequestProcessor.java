@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,7 +48,7 @@ public interface SignRequestProcessor {
 
   /**
    * Processes that sign request input and produces a {@code dss:SignRequest} message.
-   * 
+   *
    * @param signRequestInput
    *          the validated input
    * @param requestID
@@ -64,7 +64,7 @@ public interface SignRequestProcessor {
 
   /**
    * Gets an unmutable list of installed processors for "to be signed" documents.
-   * 
+   *
    * @return the processors for tbsDocuments
    */
   List<TbsDocumentProcessor<?>> getTbsDocumentProcessors();

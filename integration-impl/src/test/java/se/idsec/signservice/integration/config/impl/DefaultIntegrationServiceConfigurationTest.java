@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,7 @@ import se.idsec.signservice.integration.document.pdf.PdfSignaturePage;
 import se.idsec.signservice.integration.document.pdf.PdfSignaturePage.PdfSignatureImagePlacementConfiguration;
 import se.idsec.signservice.integration.document.pdf.VisiblePdfSignatureRequirement;
 import se.idsec.signservice.integration.security.impl.DefaultEncryptionParameters;
-import se.idsec.signservice.security.sign.impl.KeyStoreSigningCredential;
+import se.swedenconnect.security.credential.KeyStoreCredential;
 
 public class DefaultIntegrationServiceConfigurationTest {
 
@@ -119,11 +119,11 @@ public class DefaultIntegrationServiceConfigurationTest {
           .yIncrement(150)
           .scale(0)
           .build())
-        .build())        
+        .build())
       .stateless(true)
       .defaultEncryptionParameters(DefaultEncryptionParameters.builder().build())
       .signingCredential(
-        new KeyStoreSigningCredential(new ClassPathResource("signing.jks"), "secret".toCharArray(), "default"))
+        new KeyStoreCredential(new ClassPathResource("signing.jks"), "secret".toCharArray(), "default", "secret".toCharArray()))
       .build();
 
     ObjectMapper mapper = new ObjectMapper();

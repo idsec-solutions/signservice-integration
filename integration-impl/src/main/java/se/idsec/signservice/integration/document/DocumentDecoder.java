@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@ package se.idsec.signservice.integration.document;
 
 /**
  * Document decoder interface.
- * 
+ *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
@@ -25,7 +25,7 @@ public interface DocumentDecoder<T> {
 
   /**
    * Given the document content (in Base64 encoded form), the document object is returned.
-   * 
+   *
    * @param content
    *          the document in Base64 encoded format
    * @return the document object

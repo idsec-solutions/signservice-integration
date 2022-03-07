@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,12 +23,12 @@ import se.idsec.signservice.integration.document.ades.AdesObject;
 
 /**
  * Base class implementing the {@link CompiledSignedDocument} interface.
- * 
+ *
  * @param <T>
  *          the document type
  * @param <X>
  *          the AdES object from the signature
- * 
+ *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
@@ -54,7 +54,7 @@ public class DefaultCompiledSignedDocument<T, X extends AdesObject> implements C
 
   /**
    * Constructor.
-   * 
+   *
    * @param id
    *          the document ID
    * @param document
@@ -70,7 +70,7 @@ public class DefaultCompiledSignedDocument<T, X extends AdesObject> implements C
 
   /**
    * Constructor.
-   * 
+   *
    * @param id
    *          the document ID
    * @param document
@@ -114,7 +114,7 @@ public class DefaultCompiledSignedDocument<T, X extends AdesObject> implements C
       try {
         this.documentEncoding = this.documentEncoder.encodeDocument(this.document);
       }
-      catch (DocumentProcessingException e) {
+      catch (final DocumentProcessingException e) {
         throw new RuntimeException(e);
       }
     }

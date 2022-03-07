@@ -29,11 +29,6 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.xpath.XPathExpressionException;
 
 import org.apache.commons.lang.StringUtils;
-import org.joda.time.DateTime;
-import org.opensaml.core.xml.util.XMLObjectSupport;
-import org.opensaml.saml.saml2.core.Audience;
-import org.opensaml.saml.saml2.core.AudienceRestriction;
-import org.opensaml.saml.saml2.core.Conditions;
 import org.w3c.dom.Document;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -57,23 +52,25 @@ import se.idsec.signservice.integration.document.TbsDocument;
 import se.idsec.signservice.integration.document.TbsDocumentProcessor;
 import se.idsec.signservice.integration.dss.DssUtils;
 import se.idsec.signservice.integration.dss.SignRequestWrapper;
-import se.idsec.signservice.integration.process.ProtocolVersion;
 import se.idsec.signservice.integration.process.SignRequestProcessingResult;
 import se.idsec.signservice.integration.process.SignRequestProcessor;
 import se.idsec.signservice.integration.signmessage.SignMessageMimeType;
 import se.idsec.signservice.integration.signmessage.SignMessageParameters;
 import se.idsec.signservice.integration.signmessage.SignMessageProcessor;
-import se.idsec.signservice.security.sign.SigningCredential;
 import se.idsec.signservice.security.sign.xml.XMLSignatureLocation;
 import se.idsec.signservice.security.sign.xml.XMLSignatureLocation.ChildPosition;
 import se.idsec.signservice.security.sign.xml.XMLSignerResult;
 import se.idsec.signservice.security.sign.xml.impl.DefaultXMLSigner;
 import se.idsec.signservice.utils.AssertThat;
+import se.idsec.signservice.utils.ProtocolVersion;
 import se.idsec.signservice.xml.DOMUtils;
 import se.idsec.signservice.xml.JAXBMarshaller;
 import se.swedenconnect.schemas.csig.dssext_1_1.SignRequestExtension;
 import se.swedenconnect.schemas.csig.dssext_1_1.SignTaskData;
 import se.swedenconnect.schemas.csig.dssext_1_1.SignTasks;
+import se.swedenconnect.schemas.saml_2_0.assertion.AudienceRestriction;
+import se.swedenconnect.schemas.saml_2_0.assertion.Conditions;
+import se.swedenconnect.security.credential.PkiCredential;
 
 /**
  * Default implementation of the {@link SignRequestProcessor} interface.
@@ -116,6 +113,20 @@ public class DefaultSignRequestProcessor implements SignRequestProcessor {
   /** Version 1.4. */
   private static final ProtocolVersion VERSION_1_4 = new ProtocolVersion("1.4");
 
+  /** Constants for conditions. */
+  private static javax.xml.datatype.Duration ONE_MINUTE;
+  private static javax.xml.datatype.Duration FIVE_MINUTES;
+
+  static {
+    try {
+      ONE_MINUTE = DatatypeFactory.newInstance().newDuration(60000L);
+      FIVE_MINUTES = DatatypeFactory.newInstance().newDuration(300000L);
+    }
+    catch (final DatatypeConfigurationException e) {
+      throw new SecurityException(e);
+    }
+  }
+
   /**
    * Constructor.
    */
@@ -123,7 +134,7 @@ public class DefaultSignRequestProcessor implements SignRequestProcessor {
     try {
       this.xmlSignatureLocation = new XMLSignatureLocation("/*/*[local-name()='OptionalInputs']", ChildPosition.LAST);
     }
-    catch (XPathExpressionException e) {
+    catch (final XPathExpressionException e) {
       log.error("Failed to setup XPath for signature inclusion", e);
       throw new SecurityException("Failed to setup XPath for signature inclusion", e);
     }
@@ -140,7 +151,7 @@ public class DefaultSignRequestProcessor implements SignRequestProcessor {
 
     // Then apply default values ...
     //
-    SignRequestInput.SignRequestInputBuilder inputBuilder = signRequestInput.toBuilder();
+    final SignRequestInput.SignRequestInputBuilder inputBuilder = signRequestInput.toBuilder();
 
     if (StringUtils.isBlank(signRequestInput.getCorrelationId())) {
       log.debug("No correlation ID provided in SignRequestInput, using '{}'", CorrelationID.id());
@@ -179,7 +190,7 @@ public class DefaultSignRequestProcessor implements SignRequestProcessor {
 
     // AuthnRequirements
     //
-    AuthnRequirements authnRequirements = signRequestInput.getAuthnRequirements() != null
+    final AuthnRequirements authnRequirements = signRequestInput.getAuthnRequirements() != null
         ? signRequestInput.getAuthnRequirements().toBuilder().build()
         : new AuthnRequirements();
 
@@ -210,7 +221,7 @@ public class DefaultSignRequestProcessor implements SignRequestProcessor {
       if (signRequestInput.getCertificateRequirements().getCertificateType() == null) {
         log.debug("{}: No certificateRequirements.certificateType given in input, using {}",
           CorrelationID.id(), config.getDefaultCertificateRequirements().getCertificateType());
-        SigningCertificateRequirements scr = signRequestInput.getCertificateRequirements();
+        final SigningCertificateRequirements scr = signRequestInput.getCertificateRequirements();
         scr.setCertificateType(config.getDefaultCertificateRequirements().getCertificateType());
         inputBuilder.certificateRequirements(scr);
       }
@@ -218,7 +229,7 @@ public class DefaultSignRequestProcessor implements SignRequestProcessor {
           || signRequestInput.getCertificateRequirements().getAttributeMappings().isEmpty()) {
         log.debug("{}: No certificateRequirements.certificateType given in input, using {}",
           CorrelationID.id(), config.getDefaultCertificateRequirements().getAttributeMappings());
-        SigningCertificateRequirements scr = signRequestInput.getCertificateRequirements();
+        final SigningCertificateRequirements scr = signRequestInput.getCertificateRequirements();
         scr.setAttributeMappings(config.getDefaultCertificateRequirements().getAttributeMappings());
         inputBuilder.certificateRequirements(scr);
       }
@@ -238,7 +249,9 @@ public class DefaultSignRequestProcessor implements SignRequestProcessor {
         .orElseThrow(() -> new InputValidationException(fieldName,
           String.format("Document of type '%s' is not supported", doc.getMimeType())));
 
-      final ProcessedTbsDocument processedTbsDocument = processor.preProcess(doc, signRequestInput, config, this.documentCache, fieldName);
+      final ProcessedTbsDocument processedTbsDocument = processor.preProcess(
+        doc, signRequestInput, config, this.documentCache, fieldName);
+
       if (processedTbsDocument.getDocumentObject() != null) {
         if (processedTbsDocument.getDocumentObject() != null) {
           final Extension ext = processedTbsDocument.getTbsDocument().getExtension();
@@ -293,13 +306,11 @@ public class DefaultSignRequestProcessor implements SignRequestProcessor {
 
     // Start building the SignRequest ...
     //
-    final long now = System.currentTimeMillis();
-
-    SignRequestWrapper signRequest = new SignRequestWrapper(dssObjectFactory.createSignRequest());
+    final SignRequestWrapper signRequest = new SignRequestWrapper(dssObjectFactory.createSignRequest());
     signRequest.setProfile(DssUtils.DSS_PROFILE);
     signRequest.setRequestID(requestID);
 
-    SignRequestExtension signRequestExtension = dssExtObjectFactory.createSignRequestExtension();
+    final SignRequestExtension signRequestExtension = dssExtObjectFactory.createSignRequestExtension();
 
     // Version
     //
@@ -311,22 +322,23 @@ public class DefaultSignRequestProcessor implements SignRequestProcessor {
     //
     signRequestExtension.setRequestTime(getNow());
 
-    // Conditions (use OpenSAML instead of JAXB)
+    // Conditions
     //
-    Conditions conditions = (Conditions) XMLObjectSupport.buildXMLObject(Conditions.DEFAULT_ELEMENT_NAME);
-    final DateTime currentTime = new DateTime(now);
-    conditions.setNotBefore(currentTime.minusMinutes(1));  // TODO: make configurable
-    conditions.setNotOnOrAfter(currentTime.plusMinutes(5));
+    final Conditions conditions = new Conditions();
+    final XMLGregorianCalendar currentTime = getNow();
+    // TODO: make configurable
+    final XMLGregorianCalendar notBefore = (XMLGregorianCalendar) currentTime.clone();
+    notBefore.add(ONE_MINUTE);
+    conditions.setNotBefore(notBefore);
+    final XMLGregorianCalendar notAfter = (XMLGregorianCalendar) currentTime.clone();
+    notAfter.add(FIVE_MINUTES);
+    conditions.setNotOnOrAfter(notAfter);
 
-    AudienceRestriction audienceRestriction = (AudienceRestriction) XMLObjectSupport.buildXMLObject(
-      AudienceRestriction.DEFAULT_ELEMENT_NAME);
-    Audience audience = (Audience) XMLObjectSupport.buildXMLObject(Audience.DEFAULT_ELEMENT_NAME);
-    audience.setAudienceURI(signRequestInput.getReturnUrl());
-    audienceRestriction.getAudiences().add(audience);
+    final AudienceRestriction audienceRestriction = new AudienceRestriction();
+    audienceRestriction.getAudiences().add(signRequestInput.getReturnUrl());
+    conditions.getConditionsAndAudienceRestrictionsAndOneTimeUses().add(audienceRestriction);
 
-    conditions.getAudienceRestrictions().add(audienceRestriction);
-
-    signRequestExtension.setConditions(DssUtils.toJAXB(conditions, se.swedenconnect.schemas.saml_2_0.assertion.Conditions.class));
+    signRequestExtension.setConditions(conditions);
 
     // Signer
     //
@@ -390,7 +402,7 @@ public class DefaultSignRequestProcessor implements SignRequestProcessor {
 
     // Invoke all TBS processors ...
     //
-    SignTasks signTasks = dssExtObjectFactory.createSignTasks();
+    final SignTasks signTasks = dssExtObjectFactory.createSignTasks();
     for (final TbsDocument doc : signRequestInput.getTbsDocuments()) {
       final TbsDocumentProcessor<?> processor = this.tbsDocumentProcessors.stream()
         .filter(p -> p.supports(doc))
@@ -421,7 +433,8 @@ public class DefaultSignRequestProcessor implements SignRequestProcessor {
 
     // Sign the document ...
     //
-    Document signedSignRequest = this.signSignRequest(signRequest, signRequestInput.getCorrelationId(), config.getSigningCredential());
+    final Document signedSignRequest =
+        this.signSignRequest(signRequest, signRequestInput.getCorrelationId(), config.getSigningCredential());
 
     if (log.isTraceEnabled()) {
       log.trace("{}: Created SignRequest: {}", signRequestInput.getCorrelationId(), DOMUtils.prettyPrint(signedSignRequest));
@@ -446,7 +459,7 @@ public class DefaultSignRequestProcessor implements SignRequestProcessor {
    *           for signature errors
    */
   protected Document signSignRequest(
-      final SignRequestWrapper signRequest, final String correlationID, final SigningCredential signingCredential)
+      final SignRequestWrapper signRequest, final String correlationID, final PkiCredential signingCredential)
       throws InternalSignServiceIntegrationException {
 
     log.debug("{}: Signing SignRequest '{}' ...", correlationID, signRequest.getRequestID());
@@ -463,7 +476,7 @@ public class DefaultSignRequestProcessor implements SignRequestProcessor {
       final DefaultXMLSigner signer = new DefaultXMLSigner(signingCredential);
       signer.setSignatureLocation(this.xmlSignatureLocation);
       signer.setXPathTransform(null);
-      XMLSignerResult signerResult = signer.sign(signRequestDocument);
+      final XMLSignerResult signerResult = signer.sign(signRequestDocument);
       log.debug("{}: SignRequest '{}' successfully signed", correlationID, signRequest.getRequestID());
 
       return signerResult.getSignedDocument();
@@ -531,12 +544,12 @@ public class DefaultSignRequestProcessor implements SignRequestProcessor {
    */
   protected static XMLGregorianCalendar getNow() {
     try {
-      GregorianCalendar gregorianCalendar = new GregorianCalendar();
-      DatatypeFactory datatypeFactory = DatatypeFactory.newInstance();
-      XMLGregorianCalendar now = datatypeFactory.newXMLGregorianCalendar(gregorianCalendar);
+      final GregorianCalendar gregorianCalendar = new GregorianCalendar();
+      final DatatypeFactory datatypeFactory = DatatypeFactory.newInstance();
+      final XMLGregorianCalendar now = datatypeFactory.newXMLGregorianCalendar(gregorianCalendar);
       return now;
     }
-    catch (DatatypeConfigurationException e) {
+    catch (final DatatypeConfigurationException e) {
       throw new RuntimeException(e);
     }
   }

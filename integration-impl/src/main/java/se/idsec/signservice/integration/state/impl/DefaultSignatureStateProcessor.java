@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,7 +44,7 @@ import se.idsec.signservice.xml.JAXBMarshaller;
 
 /**
  * Default implementation for signature state processing.
- * 
+ *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
@@ -61,7 +61,7 @@ public class DefaultSignatureStateProcessor implements SignatureStateProcessor {
   private boolean base64Encoded = false;
 
   /** For JSON deserialization. */
-  private ObjectMapper objectMapper = new ObjectMapper();
+  private final ObjectMapper objectMapper = new ObjectMapper();
 
   /** {@inheritDoc} */
   @Override
@@ -70,7 +70,7 @@ public class DefaultSignatureStateProcessor implements SignatureStateProcessor {
 
     // Build a session state ...
     //
-    SignatureSessionState sessionState = SignatureSessionState.builder()
+    final SignatureSessionState sessionState = SignatureSessionState.builder()
       .ownerId(requestInput.getExtensionValue(SignServiceIntegrationService.OWNER_ID_EXTENSION_KEY))
       .correlationId(requestInput.getCorrelationId())
       .policy(requestInput.getPolicy())
@@ -88,7 +88,7 @@ public class DefaultSignatureStateProcessor implements SignatureStateProcessor {
         final String encodedSignRequest = DOMUtils.nodeToBase64(JAXBMarshaller.marshall(signRequest.getWrappedSignRequest()));
         sessionState.setEncodedSignRequest(encodedSignRequest);
       }
-      catch (JAXBException e) {
+      catch (final JAXBException e) {
         // This should never happen since the same SignRequest was marshalled during the process phase,
         // and if wouldn't have been ok, it would have been reported at that stage.
         throw new InternalXMLException("Failed to marshall SignRequest", e);
@@ -103,7 +103,7 @@ public class DefaultSignatureStateProcessor implements SignatureStateProcessor {
     // If we are running in a stateful mode we cache the complete state and return a simple state
     // holding just the requestID.
     //
-    CacheableSignatureState completeState = DefaultSignatureState.builder()
+    final CacheableSignatureState completeState = DefaultSignatureState.builder()
       .id(signRequest.getRequestID())
       .state(sessionState)
       .build();
@@ -116,7 +116,7 @@ public class DefaultSignatureStateProcessor implements SignatureStateProcessor {
             .state(new EncodedSignatureSessionState(sessionState))
             .build();
         }
-        catch (IOException e) {
+        catch (final IOException e) {
           throw new RuntimeException("Failed to serialize state", e);
         }
       }
@@ -167,11 +167,11 @@ public class DefaultSignatureStateProcessor implements SignatureStateProcessor {
         state = SignatureSessionState.class.cast(inputState.getState());
       }
       else if (EncodedSignatureSessionState.class.isInstance(receivedState)) {
-        EncodedSignatureSessionState encodedState = EncodedSignatureSessionState.class.cast(inputState.getState());
+        final EncodedSignatureSessionState encodedState = EncodedSignatureSessionState.class.cast(inputState.getState());
         try {
           state = encodedState.getSignatureSessionState();
         }
-        catch (IOException e) {
+        catch (final IOException e) {
           throw new StateException(new ErrorCode.Code("format-error"), "Failed to deserialize state", e);
         }
       }
@@ -189,7 +189,7 @@ public class DefaultSignatureStateProcessor implements SignatureStateProcessor {
             state = this.objectMapper.convertValue(receivedState, SignatureSessionState.class);
           }
         }
-        catch (Exception e) {
+        catch (final Exception e) {
           final String msg = String.format("Could not read supplied state for ID '%s'", inputState.getId());
           log.error("{} - Supplied state is of type '{}'. Contents: {}",
             msg, inputState.getState().getClass().getName(), String.class.cast(receivedState));
@@ -215,7 +215,8 @@ public class DefaultSignatureStateProcessor implements SignatureStateProcessor {
         // caller that has misunderstood things ...
         //
         final String msg = String.format("Signature state with ID '%s' used policy '%s', but this policy is stateless"
-            + " and we still received session state - bad request", inputState.getId(), state.getPolicy());
+            + " and we still received session state - bad request",
+          inputState.getId(), state.getPolicy());
         log.error(msg);
         throw new StateException(new ErrorCode.Code("policy-error"), msg);
       }
@@ -231,7 +232,7 @@ public class DefaultSignatureStateProcessor implements SignatureStateProcessor {
 
   /**
    * Assigns the state cache.
-   * 
+   *
    * @param stateCache
    *          the state cache
    */
@@ -241,7 +242,7 @@ public class DefaultSignatureStateProcessor implements SignatureStateProcessor {
 
   /**
    * Assigns the policy configuration manager bean.
-   * 
+   *
    * @param configurationManager
    *          the policy configuration manager
    */
@@ -251,7 +252,7 @@ public class DefaultSignatureStateProcessor implements SignatureStateProcessor {
 
   /**
    * Tells whether we should Base64 encode the state objects if running in a stateless mode.
-   * 
+   *
    * @param base64Encoded
    *          true if objects should be encoded
    */
@@ -261,12 +262,12 @@ public class DefaultSignatureStateProcessor implements SignatureStateProcessor {
 
   /**
    * Ensures that all required properties have been assigned.
-   * 
+   *
    * <p>
    * Note: If executing in a Spring Framework environment this method is automatically invoked after all properties have
    * been assigned. Otherwise it should be explicitly invoked.
    * </p>
-   * 
+   *
    * @throws Exception
    *           if not all settings are correct
    */
@@ -278,7 +279,7 @@ public class DefaultSignatureStateProcessor implements SignatureStateProcessor {
     //
     if (this.stateCache == null) {
       boolean cacheNeeded = false;
-      for (String policy : this.configurationManager.getPolicies()) {
+      for (final String policy : this.configurationManager.getPolicies()) {
         if (!this.configurationManager.getConfiguration(policy).isStateless()) {
           cacheNeeded = true;
           break;

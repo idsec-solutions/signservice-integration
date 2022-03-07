@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -75,7 +75,7 @@ import se.swedenconnect.schemas.dss_1_0.SignResponse;
 
 /**
  * Default implementation of the {@link SignResponseProcessor} interface.
- * 
+ *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
@@ -86,7 +86,7 @@ public class DefaultSignResponseProcessor implements SignResponseProcessor {
   private final static String DEFAULT_VERSION = "1.1";
 
   /** For validating signatures on SignResponse messages. */
-  private XMLMessageSignatureValidator signResponseSignatureValidator = new DefaultXMLMessageSignatureValidator();
+  private final XMLMessageSignatureValidator signResponseSignatureValidator = new DefaultXMLMessageSignatureValidator();
 
   /** Needed when validating the SignResponse signatures. */
   private XMLSignatureLocation xmlSignatureLocation;
@@ -111,7 +111,7 @@ public class DefaultSignResponseProcessor implements SignResponseProcessor {
   private Map<String, CertificateValidator> certificateValidators;
 
   /** The default certificate validator. This instance is used if no explicit mapping exists. */
-  private CertificateValidator defaultCertificateValidator = new SimpleCertificateValidator();
+  private final CertificateValidator defaultCertificateValidator = new SimpleCertificateValidator();
 
   /**
    * Constructor.
@@ -120,7 +120,7 @@ public class DefaultSignResponseProcessor implements SignResponseProcessor {
     try {
       this.xmlSignatureLocation = new XMLSignatureLocation("/*/*[local-name()='OptionalOutputs']", ChildPosition.LAST);
     }
-    catch (XPathExpressionException e) {
+    catch (final XPathExpressionException e) {
       log.error("Failed to setup XPath for signature validation", e);
       throw new SecurityException("Failed to setup XPath for signature validation", e);
     }
@@ -163,7 +163,7 @@ public class DefaultSignResponseProcessor implements SignResponseProcessor {
       this.signResponseSignatureValidator.validate(signResponseDocument, config.getSignServiceCertificatesInternal(),
         this.xmlSignatureLocation);
     }
-    catch (SignatureException e) {
+    catch (final SignatureException e) {
       final String msg = String.format("Failed to verify signature on SignResponse - %s", e.getMessage());
       log.error("{}: {}", CorrelationID.id(), msg, e);
       throw new SignResponseProcessingException(new ErrorCode.Code("signature"), msg, e);
@@ -215,7 +215,7 @@ public class DefaultSignResponseProcessor implements SignResponseProcessor {
     //
     // Next, validate the response ...
     //
-    SignatureResultBuilder resultBuilder = SignatureResult.builder();
+    final SignatureResultBuilder resultBuilder = SignatureResult.builder();
     resultBuilder
       .id(sessionState.getSignRequest().getRequestID())
       .correlationId(CorrelationID.id());
@@ -253,7 +253,7 @@ public class DefaultSignResponseProcessor implements SignResponseProcessor {
       log.info("{}: Signer certificate successfully validated - {} [request-id='%s']",
         CorrelationID.id(), CertificateUtils.toLogString(signerCertificateChain.get(0)), sessionState.getSignRequest().getRequestID());
     }
-    catch (GeneralSecurityException e) {
+    catch (final GeneralSecurityException e) {
       final String msg = String.format("Validation of signer certificate failed - %s [request-id='%s']",
         e.getMessage(), sessionState.getSignRequest().getRequestID());
       log.error("{}: {}", CorrelationID.id(), msg);
@@ -297,7 +297,7 @@ public class DefaultSignResponseProcessor implements SignResponseProcessor {
         .orElseThrow(() -> new InternalSignServiceIntegrationException(new ErrorCode.Code("config"), "Could not find document processor"));
 
       // Process the document ...
-      final SignedDocument signedDocument = processDocument(processor, signTaskData, signerCertificateChain, sessionState, response,
+      final SignedDocument signedDocument = this.processDocument(processor, signTaskData, signerCertificateChain, sessionState, response,
         parameters);
 
       // Add it to the result ...
@@ -309,7 +309,7 @@ public class DefaultSignResponseProcessor implements SignResponseProcessor {
 
   /**
    * Compiles a signed document and validates it.
-   * 
+   *
    * @param processor
    *          the document processor
    * @param signTaskData
@@ -356,7 +356,7 @@ public class DefaultSignResponseProcessor implements SignResponseProcessor {
   /**
    * Validates the the response time from the SignResponse is valid. The method also ensures that the server processing
    * time hasn't exceeded or max limit.
-   * 
+   *
    * @param responseTime
    *          the response time
    * @param requestTime
@@ -379,7 +379,7 @@ public class DefaultSignResponseProcessor implements SignResponseProcessor {
 
     // Has the response expired?
     //
-    if ((now - responseTimeMillis - this.processingConfiguration.getAllowedClockSkew()) > this.processingConfiguration
+    if (now - responseTimeMillis - this.processingConfiguration.getAllowedClockSkew() > this.processingConfiguration
       .getMaximumAllowedResponseAge()) {
       final String msg = String.format("SignResponse is too old. response-time:%d - current-time:%d - max-allowed-age:%d - " +
           "allowed-clock-skew:%d [request-id='%s']",
@@ -391,7 +391,7 @@ public class DefaultSignResponseProcessor implements SignResponseProcessor {
 
     // Also check the "not yet valid" case...
     //
-    if ((responseTimeMillis - this.processingConfiguration.getAllowedClockSkew()) > now) {
+    if (responseTimeMillis - this.processingConfiguration.getAllowedClockSkew() > now) {
       final String msg = String.format("SignResponse is not yet valid according to ResponseTime. response-time:%d - current-time:%d - " +
           "allowed-clock-skew:%d [request-id='%s']",
         responseTimeMillis, now, this.processingConfiguration.getAllowedClockSkew(), requestID);
@@ -403,7 +403,7 @@ public class DefaultSignResponseProcessor implements SignResponseProcessor {
     // We don't have to care about clock skew since we were the ones that set the request time.
     //
     final long requestTimeMillis = requestTime.toGregorianCalendar().getTimeInMillis();
-    if ((now - requestTimeMillis) > this.processingConfiguration.getMaximumAllowedProcessingTime()) {
+    if (now - requestTimeMillis > this.processingConfiguration.getMaximumAllowedProcessingTime()) {
       final String msg = String.format(
         "Server processing time exceeded allowed limit. request-time:%d - current-time:%d - limit:%d [request-id='%s']",
         requestTimeMillis, now, this.processingConfiguration.getMaximumAllowedProcessingTime(), requestID);
@@ -414,7 +414,7 @@ public class DefaultSignResponseProcessor implements SignResponseProcessor {
 
   /**
    * Validates the received Request element (throws only if strict processing is active).
-   * 
+   *
    * @param request
    *          the received Request element
    * @param sentRequest
@@ -440,7 +440,7 @@ public class DefaultSignResponseProcessor implements SignResponseProcessor {
 
   /**
    * Gets a list of {@link X509Certificate} by reading the supplied {@code SignatureCertificateChain}.
-   * 
+   *
    * @param signatureCertificateChain
    *          the chain received in the response
    * @param requestID
@@ -462,12 +462,12 @@ public class DefaultSignResponseProcessor implements SignResponseProcessor {
 
     // Next, decode all certificates ...
     //
-    List<X509Certificate> certificates = new ArrayList<>();
-    for (byte[] enc : signatureCertificateChain.getX509Certificates()) {
+    final List<X509Certificate> certificates = new ArrayList<>();
+    for (final byte[] enc : signatureCertificateChain.getX509Certificates()) {
       try {
         certificates.add(CertificateUtils.decodeCertificate(enc));
       }
-      catch (CertificateException e) {
+      catch (final CertificateException e) {
         final String msg = String.format("Failed to decode certificate in SignatureCertificateChain of SignResponse [request-id='%s']",
           requestID);
         log.error("{}: {}", CorrelationID.id(), msg);
@@ -480,7 +480,7 @@ public class DefaultSignResponseProcessor implements SignResponseProcessor {
 
   /**
    * Make checks that the supplied {@code SignTaskData} object follows the specs.
-   * 
+   *
    * @param signTaskData
    *          the object to check
    * @param signRequest
@@ -544,7 +544,7 @@ public class DefaultSignResponseProcessor implements SignResponseProcessor {
 
   /**
    * Given a {@code SignTaskData} the method finds the corresponding TBS document from the session state.
-   * 
+   *
    * @param signTaskData
    *          the signature
    * @param state
@@ -578,19 +578,19 @@ public class DefaultSignResponseProcessor implements SignResponseProcessor {
   /**
    * Gets a certificate validator that is to be used to perform a certificate validation according to the supplied
    * policy.
-   * 
+   *
    * @param policy
    *          the policy
    * @return a certificate validator
    */
   private CertificateValidator getCertificateValidator(final String policy) {
-    CertificateValidator validator = this.certificateValidators != null ? this.certificateValidators.get(policy) : null;
+    final CertificateValidator validator = this.certificateValidators != null ? this.certificateValidators.get(policy) : null;
     return validator != null ? validator : this.defaultCertificateValidator;
   }
 
   /**
    * Assigns the processors for handling the signed documents.
-   * 
+   *
    * @param signedDocumentProcessors
    *          document processors
    */
@@ -601,7 +601,7 @@ public class DefaultSignResponseProcessor implements SignResponseProcessor {
   /**
    * Assigns the processor for handling the signer assertion info from the sign response. If not assigned an instance of
    * {@link DefaultSignerAssertionInfoProcessor} will be used.
-   * 
+   *
    * @param signerAssertionInfoProcessor
    *          signer assertion info processor
    */
@@ -611,7 +611,7 @@ public class DefaultSignResponseProcessor implements SignResponseProcessor {
 
   /**
    * Assigns the processing config settings.
-   * 
+   *
    * @param processingConfiguration
    *          the processing config settings
    */
@@ -632,7 +632,7 @@ public class DefaultSignResponseProcessor implements SignResponseProcessor {
    * <p>
    * If no mapping for a given policy exists, a default validator will be used (see {@link SimpleCertificateValidator}).
    * </p>
-   * 
+   *
    * @param certificateValidators
    *          policy to certificate validator mappings
    */
@@ -645,12 +645,12 @@ public class DefaultSignResponseProcessor implements SignResponseProcessor {
    * {@code processingConfiguration} property is assigned (by default
    * {@link SignResponseProcessingConfig#defaultSignResponseProcessingConfig()} is used) and that
    * {@code signerAssertionInfoProcessor} is set (by default a {@link DefaultSignerAssertionInfoProcessor} is used).
-   * 
+   *
    * <p>
    * Note: If executing in a Spring Framework environment this method is automatically invoked after all properties have
    * been assigned. Otherwise it should be explicitly invoked.
    * </p>
-   * 
+   *
    * @throws Exception
    *           if not all settings are correct
    */
@@ -661,7 +661,7 @@ public class DefaultSignResponseProcessor implements SignResponseProcessor {
       this.processingConfiguration = SignResponseProcessingConfig.defaultSignResponseProcessingConfig();
     }
     if (this.signerAssertionInfoProcessor == null) {
-      DefaultSignerAssertionInfoProcessor p = new DefaultSignerAssertionInfoProcessor();
+      final DefaultSignerAssertionInfoProcessor p = new DefaultSignerAssertionInfoProcessor();
       p.setProcessingConfig(this.processingConfiguration);
       this.signerAssertionInfoProcessor = p;
     }

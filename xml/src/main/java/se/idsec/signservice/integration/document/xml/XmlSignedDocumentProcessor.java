@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,7 +55,7 @@ import se.swedenconnect.schemas.csig.dssext_1_1.SignTaskData;
 
 /**
  * Signed document processor for XML documents.
- * 
+ *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
@@ -127,13 +127,13 @@ public class XmlSignedDocumentProcessor extends AbstractSignedDocumentProcessor<
     final Element x509DataElement = document.createElementNS(Constants.SignatureSpecNS, qualifiedName(Constants._TAG_X509DATA));
     keyInfoElement.appendChild(x509DataElement);
 
-    for (X509Certificate cert : signerCertificateChain) {
+    for (final X509Certificate cert : signerCertificateChain) {
       final Element certElement = document.createElementNS(Constants.SignatureSpecNS, qualifiedName(Constants._TAG_X509CERTIFICATE));
       try {
         certElement.setTextContent(Base64.getEncoder().encodeToString(cert.getEncoded()));
         x509DataElement.appendChild(certElement);
       }
-      catch (CertificateEncodingException e) {
+      catch (final CertificateEncodingException e) {
         // Should not happen - The certs have been checked already ...
         throw new SignResponseProcessingException(new ErrorCode.Code("invalid-response"), "Invalid certificate", e);
       }
@@ -160,7 +160,7 @@ public class XmlSignedDocumentProcessor extends AbstractSignedDocumentProcessor<
     try {
       signatureLocation.insertSignature(signatureElement, document);
     }
-    catch (XPathExpressionException e) {
+    catch (final XPathExpressionException e) {
       // Should never happen since we already tested the XPath expression ...
       throw new SignResponseProcessingException(new ErrorCode.Code("invalid-response"), "Failed to create Signature", e);
     }
@@ -170,16 +170,16 @@ public class XmlSignedDocumentProcessor extends AbstractSignedDocumentProcessor<
         DOMUtils.prettyPrint(signatureElement));
     }
 
-    return new DefaultCompiledSignedDocument<Document, XadesQualifyingProperties>(
+    return new DefaultCompiledSignedDocument<>(
       signedData.getSignTaskId(), document, DocumentType.XML.getMimeType(), this.getDocumentEncoder(), xadesObject);
   }
 
   /** {@inheritDoc} */
   @Override
-  public void validateSignedDocument(final Document signedDocument, 
+  public void validateSignedDocument(final Document signedDocument,
       final X509Certificate signerCertificate,
-      final SignTaskData signTaskData, 
-      final SignResponseProcessingParameters parameters, 
+      final SignTaskData signTaskData,
+      final SignResponseProcessingParameters parameters,
       final String requestID) throws SignServiceIntegrationException {
 
     log.debug("{}: Validating signed XML document for Sign task '{}' ... [request-id='{}']",
@@ -189,7 +189,7 @@ public class XmlSignedDocumentProcessor extends AbstractSignedDocumentProcessor<
     //
     final se.idsec.signservice.security.sign.xml.XMLSignatureLocation signatureLocation = this.getXMLSignatureLocation(parameters);
 
-    DefaultXMLSignatureValidator validator = new DefaultXMLSignatureValidator(signerCertificate);
+    final DefaultXMLSignatureValidator validator = new DefaultXMLSignatureValidator(signerCertificate);
 
     try {
       final SignatureValidationResult result = validator.validate(signedDocument, signatureLocation).get(0);
@@ -201,7 +201,7 @@ public class XmlSignedDocumentProcessor extends AbstractSignedDocumentProcessor<
       }
       log.debug("{}: Signature validation for sign task '%s' succeeded", CorrelationID.id(), signTaskData.getSignTaskId());
     }
-    catch (SignatureException e) {
+    catch (final SignatureException e) {
       final String msg = String.format("Signature validation failed for sign task '%s' - %s [request-id='%s']",
         signTaskData.getSignTaskId(), e.getMessage(), requestID);
       log.error("{}: {}", CorrelationID.id(), msg);
@@ -240,29 +240,29 @@ public class XmlSignedDocumentProcessor extends AbstractSignedDocumentProcessor<
         log.error("{}: {}", CorrelationID.id(), msg);
         throw new DocumentProcessingException(new ErrorCode.Code("invalid-ades-object"), msg);
       }
-      
+
       // SigningTime must not be before request time ...
       //
       final long requestTime = signRequest.getSignRequestExtension().getRequestTime().toGregorianCalendar().getTimeInMillis();
-      if (requestTime < (signingTime - this.getProcessingConfiguration().getAllowedClockSkew())) {
+      if (requestTime < signingTime - this.getProcessingConfiguration().getAllowedClockSkew()) {
         final String msg = String.format(
           "Invalid SigningTime (%d) in XAdES object for sign task '%s' - it is before request time (%d) [request-id='%s']",
           signingTime, signTaskData.getSignTaskId(), requestTime, signRequest.getRequestID());
         log.error("{}: {}", CorrelationID.id(), msg);
         throw new DocumentProcessingException(new ErrorCode.Code("invalid-ades-object"), msg);
       }
-      
+
       log.debug("{}: Successfully validated SigningTime in XAdES object for sign task '%s' [request-id='%s']",
         CorrelationID.id(), signTaskData.getSignTaskId(), signRequest.getRequestID());
     }
-    catch (SignServiceProtocolException e) {
+    catch (final SignServiceProtocolException e) {
       throw new DocumentProcessingException(new ErrorCode.Code("invalid-ades-object"), e.getMessage(), e);
     }
   }
 
   /**
    * Creates a qualified name with the ds prefix.
-   * 
+   *
    * @param localName
    *          the element local name
    * @return a qualified name
@@ -273,7 +273,7 @@ public class XmlSignedDocumentProcessor extends AbstractSignedDocumentProcessor<
 
   /**
    * Extracts the {@code ds:SignedInfo} element from the supplied sign task data.
-   * 
+   *
    * @param signedData
    *          the object holding the SignedInfo element
    * @param requestID
@@ -284,7 +284,7 @@ public class XmlSignedDocumentProcessor extends AbstractSignedDocumentProcessor<
    */
   private Element getSignedInfo(final SignTaskData signedData, final String requestID) throws SignResponseProcessingException {
     try {
-      Element signedInfo = DOMUtils.bytesToDocument(signedData.getToBeSignedBytes()).getDocumentElement();
+      final Element signedInfo = DOMUtils.bytesToDocument(signedData.getToBeSignedBytes()).getDocumentElement();
       if (!Constants._TAG_SIGNEDINFO.equals(signedInfo.getLocalName())) {
         final String msg = String.format("Invalid ToBeSignedBytes of sign task '%s' - Expected SignedInfo but was %s [request-id='%s']",
           signedData.getSignTaskId(), signedInfo.getLocalName(), requestID);
@@ -293,7 +293,7 @@ public class XmlSignedDocumentProcessor extends AbstractSignedDocumentProcessor<
       }
       return signedInfo;
     }
-    catch (InternalXMLException e) {
+    catch (final InternalXMLException e) {
       final String msg = String.format("Invalid ToBeSignedBytes of sign task '%s' - Failed to unmarshall - %s [request-id='%s']",
         signedData.getSignTaskId(), e.getMessage(), requestID);
       log.error("{}: {}", msg);
@@ -304,7 +304,7 @@ public class XmlSignedDocumentProcessor extends AbstractSignedDocumentProcessor<
   /**
    * Extracts the {@code ds:Object} containing the {@code xades:QualifyingProperties} element from the supplied sign
    * task data.
-   * 
+   *
    * @param signedData
    *          the object holding the ds:Object element
    * @param requestID
@@ -315,16 +315,16 @@ public class XmlSignedDocumentProcessor extends AbstractSignedDocumentProcessor<
    */
   private Element getDsObject(final SignTaskData signedData, final String requestID) throws SignResponseProcessingException {
     try {
-      Element dsObjectElement = DOMUtils.bytesToDocument(signedData.getAdESObject().getAdESObjectBytes()).getDocumentElement();      
+      final Element dsObjectElement = DOMUtils.bytesToDocument(signedData.getAdESObject().getAdESObjectBytes()).getDocumentElement();
       if (!Constants._TAG_OBJECT.equals(dsObjectElement.getLocalName())) {
         final String msg = String.format("Invalid AdESObjectBytes of sign task '%s' - Expected ds:Object but was %s [request-id='%s']",
           signedData.getSignTaskId(), dsObjectElement.getLocalName(), requestID);
         log.error("{}: {}", msg);
         throw new SignResponseProcessingException(new ErrorCode.Code("invalid-response"), msg);
-      }      
+      }
       return dsObjectElement;
     }
-    catch (InternalXMLException e) {
+    catch (final InternalXMLException e) {
       final String msg = String.format("Invalid AdESObjectBytes of sign task '%s' - Failed to unmarshall - %s [request-id='%s']",
         signedData.getSignTaskId(), e.getMessage(), requestID);
       log.error("{}: {}", msg);
@@ -335,7 +335,7 @@ public class XmlSignedDocumentProcessor extends AbstractSignedDocumentProcessor<
   /**
    * Checks if the processing parameters contains an XPath expression telling where the signature should be installed,
    * otherwise creates a default location.
-   * 
+   *
    * @param parameters
    *          processing parameters
    * @return signature location object
@@ -353,7 +353,7 @@ public class XmlSignedDocumentProcessor extends AbstractSignedDocumentProcessor<
           ? XMLSignatureLocation.ChildPosition.fromPosition(parameters.getXmlSignatureLocation().getChildPosition())
           : XMLSignatureLocation.ChildPosition.LAST;
 
-      se.idsec.signservice.security.sign.xml.XMLSignatureLocation.ChildPosition _child =
+      final se.idsec.signservice.security.sign.xml.XMLSignatureLocation.ChildPosition _child =
           child == XMLSignatureLocation.ChildPosition.FIRST
               ? se.idsec.signservice.security.sign.xml.XMLSignatureLocation.ChildPosition.FIRST
               : se.idsec.signservice.security.sign.xml.XMLSignatureLocation.ChildPosition.LAST;
@@ -365,7 +365,7 @@ public class XmlSignedDocumentProcessor extends AbstractSignedDocumentProcessor<
 
       return sigLoc;
     }
-    catch (Exception e) {
+    catch (final Exception e) {
       final String msg =
           String.format("Invalid expression supplied in SignResponseProcessingParameters/xmlSignatureLocation - %s", e.getMessage());
       log.error("{}: {}", CorrelationID.id(), msg);
@@ -376,7 +376,7 @@ public class XmlSignedDocumentProcessor extends AbstractSignedDocumentProcessor<
   /**
    * Checks if the processing parameters contains an XPath expression telling where the signature should be installed.
    * If so, it tests whether this expression is valid given the TBS document.
-   * 
+   *
    * @param parameters
    *          processing parameters
    * @param tbsDocument
@@ -397,7 +397,7 @@ public class XmlSignedDocumentProcessor extends AbstractSignedDocumentProcessor<
 
       return sigLoc;
     }
-    catch (Exception e) {
+    catch (final Exception e) {
       final String msg =
           String.format("Invalid expression supplied in SignResponseProcessingParameters/xmlSignatureLocation - %s", e.getMessage());
       log.error("{}: {}", CorrelationID.id(), msg);

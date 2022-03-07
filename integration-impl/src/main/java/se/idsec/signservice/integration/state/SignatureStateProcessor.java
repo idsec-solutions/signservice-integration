@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import se.idsec.signservice.integration.process.SignRequestProcessor;
 
 /**
  * A processor for handling signature states.
- * 
+ *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
@@ -38,7 +38,7 @@ public interface SignatureStateProcessor {
    * is passed must be the instance that is obtained from a call to
    * {@link SignRequestProcessor#preProcess(SignRequestInput, se.idsec.signservice.integration.config.IntegrationServiceConfiguration)}.
    * </p>
-   * 
+   *
    * @param requestInput
    *          a fully populated sign request input
    * @param signRequest
@@ -57,7 +57,7 @@ public interface SignatureStateProcessor {
    * that state is supplied by the caller. The state that is supplied should be the same state as received from calling
    * {@link #createSignatureState(SignRequestInput, SignRequestWrapper, boolean)}.
    * </p>
-   * 
+   *
    * @param inputState
    *          the state received from the caller
    * @param requesterId
@@ -73,7 +73,7 @@ public interface SignatureStateProcessor {
 
   /**
    * Gets the state cache instance that is used by the processor.
-   * 
+   *
    * @return the IntegrationServiceStateCache instance
    */
   IntegrationServiceStateCache getStateCache();

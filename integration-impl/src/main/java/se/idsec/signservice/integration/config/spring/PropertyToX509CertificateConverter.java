@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ import se.idsec.signservice.security.certificate.CertificateUtils;
 
 /**
  * For Spring Framework users. A {@link Converter} that gets the property value (e.g., {@code classpath:cert.crt})
- * and instantiates a {@link X509Certificate} onbject. 
+ * and instantiates a {@link X509Certificate} onbject.
  * <p>
  * To use this converter it has to be instantiated as a bean and then registered in the registry using
  * {@link ConverterRegistry#addConverter(Converter)}.
@@ -45,30 +45,30 @@ import se.idsec.signservice.security.certificate.CertificateUtils;
  *   return new PropertyToX509CertificateConverter();
  * }
  * </pre>
- * 
- * 
+ *
+ *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
 public class PropertyToX509CertificateConverter implements Converter<String, X509Certificate>, ApplicationContextAware {
-  
+
   /** The application context. */
-  private ApplicationContext applicationContext;  
+  private ApplicationContext applicationContext;
 
   /** {@inheritDoc} */
   @Override
   public X509Certificate convert(final String source) {
-    
+
     final Resource resource = this.applicationContext.getResource(source);
-    
+
     try {
       return CertificateUtils.decodeCertificate(resource.getInputStream());
     }
-    catch (CertificateException | IOException e) {
+    catch (final CertificateException | IOException e) {
       throw new IllegalArgumentException(String.format("Failed to convert %s to a X509Certificate", source));
     }
   }
-  
+
   /** {@inheritDoc} */
   @Override
   public void setApplicationContext(final ApplicationContext applicationContext) throws BeansException {

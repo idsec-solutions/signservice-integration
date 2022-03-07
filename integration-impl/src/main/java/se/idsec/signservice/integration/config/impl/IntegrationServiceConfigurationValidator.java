@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@ import se.idsec.signservice.integration.security.EncryptionParameters;
  * <p>
  * Note: This implementation is package-private and is used internally by {@link DefaultConfigurationManager}.
  * </p>
- * 
+ *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
@@ -59,7 +59,7 @@ class IntegrationServiceConfigurationValidator extends
 
   /** Validator for PdfSignaturePage objects. */
   private PdfSignaturePageValidator pdfSignaturePageValidator;
-  
+
   /**
    * Constructor.
    */
@@ -70,7 +70,7 @@ class IntegrationServiceConfigurationValidator extends
       //
       Class<?> clazz = Class.forName("se.idsec.signservice.integration.document.pdf.signpage.impl.ExtendedPdfSignaturePageValidator");
       Constructor<?> ctor = clazz.getConstructor();
-      this.pdfSignaturePageValidator = (PdfSignaturePageValidator) ctor.newInstance(); 
+      this.pdfSignaturePageValidator = (PdfSignaturePageValidator) ctor.newInstance();
     }
     catch (Exception e) {
       // We don't have the extended validator in the classpath, so we'll use the standard one that does
@@ -208,7 +208,7 @@ class IntegrationServiceConfigurationValidator extends
     else if (object.getSigningCredential().getPrivateKey() == null) {
       result.rejectValue("signingCredential.privateKey", "No private key available in signingCredential");
     }
-    else if (object.getSigningCredential().getSigningCertificate() == null) {
+    else if (object.getSigningCredential().getCertificate() == null) {
       result.rejectValue("signingCredential.signingCertificate", "No signing certificate available in signingCredential");
     }
 
@@ -217,7 +217,7 @@ class IntegrationServiceConfigurationValidator extends
 
   /**
    * Validator for {@link EncryptionParameters}.
-   * 
+   *
    * @author Martin Lindström (martin@idsec.se)
    * @author Stefan Santesson (stefan@idsec.se)
    */

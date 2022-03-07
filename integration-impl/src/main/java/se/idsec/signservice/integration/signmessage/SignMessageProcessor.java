@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,15 +23,18 @@ import se.swedenconnect.schemas.csig.dssext_1_1.SignMessage;
 
 /**
  * Processor for creating SignMessage objects.
- * 
+ *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
 public interface SignMessageProcessor {
 
+  /** The SAML attribute that carries a "Sign message digest". */
+  String SIGN_MESSAGE_DIGEST_ATTRIBUTE = "urn:oid:1.2.752.201.3.14";
+
   /**
    * Creates a {@code SignMessage} element and optionally encrypts it for the receipient.
-   * 
+   *
    * @param input
    *          the (validated) parameters
    * @param config
@@ -40,7 +43,7 @@ public interface SignMessageProcessor {
    * @throws SignServiceIntegrationException
    *           for processing errors
    */
-  SignMessage create(@Nonnull final SignMessageParameters input, @Nonnull final IntegrationServiceConfiguration config) 
+  SignMessage create(@Nonnull final SignMessageParameters input, @Nonnull final IntegrationServiceConfiguration config)
       throws SignServiceIntegrationException;
 
 }

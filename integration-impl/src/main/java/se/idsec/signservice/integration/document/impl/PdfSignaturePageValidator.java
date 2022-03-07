@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,18 +26,19 @@ import se.idsec.signservice.integration.document.pdf.PdfSignaturePage.PdfSignatu
 
 /**
  * Validator for {@link PdfSignaturePage} objects.
- * 
+ *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
 public class PdfSignaturePageValidator extends AbstractInputValidator<PdfSignaturePage, List<? extends PdfSignatureImageTemplate>> {
 
   /** Validator for FileResource objects. */
-  private FileResourceValidator fileResourceValidator = new FileResourceValidator();
+  private final FileResourceValidator fileResourceValidator = new FileResourceValidator();
 
   /** {@inheritDoc} */
   @Override
-  public ValidationResult validate(PdfSignaturePage object, String objectName, List<? extends PdfSignatureImageTemplate> hint) {
+  public ValidationResult validate(final PdfSignaturePage object, final String objectName,
+      final List<? extends PdfSignatureImageTemplate> hint) {
     final ValidationResult result = new ValidationResult(objectName);
     if (object == null) {
       return result;
@@ -91,11 +92,11 @@ public class PdfSignaturePageValidator extends AbstractInputValidator<PdfSignatu
       }
       if (object.getColumns() != null && object.getColumns() > 1 && config.getXIncrement() == null) {
         result.rejectValue("imagePlacementConfiguration.xIncrement",
-            "Missing xIncrement of imagePlacementConfiguration for PdfSignaturePage");
+          "Missing xIncrement of imagePlacementConfiguration for PdfSignaturePage");
       }
       if (object.getRows() != null && object.getRows() > 1 && config.getYIncrement() == null) {
         result.rejectValue("imagePlacementConfiguration.yIncrement",
-            "Missing yIncrement of imagePlacementConfiguration for PdfSignaturePage");
+          "Missing yIncrement of imagePlacementConfiguration for PdfSignaturePage");
       }
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,7 @@ import se.swedenconnect.schemas.etsi.xades_1_3_2.SigningCertificateV2;
 
 /**
  * The XAdES object for XML signatures is a {@code xades:QualifyingProperties} object.
- * 
+ *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
@@ -68,7 +68,7 @@ public class XadesQualifyingProperties implements AdesObject {
 
   /**
    * Constructor.
-   * 
+   *
    * @param dsObject
    *          the ds:Object holding the QualifyingProperties element
    * @throws DocumentProcessingException
@@ -80,13 +80,13 @@ public class XadesQualifyingProperties implements AdesObject {
     }
     try {
       this.dsObject = dsObject;
-      for (Object child : this.dsObject.getContent()) {
+      for (final Object child : this.dsObject.getContent()) {
         if (child instanceof QualifyingProperties) {
-          this.qualifyingProperties = (QualifyingProperties) qualifyingProperties;
+          this.qualifyingProperties = (QualifyingProperties) child;
           break;
         }
         else if (child instanceof Element) {
-          Element elm = (Element) child;
+          final Element elm = (Element) child;
           if (XadesQualifyingProperties.LOCAL_NAME.equals(elm.getLocalName())) {
             this.qualifyingProperties = JAXBUnmarshaller.unmarshall(elm, QualifyingProperties.class);
             break;
@@ -99,7 +99,7 @@ public class XadesQualifyingProperties implements AdesObject {
         throw new DocumentProcessingException(new ErrorCode.Code("invalid-ades-object"), msg);
       }
     }
-    catch (JAXBException e) {
+    catch (final JAXBException e) {
       final String msg = "Invalid QualifyingProperties element found in XAdES object";
       log.error("{}: {}", CorrelationID.id(), msg, e);
       throw new DocumentProcessingException(new ErrorCode.Code("invalid-ades-object"), msg, e);
@@ -108,7 +108,7 @@ public class XadesQualifyingProperties implements AdesObject {
 
   /**
    * Creates a {@code XadesQualifyingProperties} from a DOM element.
-   * 
+   *
    * @param dsObject
    *          DOM element of the ds:Object holding the QualifyingProperties element
    * @return a XadesQualifyingProperties object
@@ -119,7 +119,7 @@ public class XadesQualifyingProperties implements AdesObject {
     try {
       return new XadesQualifyingProperties(JAXBUnmarshaller.unmarshall(dsObject, ObjectType.class));
     }
-    catch (JAXBException e) {
+    catch (final JAXBException e) {
       final String msg = "Invalid QualifyingProperties element found in XAdES object";
       log.error("{}: {}", CorrelationID.id(), msg, e);
       throw new DocumentProcessingException(new ErrorCode.Code("invalid-ades-object"), msg, e);
@@ -129,19 +129,19 @@ public class XadesQualifyingProperties implements AdesObject {
   /**
    * Creates a {@code XadesQualifyingProperties} with a {@code ds:Object} holding a {@code xades:QualifyingProperties}
    * with no content.
-   * 
+   *
    * @return a XadesQualifyingProperties object
    * @throws DocumentProcessingException
    *           for protocol errors
    */
   public static XadesQualifyingProperties createXadesQualifyingProperties() throws DocumentProcessingException {
     try {
-      ObjectType dsObject = dsObjectFactory.createObjectType();
-      QualifyingProperties qp = xadesObjectFactory.createQualifyingProperties();
+      final ObjectType dsObject = dsObjectFactory.createObjectType();
+      final QualifyingProperties qp = xadesObjectFactory.createQualifyingProperties();
       dsObject.getContent().add(JAXBMarshaller.marshall(qp).getDocumentElement());
       return new XadesQualifyingProperties(dsObject);
     }
-    catch (JAXBException e) {
+    catch (final JAXBException e) {
       final String msg = "Failed to marshall QualifyingProperties element";
       log.error("{}: {}", CorrelationID.id(), msg, e);
       throw new DocumentProcessingException(new ErrorCode.Code("invalid-ades-object"), msg, e);
@@ -151,19 +151,19 @@ public class XadesQualifyingProperties implements AdesObject {
   /**
    * Gets the DOM element of the AdES object (which is a {@code ds:Object} containing a
    * {@code xades:QualifyingProperties}).
-   * 
+   *
    * @return the DOM element for the AdES object
    * @throws JAXBException
    *           for marshalling errors
    */
   public Element getAdesElement() throws JAXBException {
-    if (updated) {
+    if (this.updated) {
       // OK, the qualifying properties were updated, lets look the element up and replace it...
       //
       for (int i = 0; i < this.dsObject.getContent().size(); i++) {
-        Object child = this.dsObject.getContent().get(i);
+        final Object child = this.dsObject.getContent().get(i);
         if (QualifyingProperties.class.isInstance(child)
-            || (Element.class.isInstance(child) && XadesQualifyingProperties.LOCAL_NAME.equals(((Element) child).getLocalName()))) {
+            || Element.class.isInstance(child) && XadesQualifyingProperties.LOCAL_NAME.equals(((Element) child).getLocalName())) {
 
           this.dsObject.getContent().set(i, JAXBMarshaller.marshall(this.qualifyingProperties).getDocumentElement());
           this.updated = false;
@@ -212,7 +212,7 @@ public class XadesQualifyingProperties implements AdesObject {
 
   /**
    * Gets the {@code xades:SigningTime}.
-   * 
+   *
    * @return the signing time (in millis since epoch), or null if it is not available
    */
   public Long getSigningTime() {
@@ -228,7 +228,7 @@ public class XadesQualifyingProperties implements AdesObject {
 
   /**
    * Gets the SignaturePolicyIdentifier or null
-   * 
+   *
    * @return the SignaturePolicyIdentifier or null
    */
   public SignaturePolicyIdentifier getSignaturePolicyIdentifier() {
@@ -242,7 +242,7 @@ public class XadesQualifyingProperties implements AdesObject {
 
   /**
    * Assigns the signature policy ID to the XAdES object.
-   * 
+   *
    * @param signaturePolicy
    *          the ID to assign
    * @return whether the object was updated
@@ -250,7 +250,7 @@ public class XadesQualifyingProperties implements AdesObject {
   public boolean setSignaturePolicy(final String signaturePolicy) {
     if (this.qualifyingProperties.getSignedProperties() == null) {
       this.qualifyingProperties.setSignedProperties(xadesObjectFactory.createSignedProperties());
-      updated = true;
+      this.updated = true;
     }
     if (this.qualifyingProperties.getSignedProperties().getSignedSignatureProperties() == null) {
       this.qualifyingProperties.getSignedProperties().setSignedSignatureProperties(xadesObjectFactory.createSignedSignatureProperties());

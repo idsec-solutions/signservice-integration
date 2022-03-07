@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import se.idsec.signservice.integration.dss.SignRequestWrapper;
 /**
  * Representation of the SignRequest processing result. Used as the return type of
  * {@link SignRequestProcessor#process(se.idsec.signservice.integration.SignRequestInput, String, se.idsec.signservice.integration.config.IntegrationServiceConfiguration)}.
- * 
+ *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
@@ -34,7 +34,7 @@ public class SignRequestProcessingResult {
 
   /**
    * Constructor.
-   * 
+   *
    * @param signRequest
    *          the SignRequest
    * @param encodedSignRequest
@@ -47,7 +47,7 @@ public class SignRequestProcessingResult {
 
   /**
    * Gets the (unsigned) SignRequest.
-   * 
+   *
    * @return the SignRequest
    */
   public SignRequestWrapper getSignRequest() {
@@ -56,7 +56,7 @@ public class SignRequestProcessingResult {
 
   /**
    * Gets the signed and Base64-encoded SignRequest.
-   * 
+   *
    * @return the signed and Base64-encoded SignRequest
    */
   public String getEncodedSignRequest() {

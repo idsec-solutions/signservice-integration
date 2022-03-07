@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,7 +53,7 @@ import se.swedenconnect.schemas.etsi.xades_1_3_2.SignaturePolicyIdentifier;
 
 /**
  * Implementation of the XML TBS document processor.
- * 
+ *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
@@ -78,7 +78,7 @@ public class XmlTbsDocumentProcessor extends AbstractTbsDocumentProcessor<Docume
     try {
       return DocumentType.fromMimeType(document.getMimeType()) == DocumentType.XML;
     }
-    catch (IllegalArgumentException e) {
+    catch (final IllegalArgumentException e) {
       return false;
     }
   }
@@ -89,7 +89,7 @@ public class XmlTbsDocumentProcessor extends AbstractTbsDocumentProcessor<Docume
       final IntegrationServiceConfiguration config, final DocumentCache documentCache, final String fieldName)
       throws InputValidationException {
 
-    final ProcessedTbsDocument processedTbsDocument = super.preProcess(document,signRequestInput, config, documentCache, fieldName);
+    final ProcessedTbsDocument processedTbsDocument = super.preProcess(document, signRequestInput, config, documentCache, fieldName);
     final TbsDocument tbsDocument = processedTbsDocument.getTbsDocument();
 
     if (tbsDocument.getAdesRequirement() != null) {
@@ -105,7 +105,7 @@ public class XmlTbsDocumentProcessor extends AbstractTbsDocumentProcessor<Docume
               xadesObject = XadesQualifyingProperties.createXadesQualifyingProperties();
             }
             else {
-              Element elm = DOMUtils.base64ToDocument(tbsDocument.getAdesRequirement().getAdesObject()).getDocumentElement();
+              final Element elm = DOMUtils.base64ToDocument(tbsDocument.getAdesRequirement().getAdesObject()).getDocumentElement();
               xadesObject = XadesQualifyingProperties.createXadesQualifyingProperties(elm);
             }
             // Assign the signature policy
@@ -118,7 +118,7 @@ public class XmlTbsDocumentProcessor extends AbstractTbsDocumentProcessor<Docume
           }
         }
         catch (DocumentProcessingException | JAXBException e) {
-          // All errors should have been detected by the XAdesRequirementValidator ... 
+          // All errors should have been detected by the XAdesRequirementValidator ...
           log.error("{}: Error during update of XAdES object - {}", e.getMessage(), e);
         }
       }
@@ -206,8 +206,8 @@ public class XmlTbsDocumentProcessor extends AbstractTbsDocumentProcessor<Docume
 
     /** {@inheritDoc} */
     @Override
-    public ValidationResult validate(EtsiAdesRequirement object, String objectName, Void hint) {
-      ValidationResult result = new ValidationResult(objectName);
+    public ValidationResult validate(final EtsiAdesRequirement object, final String objectName, final Void hint) {
+      final ValidationResult result = new ValidationResult(objectName);
       if (object == null) {
         return result;
       }
@@ -220,10 +220,10 @@ public class XmlTbsDocumentProcessor extends AbstractTbsDocumentProcessor<Docume
           xadesObject = XadesQualifyingProperties.createXadesQualifyingProperties(
             DOMUtils.base64ToDocument(object.getAdesObject()).getDocumentElement());
         }
-        catch (DocumentProcessingException e) {
+        catch (final DocumentProcessingException e) {
           result.rejectValue("adesObject", e.getMessage());
         }
-        catch (Exception e) {
+        catch (final Exception e) {
           result.rejectValue("adesObject", "Invalid encoding/type for adesObject");
         }
       }

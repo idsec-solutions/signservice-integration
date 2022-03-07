@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,12 +23,12 @@ import se.idsec.signservice.integration.document.ades.AdesObject;
 /**
  * An interface that is used to represent a signed document that is the compilation of the TBS document from the
  * SignRequest and the signature from the SignResponse.
- * 
+ *
  * @param <T>
  *          the document type
  * @param <X>
  *          the AdES object from the signature
- * 
+ *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
@@ -36,7 +36,7 @@ public interface CompiledSignedDocument<T, X extends AdesObject> {
 
   /**
    * Gets the signed document.
-   * 
+   *
    * @return the signed document
    */
   @Nonnull
@@ -44,7 +44,7 @@ public interface CompiledSignedDocument<T, X extends AdesObject> {
 
   /**
    * Gets the {@link SignedDocument} to be returned back in the result to the caller.
-   * 
+   *
    * @return a SignedDocument object
    */
   @Nonnull
@@ -52,7 +52,7 @@ public interface CompiledSignedDocument<T, X extends AdesObject> {
 
   /**
    * Gets the AdES object (if present in the signature)
-   * 
+   *
    * @return the AdES object, or null
    */
   @Nullable

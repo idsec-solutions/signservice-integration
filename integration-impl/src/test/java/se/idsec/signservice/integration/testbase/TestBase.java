@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,11 +18,11 @@ package se.idsec.signservice.integration.testbase;
 import org.junit.BeforeClass;
 
 import se.idsec.signservice.integration.SignServiceIntegrationServiceInitializer;
-import se.litsec.swedisheid.opensaml.xmlsec.config.SwedishEidSecurityConfiguration;
+import se.swedenconnect.opensaml.sweid.xmlsec.config.SwedishEidSecurityConfiguration;
 
 /**
  * Test base.
- * 
+ *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
@@ -30,7 +30,7 @@ public abstract class TestBase {
 
   /**
    * Initializes the OpenSAML library.
-   * 
+   *
    * @throws Exception
    *           for init errors
    */
@@ -38,5 +38,5 @@ public abstract class TestBase {
   public static void initialize() throws Exception {
     SignServiceIntegrationServiceInitializer.initialize(new SwedishEidSecurityConfiguration());
   }
-  
+
 }

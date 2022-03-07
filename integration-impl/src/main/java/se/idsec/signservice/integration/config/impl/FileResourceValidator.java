@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import se.idsec.signservice.integration.core.validation.ValidationResult;
 
 /**
  * Validator for {@link FileResource} objects.
- * 
+ *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
@@ -40,7 +40,7 @@ public class FileResourceValidator extends AbstractInputValidator<FileResource, 
         result.rejectValue("contents", "Missing contents for FileResource");
       }
     }
-    catch (Exception e) {
+    catch (final Exception e) {
       result.rejectValue("contents", "Failed to read contents for FileResource - " + e.getMessage());
     }
 

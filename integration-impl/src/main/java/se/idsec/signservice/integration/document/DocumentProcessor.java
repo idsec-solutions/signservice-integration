@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +17,10 @@ package se.idsec.signservice.integration.document;
 
 /**
  * Base interface for document processors.
- * 
+ *
  * @param <T>
  *          the document type
- * 
+ *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
@@ -28,14 +28,14 @@ public interface DocumentProcessor<T> {
 
   /**
    * Gets the document decoder for document objects handled by this procesor.
-   * 
+   *
    * @return the decoder
    */
   DocumentDecoder<T> getDocumentDecoder();
 
   /**
    * Gets the document encoder for document objects handled by this processor.
-   * 
+   *
    * @return the encoder
    */
   DocumentEncoder<T> getDocumentEncoder();

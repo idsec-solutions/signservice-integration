@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,13 +28,13 @@ import se.idsec.signservice.integration.document.pdf.signpage.impl.ExtendedPdfSi
  * The IntegrationServiceConfigurationValidator loads the ExtendedPdfSignaturePageValidator if it is in the classpath.
  * This test verifies that this is done.
  * </p>
- * 
+ *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
 public class IntegrationServiceConfigurationValidatorTest {
 
-  @Test 
+  @Test
   public void testLoad() throws Exception {
     IntegrationServiceConfigurationValidator validator = new IntegrationServiceConfigurationValidator();
 

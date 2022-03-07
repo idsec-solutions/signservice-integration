@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ import se.idsec.signservice.integration.document.pdf.PdfSignaturePage.PdfSignatu
 
 /**
  * Test cases for ExtendedPdfSignaturePageValidator.
- * 
+ *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
@@ -40,14 +40,14 @@ public class ExtendedPdfSignaturePageValidatorTest {
   @Test
   public void testInvalidPdfDocument() throws Exception {
     final PdfSignaturePageValidator validator = new ExtendedPdfSignaturePageValidator();
-    
+
     final PdfSignaturePage page = PdfSignaturePage.builder()
         .id("ID")
         .pdfDocument(FileResource.builder()
           .contents(Base64.getEncoder().encodeToString("ABC".getBytes()))
           .build())
         .build();
-    
+
     try {
       validator.validateObject(page, "page", null);
       Assert.fail("Expected InputValidationException");
@@ -56,11 +56,11 @@ public class ExtendedPdfSignaturePageValidatorTest {
       Assert.assertNotNull(e.getDetails().get("page.pdfDocument"));
     }
   }
-  
+
   @Test
   public void testInvalidPage() throws Exception {
     final PdfSignaturePageValidator validator = new ExtendedPdfSignaturePageValidator();
-    
+
     final PdfSignaturePage page = PdfSignaturePage.builder()
         .id("ID")
         .pdfDocument(FileResource.builder()
@@ -78,11 +78,11 @@ public class ExtendedPdfSignaturePageValidatorTest {
           .page(2)  // The loaded page only has 1 page ...
           .build())
         .build();
-    
+
     final PdfSignatureImageTemplate template = PdfSignatureImageTemplate.builder()
         .reference("ref1")
         .build();
-    
+
     try {
       validator.validateObject(page, "page", Arrays.asList(template));
       Assert.fail("Expected InputValidationException");
@@ -92,11 +92,11 @@ public class ExtendedPdfSignaturePageValidatorTest {
       Assert.assertEquals(1, e.getDetails().size());
     }
   }
-  
+
   @Test
   public void testSuccess() throws Exception {
     final PdfSignaturePageValidator validator = new ExtendedPdfSignaturePageValidator();
-    
+
     final PdfSignaturePage page = PdfSignaturePage.builder()
         .id("ID")
         .pdfDocument(FileResource.builder()
@@ -114,14 +114,14 @@ public class ExtendedPdfSignaturePageValidatorTest {
           .page(0)
           .build())
         .build();
-    
+
     final PdfSignatureImageTemplate template = PdfSignatureImageTemplate.builder()
         .reference("ref1")
         .build();
-    
+
     validator.validateObject(page, "page", Arrays.asList(template));
     final ValidationResult result = validator.validate(page, "page", Arrays.asList(template));
     Assert.assertFalse(result.hasErrors());
   }
-  
+
 }

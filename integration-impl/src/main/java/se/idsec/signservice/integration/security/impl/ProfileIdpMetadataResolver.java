@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ import se.idsec.signservice.utils.AssertThat;
 
 /**
  * An {@link IdpMetadataResolver} that offers the possibility to use different resolvers for different profiles.
- * 
+ *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
@@ -45,9 +45,9 @@ public class ProfileIdpMetadataResolver implements IdpMetadataResolver {
 
   /** {@inheritDoc} */
   @Override
-  public EntityDescriptor resolveMetadata(String entityID, IntegrationServiceConfiguration config) throws MetadataException {
+  public EntityDescriptor resolveMetadata(final String entityID, final IntegrationServiceConfiguration config) throws MetadataException {
 
-    IdpMetadataResolver resolver = this.resolvers != null
+    final IdpMetadataResolver resolver = this.resolvers != null
         ? this.resolvers.getOrDefault(config.getPolicy(), this.defaultResolver)
         : this.defaultResolver;
 
@@ -60,38 +60,38 @@ public class ProfileIdpMetadataResolver implements IdpMetadataResolver {
 
   /**
    * Adds a mapping of policy names and metadata resolvers.
-   * 
+   *
    * @param resolvers
    *          resolver mappings
    */
-  public void setResolvers(Map<String, IdpMetadataResolver> resolvers) {
+  public void setResolvers(final Map<String, IdpMetadataResolver> resolvers) {
     this.resolvers = resolvers;
   }
 
   /**
    * Sets the default resolver to use.
-   * 
+   *
    * @param defaultResolver
    *          the default metadata resolver
    */
-  public void setDefaultResolver(IdpMetadataResolver defaultResolver) {
+  public void setDefaultResolver(final IdpMetadataResolver defaultResolver) {
     this.defaultResolver = defaultResolver;
   }
 
   /**
    * Ensures that all required properties have been assigned.
-   * 
+   *
    * <p>
    * Note: If executing in a Spring Framework environment this method is automatically invoked after all properties have
    * been assigned. Otherwise it should be explicitly invoked.
    * </p>
-   * 
+   *
    * @throws Exception
    *           if not all settings are correct
    */
   @PostConstruct
   public void afterPropertiesSet() throws Exception {
-    AssertThat.isTrue((this.resolvers != null && !this.resolvers.isEmpty()) || this.defaultResolver != null,
+    AssertThat.isTrue(this.resolvers != null && !this.resolvers.isEmpty() || this.defaultResolver != null,
       "No resolvers have been configured");
   }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 IDsec Solutions AB
+ * Copyright 2019-2022 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import org.junit.Test;
 
 /**
  * Test cases for SignRequestWrapper.
- * 
+ *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
@@ -33,20 +33,20 @@ public class SignRequestWrapperTest {
 
   @Test
   public void testJavaSerialization() throws Exception {
-    
+
     final SignRequestWrapper w1 = new SignRequestWrapper();
     w1.setRequestID("ABC");
     w1.setProfile("foo");
-    
+
     // Serialize
     ByteArrayOutputStream bos = new ByteArrayOutputStream();
     ObjectOutputStream out = new ObjectOutputStream(bos);
     out.writeObject(w1);
     byte[] serialization = bos.toByteArray();
     Assert.assertNotNull(serialization);
-    
+
     // Deserialize
-    ByteArrayInputStream bis = new ByteArrayInputStream(serialization); 
+    ByteArrayInputStream bis = new ByteArrayInputStream(serialization);
     ObjectInputStream in = new ObjectInputStream(bis);
     final SignRequestWrapper w2 = (SignRequestWrapper) in.readObject();
     Assert.assertNotNull(w2);
