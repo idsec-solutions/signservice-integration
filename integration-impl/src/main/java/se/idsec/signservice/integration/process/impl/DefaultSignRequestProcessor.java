@@ -114,13 +114,13 @@ public class DefaultSignRequestProcessor implements SignRequestProcessor {
   private static final ProtocolVersion VERSION_1_4 = new ProtocolVersion("1.4");
 
   /** Constants for conditions. */
-  private static javax.xml.datatype.Duration ONE_MINUTE;
-  private static javax.xml.datatype.Duration FIVE_MINUTES;
+  private static javax.xml.datatype.Duration ONE_MINUTE_BACK;
+  private static javax.xml.datatype.Duration FIVE_MINUTES_FORWARD;
 
   static {
     try {
-      ONE_MINUTE = DatatypeFactory.newInstance().newDuration(60000L);
-      FIVE_MINUTES = DatatypeFactory.newInstance().newDuration(300000L);
+      ONE_MINUTE_BACK = DatatypeFactory.newInstance().newDuration(-60000L);
+      FIVE_MINUTES_FORWARD = DatatypeFactory.newInstance().newDuration(300000L);
     }
     catch (final DatatypeConfigurationException e) {
       throw new SecurityException(e);
@@ -328,10 +328,10 @@ public class DefaultSignRequestProcessor implements SignRequestProcessor {
     final XMLGregorianCalendar currentTime = getNow();
     // TODO: make configurable
     final XMLGregorianCalendar notBefore = (XMLGregorianCalendar) currentTime.clone();
-    notBefore.add(ONE_MINUTE);
+    notBefore.add(ONE_MINUTE_BACK);
     conditions.setNotBefore(notBefore);
     final XMLGregorianCalendar notAfter = (XMLGregorianCalendar) currentTime.clone();
-    notAfter.add(FIVE_MINUTES);
+    notAfter.add(FIVE_MINUTES_FORWARD);
     conditions.setNotOnOrAfter(notAfter);
 
     final AudienceRestriction audienceRestriction = new AudienceRestriction();

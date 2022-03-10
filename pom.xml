@@ -6,7 +6,7 @@
   <groupId>se.idsec.signservice.integration</groupId>
   <artifactId>signservice-integration-parent</artifactId>
   <packaging>pom</packaging>
-  <version>1.3.0-SNAPSHOT</version>
+  <version>1.3.0</version>
 
   <name>IDsec Solutions :: Parent POM for SignService :: Integration</name>
   <description>Parent POM for SignService Integration libraries</description>
@@ -50,8 +50,6 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <java.version>11</java.version>
-    
-    <spring.min.version>5.0.0.RELEASE</spring.min.version>
   </properties>
 
   <distributionManagement>
@@ -74,31 +72,45 @@
   <dependencyManagement>
 
     <dependencies>
-          
+                
       <dependency>
         <groupId>se.idsec.signservice.commons</groupId>
         <artifactId>signservice-bom</artifactId>
-        <version>1.2.0-SNAPSHOT</version>
+        <version>1.2.0</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
-
+      
+      <dependency>
+        <groupId>javax.activation</groupId>
+        <artifactId>activation</artifactId>
+        <version>1.1.1</version>
+      </dependency>      
+      
+      <dependency>
+        <groupId>org.glassfish.jaxb</groupId>
+        <artifactId>jaxb-runtime</artifactId>
+        <version>2.3.6</version>
+        <!-- The BOM above sets it to provided which is not correct for Java 11 -->
+        <scope>compile</scope>
+      </dependency>
+      
       <dependency>
         <groupId>se.idsec.signservice.integration</groupId>
         <artifactId>signservice-integration-api</artifactId>
-        <version>1.3.0-SNAPSHOT</version>
+        <version>1.3.0</version>
       </dependency>
 
       <dependency>
         <groupId>se.idsec.signservice.commons</groupId>
         <artifactId>signservice-commons</artifactId>
-        <version>1.2.0-SNAPSHOT</version>
+        <version>1.2.0</version>
       </dependency>
 
       <dependency>
         <groupId>se.idsec.signservice.commons</groupId>
         <artifactId>signservice-xml-commons</artifactId>
-        <version>1.2.0-SNAPSHOT</version>
+        <version>1.2.0</version>
         <exclusions>
           <!-- So that we are prepared if the commons dependencies are not the same ... -->
           <exclusion>
@@ -111,7 +123,7 @@
       <dependency>
         <groupId>se.idsec.signservice.commons</groupId>
         <artifactId>signservice-pdf-commons</artifactId>
-        <version>1.2.0-SNAPSHOT</version>
+        <version>1.2.0</version>
         <exclusions>
           <exclusion>
             <groupId>se.idsec.signservice.commons</groupId>
@@ -119,13 +131,6 @@
           </exclusion>
         </exclusions>        
       </dependency>      
-
-      <dependency>
-        <groupId>org.glassfish.jaxb</groupId>
-        <artifactId>jaxb-runtime</artifactId>
-        <version>2.3.6</version>
-        <scope>provided</scope>
-      </dependency>
 
     </dependencies>
 
