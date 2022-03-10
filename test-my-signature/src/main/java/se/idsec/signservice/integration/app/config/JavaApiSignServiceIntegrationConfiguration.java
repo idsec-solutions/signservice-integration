@@ -132,9 +132,10 @@ public class JavaApiSignServiceIntegrationConfiguration {
    */
   @Bean
   public SignRequestProcessor signRequestProcessor() throws Exception {
-    DefaultSignRequestProcessor processor = new DefaultSignRequestProcessor();
+    final DefaultSignRequestProcessor processor = new DefaultSignRequestProcessor();
     processor.setTbsDocumentProcessors(Arrays.asList(new XmlTbsDocumentProcessor(), new PdfTbsDocumentProcessor()));
-    DefaultSignMessageProcessor signMessageProcessor = new DefaultSignMessageProcessor();
+    processor.setDefaultVersion("1.4");
+    final DefaultSignMessageProcessor signMessageProcessor = new DefaultSignMessageProcessor();
     signMessageProcessor.setIdpMetadataResolver(new OpenSAMLIdpMetadataResolver(this.metadataProvider.getMetadataResolver()));
     signMessageProcessor.afterPropertiesSet();
     processor.setSignMessageProcessor(signMessageProcessor);

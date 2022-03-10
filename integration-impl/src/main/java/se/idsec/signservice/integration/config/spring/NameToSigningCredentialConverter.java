@@ -25,7 +25,6 @@ import org.springframework.core.convert.converter.ConverterRegistry;
 import org.springframework.util.StringUtils;
 
 import lombok.extern.slf4j.Slf4j;
-import se.idsec.signservice.security.sign.SigningCredential;
 import se.swedenconnect.security.credential.PkiCredential;
 
 /**
@@ -49,7 +48,6 @@ import se.swedenconnect.security.credential.PkiCredential;
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
-@SuppressWarnings("removal")
 @Slf4j
 public class NameToSigningCredentialConverter implements Converter<String, PkiCredential>, ApplicationContextAware {
 
@@ -64,7 +62,7 @@ public class NameToSigningCredentialConverter implements Converter<String, PkiCr
     }
     log.debug("Converting '{}' into a PkiCredential instance ...", source);
     try {
-      final PkiCredential cred = this.applicationContext.getBean(source, SigningCredential.class);
+      final PkiCredential cred = this.applicationContext.getBean(source, PkiCredential.class);
       log.debug("Found bean of type '{}' and bean name '{}' in the application context", PkiCredential.class.getSimpleName(), source);
       return cred;
     }
@@ -73,7 +71,7 @@ public class NameToSigningCredentialConverter implements Converter<String, PkiCr
     }
     log.debug("Listing all PkiCredential beans ...");
     try {
-      final Map<String, SigningCredential> map = this.applicationContext.getBeansOfType(SigningCredential.class);
+      final Map<String, PkiCredential> map = this.applicationContext.getBeansOfType(PkiCredential.class);
       for (final PkiCredential c : map.values()) {
         if (source.equalsIgnoreCase(c.getName())) {
           log.debug("Found bean of type '{}' and given name '{}' in the application context",
