@@ -109,7 +109,7 @@
       <dependency>
         <groupId>se.idsec.signservice.commons</groupId>
         <artifactId>signservice-pdf-commons</artifactId>
-        <version>1.2.1</version>
+        <version>1.2.2-SNAPSHOT</version>
         <exclusions>
           <exclusion>
             <groupId>se.idsec.signservice.commons</groupId>
@@ -359,7 +359,7 @@
             </executions>
             <configuration>
               <sourcepath>target/generated-sources/delombok</sourcepath>
-              <additionalparam>-Xdoclint:all -Xdoclint:-missing</additionalparam>
+              <doclint>all,-missing</doclint>
               <additionalOptions>-Xdoclint:all -Xdoclint:-missing</additionalOptions>
               <additionalJOptions>
                 <additionalJOption>-Xdoclint:all</additionalJOption>
@@ -445,7 +445,7 @@
             </executions>
             <configuration>
               <sourcepath>target/generated-sources/delombok</sourcepath>
-              <additionalparam>-Xdoclint:all -Xdoclint:-missing</additionalparam>
+              <doclint>all,-missing</doclint>
               <additionalOptions>-Xdoclint:all -Xdoclint:-missing</additionalOptions>
               <additionalJOptions>
                 <additionalJOption>-Xdoclint:all</additionalJOption>
