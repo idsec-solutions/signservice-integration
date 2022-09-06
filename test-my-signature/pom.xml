@@ -86,8 +86,15 @@
         <type>pom</type>
         <scope>import</scope>
       </dependency>
+      
+      <dependency>
+        <groupId>se.swedenconnect.opensaml</groupId>
+        <artifactId>opensaml-security-ext</artifactId>
+        <version>3.1.0</version>
+      </dependency>
+      
     </dependencies>
-
+        
   </dependencyManagement>  
 
   <dependencies>
@@ -158,12 +165,7 @@
       <groupId>se.idsec.signservice.integration</groupId>
       <version>${project.version}</version>
     </dependency>    
-        
-    <dependency>
-      <groupId>se.swedenconnect.opensaml</groupId>
-      <artifactId>opensaml-security-ext</artifactId>
-    </dependency>
-    
+            
     <dependency>
       <groupId>se.swedenconnect.security</groupId>
       <artifactId>credentials-support</artifactId>
