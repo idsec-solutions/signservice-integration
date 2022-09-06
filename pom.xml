@@ -6,7 +6,7 @@
   <groupId>se.idsec.signservice.integration</groupId>
   <artifactId>signservice-integration-parent</artifactId>
   <packaging>pom</packaging>
-  <version>1.3.2-SNAPSHOT</version>
+  <version>1.3.2</version>
 
   <name>IDsec Solutions :: Parent POM for SignService :: Integration</name>
   <description>Parent POM for SignService Integration libraries</description>
@@ -359,7 +359,7 @@
             </executions>
             <configuration>
               <sourcepath>target/generated-sources/delombok</sourcepath>
-              <additionalparam>-Xdoclint:all -Xdoclint:-missing</additionalparam>
+              <doclint>all,-missing</doclint>
               <additionalOptions>-Xdoclint:all -Xdoclint:-missing</additionalOptions>
               <additionalJOptions>
                 <additionalJOption>-Xdoclint:all</additionalJOption>
@@ -445,7 +445,7 @@
             </executions>
             <configuration>
               <sourcepath>target/generated-sources/delombok</sourcepath>
-              <additionalparam>-Xdoclint:all -Xdoclint:-missing</additionalparam>
+              <doclint>all,-missing</doclint>
               <additionalOptions>-Xdoclint:all -Xdoclint:-missing</additionalOptions>
               <additionalJOptions>
                 <additionalJOption>-Xdoclint:all</additionalJOption>
