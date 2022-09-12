@@ -64,6 +64,7 @@ import se.idsec.signservice.security.sign.xml.XMLSignatureLocation;
 import se.idsec.signservice.security.sign.xml.XMLSignatureLocation.ChildPosition;
 import se.idsec.signservice.security.sign.xml.impl.DefaultXMLMessageSignatureValidator;
 import se.idsec.signservice.utils.AssertThat;
+import se.idsec.signservice.utils.ProtocolVersion;
 import se.idsec.signservice.xml.DOMUtils;
 import se.idsec.signservice.xml.InternalXMLException;
 import se.idsec.signservice.xml.JAXBUnmarshaller;
@@ -83,7 +84,7 @@ import se.swedenconnect.schemas.dss_1_0.SignResponse;
 public class DefaultSignResponseProcessor implements SignResponseProcessor {
 
   /** The version to assume if no version has been set. */
-  private final static String DEFAULT_VERSION = "1.1";
+  private final static ProtocolVersion DEFAULT_VERSION = ProtocolVersion.valueOf("1.1");
 
   /** For validating signatures on SignResponse messages. */
   private final XMLMessageSignatureValidator signResponseSignatureValidator = new DefaultXMLMessageSignatureValidator();
@@ -200,9 +201,12 @@ public class DefaultSignResponseProcessor implements SignResponseProcessor {
 
     // Check version of response ...
     //
-    final String requestVersion = Optional.ofNullable(sessionState.getSignRequest().getSignRequestExtension().getVersion())
-      .orElse(DEFAULT_VERSION);
-    final String responseVersion = Optional.ofNullable(response.getSignResponseExtension().getVersion()).orElse(DEFAULT_VERSION);
+    final ProtocolVersion requestVersion = Optional.ofNullable(sessionState.getSignRequest().getSignRequestExtension().getVersion())
+        .map(ProtocolVersion::valueOf)
+        .orElseGet(() -> DEFAULT_VERSION);
+    final ProtocolVersion responseVersion = Optional.ofNullable(response.getSignResponseExtension().getVersion())
+        .map(ProtocolVersion::valueOf)
+        .orElseGet(() -> DEFAULT_VERSION);
     if (!requestVersion.equals(responseVersion)) {
       // OK, this is an error. The response version MUST be set to the same version as the request version ...
       final String msg = String.format("Version of SignResponse (%s) does not equal version of SignRequest (%s)",
@@ -233,9 +237,11 @@ public class DefaultSignResponseProcessor implements SignResponseProcessor {
     this.validateResponseTime(signResponseExtension.getResponseTime(),
       sessionState.getSignRequest().getSignRequestExtension().getRequestTime(), sessionState.getSignRequest().getRequestID());
 
-    // Make sure that the request bytes are there ...
+    // Make sure that the request bytes are there (1.1 only) ...
     //
-    this.validateReceivedRequest(signResponseExtension.getRequest(), sessionState.getSignRequest());
+    if (responseVersion.compareTo("1.1") <= 0) {
+      this.validateReceivedRequest(signResponseExtension.getRequest(), sessionState.getSignRequest());
+    }
 
     // Get hold of the signer certificate chain ...
     //

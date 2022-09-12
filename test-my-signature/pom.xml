@@ -3,14 +3,13 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <artifactId>test-my-signature</artifactId>
-  <version>1.3.3-SNAPSHOT</version>
+  <artifactId>test-my-signature</artifactId>  
   <packaging>jar</packaging>
   
   <parent>
     <groupId>se.idsec.signservice.integration</groupId>
     <artifactId>signservice-integration-parent</artifactId>
-    <version>1.3.2</version>
+    <version>1.3.3-SNAPSHOT</version>
   </parent>  
 
   <name>IDsec Solutions :: SignService :: Test my Signature</name>
@@ -158,19 +157,19 @@
     <dependency>
       <artifactId>signservice-integration-impl</artifactId>
       <groupId>se.idsec.signservice.integration</groupId>
-      <version>1.3.2</version>
+      <version>${project.version}</version>
     </dependency>
     
     <dependency>
       <artifactId>signservice-integration-xml</artifactId>
       <groupId>se.idsec.signservice.integration</groupId>
-      <version>1.3.2</version>
+      <version>${project.version}</version>
     </dependency>
     
     <dependency>
       <artifactId>signservice-integration-pdf</artifactId>
       <groupId>se.idsec.signservice.integration</groupId>
-      <version>1.3.2</version>
+      <version>${project.version}</version>
     </dependency>    
             
     <dependency>
