@@ -99,6 +99,10 @@ public class SignController extends BaseController {
   private AttributeInfoRegistry attributeInfoRegistry;
 
   @Autowired
+  @Qualifier("DebugFlag")
+  private Boolean debugFlag;
+
+  @Autowired
   @Qualifier("debugReturnUrl")
   private String debugReturnUrl;
 
@@ -119,10 +123,9 @@ public class SignController extends BaseController {
   private String policyName;
 
   @RequestMapping("/request")
-  public ModelAndView sendSignRequest(final HttpServletRequest request, final HttpServletResponse response,
-      @RequestParam(value = "debug", required = false, defaultValue = "false") final Boolean debug) throws ApplicationException {
+  public ModelAndView sendSignRequest(final HttpServletRequest request, final HttpServletResponse response) throws ApplicationException {
 
-    log.debug("Request for generating an SignRequest [client-ip-address='{}', debug='{}']", request.getRemoteAddr(), debug);
+    log.debug("Request for generating an SignRequest [client-ip-address='{}']", request.getRemoteAddr());
 
     final HttpSession session = request.getSession();
     final LastAuthentication lastAuthentication = (LastAuthentication) session.getAttribute("last-authentication");
@@ -193,7 +196,7 @@ public class SignController extends BaseController {
             .mimeType(DocumentType.XML)
             .build();
 
-      final String returnUrl = debug ? this.debugReturnUrl : null;
+      final String returnUrl = this.debugFlag ? this.debugReturnUrl : null;
 
       final SignRequestInput input = SignRequestInput.builder()
         .correlationId(correlationId)
