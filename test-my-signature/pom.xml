@@ -228,8 +228,11 @@
         <executions>
           <execution>
             <id>repackage</id>
+            <goals>
+              <goal>repackage</goal>
+            </goals>
             <configuration>
-              <classifier>exec</classifier>
+              <mainClass>se.swedenconnect.eid.sp.TestMyEidApplication</mainClass>
             </configuration>
           </execution>
           <execution>
