@@ -20,6 +20,8 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.apache.pdfbox.pdmodel.PDDocument;
 
 import lombok.extern.slf4j.Slf4j;
@@ -62,6 +64,10 @@ public class DefaultPdfSignaturePagePreparator implements PdfSignaturePagePrepar
 
   /** Encoder for PDF documents. */
   private static final DocumentEncoder<byte[]> encoder = new PdfDocumentEncoderDecoder();
+
+  @Setter
+  @Getter
+  private boolean enforcePdfaConsistency = false;
 
   /** {@inheritDoc} */
   @Override
@@ -286,6 +292,8 @@ public class DefaultPdfSignaturePagePreparator implements PdfSignaturePagePrepar
     try {
       final int noPages = document.getNumberOfPages();
       final int newPagePos = insertPageAt == null || insertPageAt == 0 ? noPages + 1 : insertPageAt;
+
+      PDDocumentUtils.checkPDFACompliance(document, signPageDocument, true);
 
       final PDDocument updatedDocument = PDDocumentUtils.insertDocument(document, signPageDocument, newPagePos);
 
