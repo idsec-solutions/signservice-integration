@@ -35,17 +35,34 @@ import java.util.regex.Pattern;
 
 /**
  * Testing PDF metadata for PDF/A conformance declaration
+ *
+ * <p>
+ *   For rules on how to detect PDF/A compliance declaration, see:
+ *   https://www.pdfa.org/wp-content/uploads/2011/08/tn0001_pdfa-1_and_namespaces_2008-03-182.pdf
+ * </p>
  */
 @Slf4j
 public class DefaultPDFADeclarationChecker implements PDFADeclarationChecker {
 
+  /** Name space identifier for PDFA declarations in PDF metadata */
   public static final String PDF_ID_NS = "http://www.aiim.org/pdfa/ns/id/";
+
+  /** Name space identifier for the descriptions element in PDF metadata */
   public static final String DESCRITPION_NS = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
+
+  /** Description element name */
   public static final String DESCRIPTION_ELEMENT_NAME = "Description";
+
+  /** PDF/A part element name */
   public static final String PART_ELEMENT_NAME = "part";
+
+  /** PDF/A conformance element name */
   public static final String CONFORMANCE_ELEMENT_NAME = "conformance";
 
+  /** List of supported part values in PDF/A declarations */
   @Setter private List<String> supportedPartValues = Arrays.asList("1", "2");
+
+  /** List of supported conformance values in PDF/A declarations */
   @Setter private List<String> supportedConformanceValues = Collections.singletonList("B");
 
   /**
