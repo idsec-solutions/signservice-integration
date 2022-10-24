@@ -81,6 +81,8 @@ public class PdfSignPage {
   @Setter
   @Getter
   private boolean enforcePdfaConsistency = false;
+  @Setter
+  private PDFADeclarationChecker pdfaChecker = new DefaultPDFADeclarationChecker();
 
   /**
    * The default constructor returning a fully functional SignPage functionality. This constructor is used when the
@@ -253,7 +255,9 @@ public class PdfSignPage {
     try {
       tbsDoc = PDDocument.load(tbsDocbytes);
       signPage = this.getSignPageDocument();
-      PDDocumentUtils.checkPDFACompliance(tbsDoc, signPage, enforcePdfaConsistency);
+      if (enforcePdfaConsistency) {
+        pdfaChecker.checkPDFAConsistency(tbsDoc, signPage);
+      }
       tbsDoc.addPage(signPage.getPage(0));
       final ByteArrayOutputStream bos = new ByteArrayOutputStream();
       tbsDoc.save(bos);

@@ -17,7 +17,7 @@ package se.idsec.signservice.integration.document.pdf.pdfa;
 
 import junit.framework.TestCase;
 import org.apache.commons.io.IOUtils;
-import org.apache.pdfbox.pdmodel.PDDocument;import org.junit.Before;
+import org.apache.pdfbox.pdmodel.PDDocument;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -71,59 +71,58 @@ public class DefaultPDFADeclarationCheckerTest extends TestCase {
   public void checkPDFADeclarationFromPdf() throws Exception{
 
     try (PDDocument document = PDDocument.load(pdfFile)){
-      DefaultPDFADeclarationChecker.PDFAResult pdfaResult = pdfaDeclarationChecker.checkPDFADeclaration(
+      PDFAStatus pdfaStatus = pdfaDeclarationChecker.checkPDFADeclaration(
         document.getDocumentCatalog().getMetadata());
-      assertFalse(pdfaResult.isValid());
+      assertFalse(pdfaStatus.isValid());
     }
 
     try (PDDocument document = PDDocument.load(pdfaFile)){
-      DefaultPDFADeclarationChecker.PDFAResult pdfaResult = pdfaDeclarationChecker.checkPDFADeclaration(
+      PDFAStatus pdfaStatus = pdfaDeclarationChecker.checkPDFADeclaration(
         document.getDocumentCatalog().getMetadata());
-      assertTrue(pdfaResult.isValid());
-      assertEquals("2", pdfaResult.getPart());
-      assertEquals("B", pdfaResult.getConformance());
+      assertTrue(pdfaStatus.isValid());
+      assertEquals("2", pdfaStatus.getPart());
+      assertEquals("B", pdfaStatus.getConformance());
 
-      pdfaResult = nothingValidPDFADeclarationChecker.checkPDFADeclaration(
+      pdfaStatus = nothingValidPDFADeclarationChecker.checkPDFADeclaration(
         document.getDocumentCatalog().getMetadata());
-      assertFalse(pdfaResult.isValid());
-      assertEquals("2", pdfaResult.getPart());
-      assertEquals("B", pdfaResult.getConformance());
+      assertFalse(pdfaStatus.isValid());
+      assertEquals("2", pdfaStatus.getPart());
+      assertEquals("B", pdfaStatus.getConformance());
     }
   }
 
   @Test
   public void checkPdfaMetadata() {
-    DefaultPDFADeclarationChecker.PDFAResult pdfaResult = ((DefaultPDFADeclarationChecker) pdfaDeclarationChecker)
+    PDFAStatus pdfaStatus = ((DefaultPDFADeclarationChecker) pdfaDeclarationChecker)
       .checkPDFADeclaration(pdfaMetadataStr);
-    assertTrue(pdfaResult.isValid());
-    assertEquals("2", pdfaResult.getPart());
-    assertEquals("B", pdfaResult.getConformance());
+    assertTrue(pdfaStatus.isValid());
+    assertEquals("2", pdfaStatus.getPart());
+    assertEquals("B", pdfaStatus.getConformance());
   }
 
   @Test
   public void checkPdfaMetadataAttr() {
-    DefaultPDFADeclarationChecker.PDFAResult pdfaResult = ((DefaultPDFADeclarationChecker) pdfaDeclarationChecker)
+    PDFAStatus pdfaStatus = ((DefaultPDFADeclarationChecker) pdfaDeclarationChecker)
       .checkPDFADeclaration(pdfaMetadataAttrStr);
-    assertTrue(pdfaResult.isValid());
-    assertEquals("2", pdfaResult.getPart());
-    assertEquals("B", pdfaResult.getConformance());
+    assertTrue(pdfaStatus.isValid());
+    assertEquals("2", pdfaStatus.getPart());
+    assertEquals("B", pdfaStatus.getConformance());
   }
 
   @Test
   public void checkPdfMetadata() {
-    DefaultPDFADeclarationChecker.PDFAResult pdfaResult = ((DefaultPDFADeclarationChecker) pdfaDeclarationChecker)
+    PDFAStatus pdfaStatus = ((DefaultPDFADeclarationChecker) pdfaDeclarationChecker)
       .checkPDFADeclaration(noPfdaMetadataStr);
-    assertFalse(pdfaResult.isValid());
+    assertFalse(pdfaStatus.isValid());
   }
 
   @Test
   public void checkUnsupportedDeclarations() {
-    DefaultPDFADeclarationChecker.PDFAResult pdfaResult = ((DefaultPDFADeclarationChecker) nothingValidPDFADeclarationChecker)
+    PDFAStatus pdfaStatus = ((DefaultPDFADeclarationChecker) nothingValidPDFADeclarationChecker)
       .checkPDFADeclaration(pdfaMetadataStr);
-    assertFalse(pdfaResult.isValid());
-    assertEquals("2", pdfaResult.getPart());
-    assertEquals("B", pdfaResult.getConformance());
+    assertFalse(pdfaStatus.isValid());
+    assertEquals("2", pdfaStatus.getPart());
+    assertEquals("B", pdfaStatus.getConformance());
   }
-
 
 }

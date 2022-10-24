@@ -22,8 +22,13 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.common.PDMetadata;
+import se.idsec.signservice.integration.core.error.ErrorCode;
+import se.idsec.signservice.integration.core.error.SignServiceIntegrationException;
+import se.idsec.signservice.integration.document.DocumentProcessingException;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -60,10 +65,10 @@ public class DefaultPDFADeclarationChecker implements PDFADeclarationChecker {
   public static final String CONFORMANCE_ELEMENT_NAME = "conformance";
 
   /** List of supported part values in PDF/A declarations */
-  @Setter private List<String> supportedPartValues = Arrays.asList("1", "2");
+  @Setter private List<String> supportedPartValues = List.of("1", "2");
 
   /** List of supported conformance values in PDF/A declarations */
-  @Setter private List<String> supportedConformanceValues = Collections.singletonList("B");
+  @Setter private List<String> supportedConformanceValues = List.of("B");
 
   /**
    * Constructor
@@ -73,13 +78,32 @@ public class DefaultPDFADeclarationChecker implements PDFADeclarationChecker {
 
   /** {@inheritDoc} */
   @Override
-  public PDFAResult checkPDFADeclaration(final PDMetadata metadata) {
+  public PDFAStatus checkPDFADeclaration(final PDMetadata metadata) {
     if (metadata == null){
-      return PDFAResult.builder()
+      return PDFAStatus.builder()
         .valid(false)
         .build();
     }
     return checkPDFADeclaration(metadata.getCOSObject().toTextString());
+  }
+
+  /**
+   * Check PDF/A consistency between the main document to be signed and a sign page added to the main document
+   *
+   * @param tbsDoc the pdf document to be signed
+   * @param signPage the sign page added to the document to be signed
+   * @throws DocumentProcessingException if the main document is PDF/A and the added sign page is not
+   */
+  @Override public void checkPDFAConsistency(final PDDocument tbsDoc, final PDDocument signPage)
+    throws DocumentProcessingException {
+    final PDFAStatus tbsDocPdfaStatus = checkPDFADeclaration(
+      tbsDoc.getDocumentCatalog().getMetadata());
+    final PDFAStatus signPagePdfaStatus = checkPDFADeclaration(
+      signPage.getDocumentCatalog().getMetadata());
+    if (tbsDocPdfaStatus.isValid() && !signPagePdfaStatus.isValid()){
+      throw new DocumentProcessingException(new ErrorCode.Code("pdf"),"The document to be sign is PDF/A but the added "
+        + "sign page is not PDF/A. This will break PDF/A conformance of the document to be signed");
+    }
   }
 
   /**
@@ -88,9 +112,9 @@ public class DefaultPDFADeclarationChecker implements PDFADeclarationChecker {
    * @param metadataStr PDF document metadata
    * @return PDF/A declaration data
    */
-  public PDFAResult checkPDFADeclaration(final String metadataStr) {
+  public PDFAStatus checkPDFADeclaration(final String metadataStr) {
     if (StringUtils.isBlank(metadataStr)) {
-      return PDFAResult.builder()
+      return PDFAStatus.builder()
         .valid(false)
         .build();
     }
@@ -104,7 +128,7 @@ public class DefaultPDFADeclarationChecker implements PDFADeclarationChecker {
       // Get the description content
       final ElementData descritpion = getFirstContent(descElmName, metadataStr);
       if (descritpion == null) {
-        return PDFAResult.builder()
+        return PDFAStatus.builder()
           .valid(false)
           .build();
       }
@@ -114,7 +138,7 @@ public class DefaultPDFADeclarationChecker implements PDFADeclarationChecker {
 
       if (partVal == null || conformanceVal == null) {
         log.debug("No valid PDF/A conformance declaration found");
-        return PDFAResult.builder()
+        return PDFAStatus.builder()
           .part(partVal)
           .conformance(conformanceVal)
           .valid(false)
@@ -123,14 +147,14 @@ public class DefaultPDFADeclarationChecker implements PDFADeclarationChecker {
 
       if (supportedPartValues.contains(partVal) && supportedConformanceValues.contains(conformanceVal)){
         log.debug("Found supported PDF/A conformance declaration in metadata");
-        return PDFAResult.builder()
+        return PDFAStatus.builder()
           .part(partVal)
           .conformance(conformanceVal)
           .valid(true)
           .build();
       } else {
         log.debug("Found invalid PDF/A conformance declaration");
-        return PDFAResult.builder()
+        return PDFAStatus.builder()
           .part(partVal)
           .conformance(conformanceVal)
           .valid(false)
@@ -139,7 +163,7 @@ public class DefaultPDFADeclarationChecker implements PDFADeclarationChecker {
 
     } catch (Exception ex) {
       log.debug("PDF/A conformance test caused exception: {}", ex.toString());
-      return PDFAResult.builder()
+      return PDFAStatus.builder()
         .valid(false)
         .build();
     }
@@ -230,16 +254,6 @@ public class DefaultPDFADeclarationChecker implements PDFADeclarationChecker {
     private String element;
     private Map<String, String> attributeMap;
     private String content;
-  }
-
-  @Data
-  @NoArgsConstructor
-  @AllArgsConstructor
-  @Builder
-  public static class PDFAResult {
-    private String part;
-    private String conformance;
-    boolean valid;
   }
 
 }

@@ -32,6 +32,7 @@ import se.idsec.signservice.integration.core.error.SignServiceIntegrationExcepti
 import se.idsec.signservice.integration.document.DocumentProcessingException;
 import se.idsec.signservice.integration.document.pdf.pdfa.DefaultPDFADeclarationChecker;
 import se.idsec.signservice.integration.document.pdf.pdfa.PDFADeclarationChecker;
+import se.idsec.signservice.integration.document.pdf.pdfa.PDFAStatus;
 
 /**
  * Utility methods for working with {@link PDDocument} objects.
@@ -163,30 +164,6 @@ public class PDDocumentUtils {
   }
 
   private PDDocumentUtils() {
-  }
-
-  /**
-   * Checks PDF/A compliance between a document to be singed and the sign page to be added
-   * @param tbsDoc document to be signed
-   * @param signPage sign page
-   * @param enforcePdfaConsistency set to true to enfornce PDF/A consistency
-   * @throws IOException if the added sign page will break PDF/A conformance of the page to be signed
-   */
-  public static void checkPDFACompliance(PDDocument tbsDoc, PDDocument signPage, boolean enforcePdfaConsistency)
-    throws SignServiceIntegrationException {
-    if (!enforcePdfaConsistency){
-      return;
-    }
-
-    DefaultPDFADeclarationChecker.PDFAResult tbsDocPdfaResult = pdfaChecker.checkPDFADeclaration(
-      tbsDoc.getDocumentCatalog().getMetadata());
-    DefaultPDFADeclarationChecker.PDFAResult signPagePdfaResult = pdfaChecker.checkPDFADeclaration(
-      signPage.getDocumentCatalog().getMetadata());
-
-    if (tbsDocPdfaResult.isValid() && !signPagePdfaResult.isValid()){
-      throw new DocumentProcessingException(new ErrorCode.Code("pdf"),"The document to be sign is PDF/A but the added sign page is not PDF/A. This will break PDF/A conformance");
-    }
-
   }
 
 }

@@ -15,7 +15,9 @@
  */
 package se.idsec.signservice.integration.document.pdf.pdfa;
 
+import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.common.PDMetadata;
+import se.idsec.signservice.integration.document.DocumentProcessingException;
 
 /**
  * Description
@@ -31,5 +33,14 @@ public interface PDFADeclarationChecker {
    * @param metadata PDF document metadata
    * @return PDF/A declaration data
    */
-  public DefaultPDFADeclarationChecker.PDFAResult checkPDFADeclaration(final PDMetadata metadata);
+  PDFAStatus checkPDFADeclaration(final PDMetadata metadata);
+
+  /**
+   * Check PDF/A consistency between the main document to be signed and a sign page added to the main document
+   *
+   * @param tbsDoc the pdf document to be signed
+   * @param signPage the sign page added to the document to be signed
+   * @throws DocumentProcessingException if the main document is PDF/A and the added sign page is not
+   */
+  void checkPDFAConsistency(final PDDocument tbsDoc, final PDDocument signPage) throws DocumentProcessingException;
 }

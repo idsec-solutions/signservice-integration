@@ -40,6 +40,8 @@ import se.idsec.signservice.integration.document.pdf.PdfSignaturePageFullExcepti
 import se.idsec.signservice.integration.document.pdf.PdfSignaturePagePreferences;
 import se.idsec.signservice.integration.document.pdf.PreparedPdfDocument;
 import se.idsec.signservice.integration.document.pdf.VisiblePdfSignatureRequirement;
+import se.idsec.signservice.integration.document.pdf.pdfa.DefaultPDFADeclarationChecker;
+import se.idsec.signservice.integration.document.pdf.pdfa.PDFADeclarationChecker;
 import se.idsec.signservice.integration.document.pdf.signpage.impl.PdfSignaturePagePreferencesValidator;
 import se.idsec.signservice.integration.document.pdf.utils.PDDocumentUtils;
 import se.idsec.signservice.integration.impl.PdfSignaturePagePreparator;
@@ -68,6 +70,9 @@ public class DefaultPdfSignaturePagePreparator implements PdfSignaturePagePrepar
   @Setter
   @Getter
   private boolean enforcePdfaConsistency = false;
+
+  @Setter
+  private PDFADeclarationChecker pdfaChecker = new DefaultPDFADeclarationChecker();
 
   /** {@inheritDoc} */
   @Override
@@ -293,7 +298,9 @@ public class DefaultPdfSignaturePagePreparator implements PdfSignaturePagePrepar
       final int noPages = document.getNumberOfPages();
       final int newPagePos = insertPageAt == null || insertPageAt == 0 ? noPages + 1 : insertPageAt;
 
-      PDDocumentUtils.checkPDFACompliance(document, signPageDocument, true);
+      if (enforcePdfaConsistency) {
+        pdfaChecker.checkPDFAConsistency(document, signPageDocument);
+      }
 
       final PDDocument updatedDocument = PDDocumentUtils.insertDocument(document, signPageDocument, newPagePos);
 
