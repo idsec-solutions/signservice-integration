@@ -25,13 +25,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.common.PDMetadata;
 import se.idsec.signservice.integration.core.error.ErrorCode;
-import se.idsec.signservice.integration.core.error.SignServiceIntegrationException;
 import se.idsec.signservice.integration.document.DocumentProcessingException;
 
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,18 +35,27 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Testing PDF metadata for PDF/A conformance declaration
+ * Basic PDF/A conformance checker based on PDF metadata declaration inspection
+ *
+ * This conformance checker only checks if the PDF document metadata claims that the document
+ * conforms to the PDF/A standard. This checker does not validate if the present document actually
+ * is compliant with PDF/A.
  *
  * <p>
- *   For rules on how to detect PDF/A compliance declaration, see:
+ *   For rules on how to detect PDF/A compliance declaration in metadata, see:
  *   https://www.pdfa.org/wp-content/uploads/2011/08/tn0001_pdfa-1_and_namespaces_2008-03-182.pdf
  * </p>
+ *
+ * <p>
+ *   Note that this conformance checker does not support the earlier, but false PDF/A
+ *   declaration namespaces such as ("http://www.aiim.org/pdfa/ns/id.html" and "http://www.aiim.org/pdfa/ns/id").
+ *   However, it is possible to set the namespace identifier to a custom value to alter the behavior of this
+ *   conformance checker.
+ * </p>
+ *
  */
 @Slf4j
-public class DefaultPDFADeclarationChecker implements PDFADeclarationChecker {
-
-  /** Name space identifier for PDFA declarations in PDF metadata */
-  public static final String PDF_ID_NS = "http://www.aiim.org/pdfa/ns/id/";
+public class BasicMetadataPDFAConformanceChecker implements PDFAConformanceChecker {
 
   /** Name space identifier for the descriptions element in PDF metadata */
   public static final String DESCRITPION_NS = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
@@ -64,21 +69,27 @@ public class DefaultPDFADeclarationChecker implements PDFADeclarationChecker {
   /** PDF/A conformance element name */
   public static final String CONFORMANCE_ELEMENT_NAME = "conformance";
 
+  /** Name space identifier for PDF/A declarations in PDF metadata */
+  @Setter
+  public String pdfaIdNs = "http://www.aiim.org/pdfa/ns/id/";
+
   /** List of supported part values in PDF/A declarations */
-  @Setter private List<String> supportedPartValues = List.of("1", "2");
+  @Setter
+  private List<String> supportedPartValues = List.of("1", "2");
 
   /** List of supported conformance values in PDF/A declarations */
-  @Setter private List<String> supportedConformanceValues = List.of("B");
+  @Setter
+  private List<String> supportedConformanceValues = List.of("B");
 
   /**
    * Constructor
    */
-  public DefaultPDFADeclarationChecker() {
+  public BasicMetadataPDFAConformanceChecker() {
   }
 
   /** {@inheritDoc} */
   @Override
-  public PDFAStatus checkPDFADeclaration(final PDMetadata metadata) {
+  public PDFAStatus checkPDFAConformance(final PDMetadata metadata) {
     if (metadata == null){
       return PDFAStatus.builder()
         .valid(false)
@@ -96,9 +107,9 @@ public class DefaultPDFADeclarationChecker implements PDFADeclarationChecker {
    */
   @Override public void checkPDFAConsistency(final PDDocument tbsDoc, final PDDocument signPage)
     throws DocumentProcessingException {
-    final PDFAStatus tbsDocPdfaStatus = checkPDFADeclaration(
+    final PDFAStatus tbsDocPdfaStatus = checkPDFAConformance(
       tbsDoc.getDocumentCatalog().getMetadata());
-    final PDFAStatus signPagePdfaStatus = checkPDFADeclaration(
+    final PDFAStatus signPagePdfaStatus = checkPDFAConformance(
       signPage.getDocumentCatalog().getMetadata());
     if (tbsDocPdfaStatus.isValid() && !signPagePdfaStatus.isValid()){
       throw new DocumentProcessingException(new ErrorCode.Code("pdf"),"The document to be sign is PDF/A but the added "
@@ -122,8 +133,8 @@ public class DefaultPDFADeclarationChecker implements PDFADeclarationChecker {
     try {
       // Get elementNames
       final String descElmName = getFullElementName(DESCRITPION_NS, DESCRIPTION_ELEMENT_NAME, metadataStr);
-      final String pdfaPartElmName = getFullElementName(PDF_ID_NS, PART_ELEMENT_NAME, metadataStr);
-      final String pdfaConformanceElmName = getFullElementName(PDF_ID_NS, CONFORMANCE_ELEMENT_NAME, metadataStr);
+      final String pdfaPartElmName = getFullElementName(pdfaIdNs, PART_ELEMENT_NAME, metadataStr);
+      final String pdfaConformanceElmName = getFullElementName(pdfaIdNs, CONFORMANCE_ELEMENT_NAME, metadataStr);
 
       // Get the description content
       final ElementData descritpion = getFirstContent(descElmName, metadataStr);

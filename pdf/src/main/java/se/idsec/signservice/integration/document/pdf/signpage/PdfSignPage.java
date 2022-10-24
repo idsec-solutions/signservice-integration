@@ -34,9 +34,8 @@ import se.idsec.signservice.integration.authentication.SignerIdentityAttributeVa
 import se.idsec.signservice.integration.core.error.SignServiceIntegrationException;
 import se.idsec.signservice.integration.document.DocumentType;
 import se.idsec.signservice.integration.document.pdf.VisiblePdfSignatureRequirement;
-import se.idsec.signservice.integration.document.pdf.pdfa.DefaultPDFADeclarationChecker;
-import se.idsec.signservice.integration.document.pdf.pdfa.PDFADeclarationChecker;
-import se.idsec.signservice.integration.document.pdf.utils.PDDocumentUtils;
+import se.idsec.signservice.integration.document.pdf.pdfa.BasicMetadataPDFAConformanceChecker;
+import se.idsec.signservice.integration.document.pdf.pdfa.PDFAConformanceChecker;
 
 /**
  * This class provides the basic logic for adding sign pages to PDF documents.
@@ -82,7 +81,7 @@ public class PdfSignPage {
   @Getter
   private boolean enforcePdfaConsistency = false;
   @Setter
-  private PDFADeclarationChecker pdfaChecker = new DefaultPDFADeclarationChecker();
+  private PDFAConformanceChecker pdfaChecker = new BasicMetadataPDFAConformanceChecker();
 
   /**
    * The default constructor returning a fully functional SignPage functionality. This constructor is used when the

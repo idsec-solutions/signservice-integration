@@ -6,17 +6,18 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Description
- *
- * @author Martin Lindström (martin@idsec.se)
- * @author Stefan Santesson (stefan@idsec.se)
+ * Data class providing status information about PDF document compliance with PDF/A
  */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class PDFAStatus {
+
+  /** Part of PDF/A ISO 19005-1 the document claims conformance to */
   private String part;
+  /** Claimed conformance */
   private String conformance;
+  /** Indicates if the document is a PDF/A document */
   boolean valid;
 }

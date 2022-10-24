@@ -32,58 +32,59 @@ import java.util.Objects;
  * Tests for the DefaultPDFADeclarationChecker
  */
 @RunWith(JUnit4.class)
-public class DefaultPDFADeclarationCheckerTest extends TestCase {
+public class BasicMetadataPDFAConformanceCheckerTest extends TestCase {
   static File pdfFile;
   static File pdfaFile;
   static String pdfaMetadataStr;
   static String noPfdaMetadataStr;
   static String pdfaMetadataAttrStr;
-  static PDFADeclarationChecker pdfaDeclarationChecker;
-  static PDFADeclarationChecker nothingValidPDFADeclarationChecker;
+  static PDFAConformanceChecker pdfaConformanceChecker;
+  static PDFAConformanceChecker nothingValidPDFAConformanceChecker;
 
   @BeforeClass
   public static void init() throws Exception {
 
-    pdfFile = new File(DefaultPDFADeclarationCheckerTest.class.getClassLoader().getResource("pdfa/Test.pdf").getFile());
-    pdfaFile = new File(DefaultPDFADeclarationCheckerTest.class.getClassLoader().getResource("pdfa/Test_pdfa.pdf").getFile());
+    pdfFile = new File(BasicMetadataPDFAConformanceCheckerTest.class.getClassLoader().getResource("pdfa/Test.pdf").getFile());
+    pdfaFile = new File(
+      BasicMetadataPDFAConformanceCheckerTest.class.getClassLoader().getResource("pdfa/Test_pdfa.pdf").getFile());
     pdfaMetadataStr = new String(
       IOUtils.toByteArray(Objects.requireNonNull(
-        DefaultPDFADeclarationCheckerTest.class.getClassLoader().getResourceAsStream("pdfa/pdfaMetadata"))),
+        BasicMetadataPDFAConformanceCheckerTest.class.getClassLoader().getResourceAsStream("pdfa/pdfaMetadata"))),
       StandardCharsets.UTF_8
     );
     pdfaMetadataAttrStr = new String(
       IOUtils.toByteArray(Objects.requireNonNull(
-        DefaultPDFADeclarationCheckerTest.class.getClassLoader().getResourceAsStream("pdfa/pdfaMdAttribute"))),
+        BasicMetadataPDFAConformanceCheckerTest.class.getClassLoader().getResourceAsStream("pdfa/pdfaMdAttribute"))),
       StandardCharsets.UTF_8
     );
     noPfdaMetadataStr = new String(
       IOUtils.toByteArray(Objects.requireNonNull(
-        DefaultPDFADeclarationCheckerTest.class.getClassLoader().getResourceAsStream("pdfa/noPdfaMetadata"))),
+        BasicMetadataPDFAConformanceCheckerTest.class.getClassLoader().getResourceAsStream("pdfa/noPdfaMetadata"))),
       StandardCharsets.UTF_8
     );
-    pdfaDeclarationChecker = new DefaultPDFADeclarationChecker();
-    nothingValidPDFADeclarationChecker = new DefaultPDFADeclarationChecker();
-    ((DefaultPDFADeclarationChecker)nothingValidPDFADeclarationChecker).setSupportedConformanceValues(Collections.singletonList("A"));
-    ((DefaultPDFADeclarationChecker)nothingValidPDFADeclarationChecker).setSupportedPartValues(Collections.singletonList("3"));
+    pdfaConformanceChecker = new BasicMetadataPDFAConformanceChecker();
+    nothingValidPDFAConformanceChecker = new BasicMetadataPDFAConformanceChecker();
+    ((BasicMetadataPDFAConformanceChecker) nothingValidPDFAConformanceChecker).setSupportedConformanceValues(Collections.singletonList("A"));
+    ((BasicMetadataPDFAConformanceChecker) nothingValidPDFAConformanceChecker).setSupportedPartValues(Collections.singletonList("3"));
   }
 
   @Test
   public void checkPDFADeclarationFromPdf() throws Exception{
 
     try (PDDocument document = PDDocument.load(pdfFile)){
-      PDFAStatus pdfaStatus = pdfaDeclarationChecker.checkPDFADeclaration(
+      PDFAStatus pdfaStatus = pdfaConformanceChecker.checkPDFAConformance(
         document.getDocumentCatalog().getMetadata());
       assertFalse(pdfaStatus.isValid());
     }
 
     try (PDDocument document = PDDocument.load(pdfaFile)){
-      PDFAStatus pdfaStatus = pdfaDeclarationChecker.checkPDFADeclaration(
+      PDFAStatus pdfaStatus = pdfaConformanceChecker.checkPDFAConformance(
         document.getDocumentCatalog().getMetadata());
       assertTrue(pdfaStatus.isValid());
       assertEquals("2", pdfaStatus.getPart());
       assertEquals("B", pdfaStatus.getConformance());
 
-      pdfaStatus = nothingValidPDFADeclarationChecker.checkPDFADeclaration(
+      pdfaStatus = nothingValidPDFAConformanceChecker.checkPDFAConformance(
         document.getDocumentCatalog().getMetadata());
       assertFalse(pdfaStatus.isValid());
       assertEquals("2", pdfaStatus.getPart());
@@ -93,7 +94,7 @@ public class DefaultPDFADeclarationCheckerTest extends TestCase {
 
   @Test
   public void checkPdfaMetadata() {
-    PDFAStatus pdfaStatus = ((DefaultPDFADeclarationChecker) pdfaDeclarationChecker)
+    PDFAStatus pdfaStatus = ((BasicMetadataPDFAConformanceChecker) pdfaConformanceChecker)
       .checkPDFADeclaration(pdfaMetadataStr);
     assertTrue(pdfaStatus.isValid());
     assertEquals("2", pdfaStatus.getPart());
@@ -102,7 +103,7 @@ public class DefaultPDFADeclarationCheckerTest extends TestCase {
 
   @Test
   public void checkPdfaMetadataAttr() {
-    PDFAStatus pdfaStatus = ((DefaultPDFADeclarationChecker) pdfaDeclarationChecker)
+    PDFAStatus pdfaStatus = ((BasicMetadataPDFAConformanceChecker) pdfaConformanceChecker)
       .checkPDFADeclaration(pdfaMetadataAttrStr);
     assertTrue(pdfaStatus.isValid());
     assertEquals("2", pdfaStatus.getPart());
@@ -111,14 +112,14 @@ public class DefaultPDFADeclarationCheckerTest extends TestCase {
 
   @Test
   public void checkPdfMetadata() {
-    PDFAStatus pdfaStatus = ((DefaultPDFADeclarationChecker) pdfaDeclarationChecker)
+    PDFAStatus pdfaStatus = ((BasicMetadataPDFAConformanceChecker) pdfaConformanceChecker)
       .checkPDFADeclaration(noPfdaMetadataStr);
     assertFalse(pdfaStatus.isValid());
   }
 
   @Test
   public void checkUnsupportedDeclarations() {
-    PDFAStatus pdfaStatus = ((DefaultPDFADeclarationChecker) nothingValidPDFADeclarationChecker)
+    PDFAStatus pdfaStatus = ((BasicMetadataPDFAConformanceChecker) nothingValidPDFAConformanceChecker)
       .checkPDFADeclaration(pdfaMetadataStr);
     assertFalse(pdfaStatus.isValid());
     assertEquals("2", pdfaStatus.getPart());

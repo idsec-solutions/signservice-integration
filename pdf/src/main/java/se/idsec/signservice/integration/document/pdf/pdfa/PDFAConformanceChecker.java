@@ -20,12 +20,15 @@ import org.apache.pdfbox.pdmodel.common.PDMetadata;
 import se.idsec.signservice.integration.document.DocumentProcessingException;
 
 /**
- * Description
+ * Interface for testing PDF/A conformance
  *
- * @author Martin Lindström (martin@idsec.se)
- * @author Stefan Santesson (stefan@idsec.se)
+ * <p>
+ *   Implementations of this interface may provide different level of compliance testing, from
+ *   just checking compliance declarations to different levels of conformance checking.
+ * </p>
+ *
  */
-public interface PDFADeclarationChecker {
+public interface PDFAConformanceChecker {
 
   /**
    * Examines PDF document metadata for declarations that this PDF is compliant with the PDF/A profile
@@ -33,7 +36,7 @@ public interface PDFADeclarationChecker {
    * @param metadata PDF document metadata
    * @return PDF/A declaration data
    */
-  PDFAStatus checkPDFADeclaration(final PDMetadata metadata);
+  PDFAStatus checkPDFAConformance(final PDMetadata metadata);
 
   /**
    * Check PDF/A consistency between the main document to be signed and a sign page added to the main document

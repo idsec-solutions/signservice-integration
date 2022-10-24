@@ -40,8 +40,8 @@ import se.idsec.signservice.integration.document.pdf.PdfSignaturePageFullExcepti
 import se.idsec.signservice.integration.document.pdf.PdfSignaturePagePreferences;
 import se.idsec.signservice.integration.document.pdf.PreparedPdfDocument;
 import se.idsec.signservice.integration.document.pdf.VisiblePdfSignatureRequirement;
-import se.idsec.signservice.integration.document.pdf.pdfa.DefaultPDFADeclarationChecker;
-import se.idsec.signservice.integration.document.pdf.pdfa.PDFADeclarationChecker;
+import se.idsec.signservice.integration.document.pdf.pdfa.BasicMetadataPDFAConformanceChecker;
+import se.idsec.signservice.integration.document.pdf.pdfa.PDFAConformanceChecker;
 import se.idsec.signservice.integration.document.pdf.signpage.impl.PdfSignaturePagePreferencesValidator;
 import se.idsec.signservice.integration.document.pdf.utils.PDDocumentUtils;
 import se.idsec.signservice.integration.impl.PdfSignaturePagePreparator;
@@ -72,7 +72,7 @@ public class DefaultPdfSignaturePagePreparator implements PdfSignaturePagePrepar
   private boolean enforcePdfaConsistency = false;
 
   @Setter
-  private PDFADeclarationChecker pdfaChecker = new DefaultPDFADeclarationChecker();
+  private PDFAConformanceChecker pdfaChecker = new BasicMetadataPDFAConformanceChecker();
 
   /** {@inheritDoc} */
   @Override

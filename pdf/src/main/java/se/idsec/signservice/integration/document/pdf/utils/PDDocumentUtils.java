@@ -28,11 +28,9 @@ import org.apache.pdfbox.pdmodel.PDPageTree;
 
 import lombok.extern.slf4j.Slf4j;
 import se.idsec.signservice.integration.core.error.ErrorCode;
-import se.idsec.signservice.integration.core.error.SignServiceIntegrationException;
 import se.idsec.signservice.integration.document.DocumentProcessingException;
-import se.idsec.signservice.integration.document.pdf.pdfa.DefaultPDFADeclarationChecker;
-import se.idsec.signservice.integration.document.pdf.pdfa.PDFADeclarationChecker;
-import se.idsec.signservice.integration.document.pdf.pdfa.PDFAStatus;
+import se.idsec.signservice.integration.document.pdf.pdfa.BasicMetadataPDFAConformanceChecker;
+import se.idsec.signservice.integration.document.pdf.pdfa.PDFAConformanceChecker;
 
 /**
  * Utility methods for working with {@link PDDocument} objects.
@@ -43,7 +41,7 @@ import se.idsec.signservice.integration.document.pdf.pdfa.PDFAStatus;
 @Slf4j
 public class PDDocumentUtils {
 
-  public static final PDFADeclarationChecker pdfaChecker = new DefaultPDFADeclarationChecker();
+  public static final PDFAConformanceChecker pdfaChecker = new BasicMetadataPDFAConformanceChecker();
 
   /**
    * Loads a {@link PDDocument} given its byte contents.
