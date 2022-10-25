@@ -31,8 +31,11 @@ import lombok.Getter;
 import lombok.Setter;
 import se.idsec.signservice.integration.authentication.SignerIdentityAttribute;
 import se.idsec.signservice.integration.authentication.SignerIdentityAttributeValue;
+import se.idsec.signservice.integration.core.error.SignServiceIntegrationException;
 import se.idsec.signservice.integration.document.DocumentType;
 import se.idsec.signservice.integration.document.pdf.VisiblePdfSignatureRequirement;
+import se.idsec.signservice.integration.document.pdf.pdfa.BasicMetadataPDFAConformanceChecker;
+import se.idsec.signservice.integration.document.pdf.pdfa.PDFAConformanceChecker;
 
 /**
  * This class provides the basic logic for adding sign pages to PDF documents.
@@ -74,6 +77,15 @@ public class PdfSignPage {
   @Setter
   @Getter
   private String imageTemplate;
+
+  /** Defines if PDF/A consistency check is done when adding a sign page to a document to be signed  */
+  @Setter
+  @Getter
+  private boolean enforcePdfaConsistency = false;
+
+  /** The PDF/A conformance checker used to check PDF/A consistency */
+  @Setter
+  private PDFAConformanceChecker pdfaChecker = new BasicMetadataPDFAConformanceChecker();
 
   /**
    * The default constructor returning a fully functional SignPage functionality. This constructor is used when the
@@ -246,10 +258,16 @@ public class PdfSignPage {
     try {
       tbsDoc = PDDocument.load(tbsDocbytes);
       signPage = this.getSignPageDocument();
+      if (enforcePdfaConsistency) {
+        pdfaChecker.checkPDFAConsistency(tbsDoc, signPage);
+      }
       tbsDoc.addPage(signPage.getPage(0));
       final ByteArrayOutputStream bos = new ByteArrayOutputStream();
       tbsDoc.save(bos);
       return bos.toByteArray();
+    }
+    catch (SignServiceIntegrationException e) {
+      throw new IOException(e);
     }
     finally {
       if (tbsDoc != null) {

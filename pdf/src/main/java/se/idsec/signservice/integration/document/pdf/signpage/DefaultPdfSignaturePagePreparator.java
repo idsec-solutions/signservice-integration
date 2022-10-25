@@ -20,6 +20,8 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.apache.pdfbox.pdmodel.PDDocument;
 
 import lombok.extern.slf4j.Slf4j;
@@ -38,6 +40,8 @@ import se.idsec.signservice.integration.document.pdf.PdfSignaturePageFullExcepti
 import se.idsec.signservice.integration.document.pdf.PdfSignaturePagePreferences;
 import se.idsec.signservice.integration.document.pdf.PreparedPdfDocument;
 import se.idsec.signservice.integration.document.pdf.VisiblePdfSignatureRequirement;
+import se.idsec.signservice.integration.document.pdf.pdfa.BasicMetadataPDFAConformanceChecker;
+import se.idsec.signservice.integration.document.pdf.pdfa.PDFAConformanceChecker;
 import se.idsec.signservice.integration.document.pdf.signpage.impl.PdfSignaturePagePreferencesValidator;
 import se.idsec.signservice.integration.document.pdf.utils.PDDocumentUtils;
 import se.idsec.signservice.integration.impl.PdfSignaturePagePreparator;
@@ -62,6 +66,15 @@ public class DefaultPdfSignaturePagePreparator implements PdfSignaturePagePrepar
 
   /** Encoder for PDF documents. */
   private static final DocumentEncoder<byte[]> encoder = new PdfDocumentEncoderDecoder();
+
+  /** Defines if PDF/A consistency check is done when adding a sign page to a document to be signed  */
+  @Setter
+  @Getter
+  private boolean enforcePdfaConsistency = false;
+
+  /** The PDF/A conformance checker used to check PDF/A consistency */
+  @Setter
+  private PDFAConformanceChecker pdfaChecker = new BasicMetadataPDFAConformanceChecker();
 
   /** {@inheritDoc} */
   @Override
@@ -286,6 +299,10 @@ public class DefaultPdfSignaturePagePreparator implements PdfSignaturePagePrepar
     try {
       final int noPages = document.getNumberOfPages();
       final int newPagePos = insertPageAt == null || insertPageAt == 0 ? noPages + 1 : insertPageAt;
+
+      if (enforcePdfaConsistency) {
+        pdfaChecker.checkPDFAConsistency(document, signPageDocument);
+      }
 
       final PDDocument updatedDocument = PDDocumentUtils.insertDocument(document, signPageDocument, newPagePos);
 
