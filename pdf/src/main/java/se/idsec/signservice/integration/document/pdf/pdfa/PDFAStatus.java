@@ -19,5 +19,5 @@ public class PDFAStatus {
   /** Claimed conformance */
   private String conformance;
   /** Indicates if the document is a PDF/A document */
-  boolean valid;
+  private boolean valid;
 }
