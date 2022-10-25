@@ -77,9 +77,13 @@ public class PdfSignPage {
   @Setter
   @Getter
   private String imageTemplate;
+
+  /** Defines if PDF/A consistency check is done when adding a sign page to a document to be signed  */
   @Setter
   @Getter
   private boolean enforcePdfaConsistency = false;
+
+  /** The PDF/A conformance checker used to check PDF/A consistency */
   @Setter
   private PDFAConformanceChecker pdfaChecker = new BasicMetadataPDFAConformanceChecker();
 

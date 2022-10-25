@@ -67,10 +67,12 @@ public class DefaultPdfSignaturePagePreparator implements PdfSignaturePagePrepar
   /** Encoder for PDF documents. */
   private static final DocumentEncoder<byte[]> encoder = new PdfDocumentEncoderDecoder();
 
+  /** Defines if PDF/A consistency check is done when adding a sign page to a document to be signed  */
   @Setter
   @Getter
   private boolean enforcePdfaConsistency = false;
 
+  /** The PDF/A conformance checker used to check PDF/A consistency */
   @Setter
   private PDFAConformanceChecker pdfaChecker = new BasicMetadataPDFAConformanceChecker();
 
