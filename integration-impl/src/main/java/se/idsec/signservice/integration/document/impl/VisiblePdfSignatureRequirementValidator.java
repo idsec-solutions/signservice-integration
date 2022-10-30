@@ -17,7 +17,7 @@ package se.idsec.signservice.integration.document.impl;
 
 import java.util.List;
 
-import org.springframework.util.StringUtils;
+import org.apache.commons.lang.StringUtils;
 
 import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
 import se.idsec.signservice.integration.core.validation.AbstractInputValidator;
@@ -58,7 +58,7 @@ public class VisiblePdfSignatureRequirementValidator extends
             : null
         : null;
 
-    if (!StringUtils.hasText(object.getTemplateImageRef())) {
+    if (StringUtils.isEmpty(object.getTemplateImageRef())) {
       result.rejectValue("templateImageRef", "PDF template reference is required");
     }
     else if (template == null) {
