@@ -58,7 +58,7 @@ public class VisiblePdfSignatureRequirementValidator extends
             : null
         : null;
 
-    if (StringUtils.isEmpty(object.getTemplateImageRef())) {
+    if (StringUtils.isBlank(object.getTemplateImageRef())) {
       result.rejectValue("templateImageRef", "PDF template reference is required");
     }
     else if (template == null) {
