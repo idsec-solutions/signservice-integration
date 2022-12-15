@@ -199,7 +199,7 @@ You have access to all source code so you'll figure out which packages to config
 <a name="initializing_the_library"></a>
 ## 2. Initializing the Library
 
-The SignService Integration libraries use the [Apache Santuario](https://santuario.apache.org) xmlsec library and [OpenSAML](https://wiki.shibboleth.net/confluence/display/OS30/Home) to implement things like XML signing and validation, encryption of sign messages using a recipient key found in SAML metadata, and more.
+The SignService Integration libraries use the [Apache Santuario](https://santuario.apache.org) xmlsec library and [OpenSAML](https://shibboleth.atlassian.net/wiki/spaces/OSAML/overview) to implement things like XML signing and validation, encryption of sign messages using a recipient key found in SAML metadata, and more.
 
 Unfortunately, these libraries must be initialized, and to some extent configured. Therefore, the SignService Integration Service needs to be initialized the first thing when your application starts.
 
