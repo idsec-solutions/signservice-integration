@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022 IDsec Solutions AB
+ * Copyright 2019-2023 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,8 @@
  */
 package se.idsec.signservice.integration;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.opensaml.core.xml.XMLRuntimeException;
 import org.opensaml.core.xml.util.XMLObjectSupport;
 import org.opensaml.saml.saml2.core.Issuer;
@@ -34,13 +34,9 @@ public class SignServiceIntegrationServiceInitializerTest {
 
     if (!SignServiceIntegrationServiceInitializer.isInitialized()) {
       // Try creating OpenSAML object. Should not be possible.
-      try {
+      Assertions.assertThrows(XMLRuntimeException.class, () -> {
         XMLObjectSupport.buildXMLObject(Issuer.DEFAULT_ELEMENT_NAME);
-        Assert.fail("Expected XMLRuntimeException");
-      }
-      catch (XMLRuntimeException e) {
-        // XMLObjectProviderRegistry was not available from the ConfigurationService.
-      }
+      });
 
       SignServiceIntegrationServiceInitializer.initialize();
     }
@@ -50,7 +46,7 @@ public class SignServiceIntegrationServiceInitializerTest {
 
     // Check xmlsec setting that we set ...
     Boolean lb = Boolean.getBoolean("org.apache.xml.security.ignoreLineBreaks");
-    Assert.assertTrue("Expected org.apache.xml.security.ignoreLineBreaks to be true", lb);
+    Assertions.assertTrue(lb, "Expected org.apache.xml.security.ignoreLineBreaks to be true");
   }
 
 }

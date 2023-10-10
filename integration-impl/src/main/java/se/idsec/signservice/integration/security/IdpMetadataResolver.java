@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022 IDsec Solutions AB
+ * Copyright 2019-2023 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,9 @@
  */
 package se.idsec.signservice.integration.security;
 
-import javax.annotation.Nonnull;
-
 import org.opensaml.saml.saml2.metadata.EntityDescriptor;
 
+import jakarta.annotation.Nonnull;
 import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
 
 /**
@@ -34,15 +33,13 @@ public interface IdpMetadataResolver {
   /**
    * Gets the (valid) metadata for the given SAML IdP.
    *
-   * @param entityID
-   *          the entityID for the IdP
-   * @param config
-   *          policy configuration
+   * @param entityID the entityID for the IdP
+   * @param config policy configuration
    * @return the IdP metadata
-   * @throws MetadataException
-   *           if no valid metadata can be found, or any other error occur
+   * @throws MetadataException if no valid metadata can be found, or any other error occur
    */
-  EntityDescriptor resolveMetadata(@Nonnull final String entityID, @Nonnull final IntegrationServiceConfiguration config)
+  EntityDescriptor resolveMetadata(@Nonnull final String entityID,
+      @Nonnull final IntegrationServiceConfiguration config)
       throws MetadataException;
 
 }

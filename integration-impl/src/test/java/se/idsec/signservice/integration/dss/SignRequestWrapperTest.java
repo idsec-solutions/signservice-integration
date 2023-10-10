@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022 IDsec Solutions AB
+ * Copyright 2019-2023 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 /**
  * Test cases for SignRequestWrapper.
@@ -43,15 +43,15 @@ public class SignRequestWrapperTest {
     ObjectOutputStream out = new ObjectOutputStream(bos);
     out.writeObject(w1);
     byte[] serialization = bos.toByteArray();
-    Assert.assertNotNull(serialization);
+    Assertions.assertNotNull(serialization);
 
     // Deserialize
     ByteArrayInputStream bis = new ByteArrayInputStream(serialization);
     ObjectInputStream in = new ObjectInputStream(bis);
     final SignRequestWrapper w2 = (SignRequestWrapper) in.readObject();
-    Assert.assertNotNull(w2);
-    Assert.assertEquals(w1.getRequestID(), w2.getRequestID());
-    Assert.assertEquals(w1.getProfile(), w2.getProfile());
+    Assertions.assertNotNull(w2);
+    Assertions.assertEquals(w1.getRequestID(), w2.getRequestID());
+    Assertions.assertEquals(w1.getProfile(), w2.getProfile());
   }
 
 }

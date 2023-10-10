@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022 IDsec Solutions AB
+ * Copyright 2019-2023 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,8 @@ package se.idsec.signservice.integration.document.pdf.signpage.impl;
 import java.util.Arrays;
 import java.util.Base64;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import se.idsec.signservice.integration.core.FileResource;
 import se.idsec.signservice.integration.core.error.InputValidationException;
@@ -50,10 +50,10 @@ public class ExtendedPdfSignaturePageValidatorTest {
 
     try {
       validator.validateObject(page, "page", null);
-      Assert.fail("Expected InputValidationException");
+      Assertions.fail("Expected InputValidationException");
     }
     catch (InputValidationException e) {
-      Assert.assertNotNull(e.getDetails().get("page.pdfDocument"));
+      Assertions.assertNotNull(e.getDetails().get("page.pdfDocument"));
     }
   }
 
@@ -85,11 +85,11 @@ public class ExtendedPdfSignaturePageValidatorTest {
 
     try {
       validator.validateObject(page, "page", Arrays.asList(template));
-      Assert.fail("Expected InputValidationException");
+      Assertions.fail("Expected InputValidationException");
     }
     catch (InputValidationException e) {
-      Assert.assertNotNull(e.getDetails().get("page.imagePlacementConfiguration.page"));
-      Assert.assertEquals(1, e.getDetails().size());
+      Assertions.assertNotNull(e.getDetails().get("page.imagePlacementConfiguration.page"));
+      Assertions.assertEquals(1, e.getDetails().size());
     }
   }
 
@@ -121,7 +121,7 @@ public class ExtendedPdfSignaturePageValidatorTest {
 
     validator.validateObject(page, "page", Arrays.asList(template));
     final ValidationResult result = validator.validate(page, "page", Arrays.asList(template));
-    Assert.assertFalse(result.hasErrors());
+    Assertions.assertFalse(result.hasErrors());
   }
 
 }

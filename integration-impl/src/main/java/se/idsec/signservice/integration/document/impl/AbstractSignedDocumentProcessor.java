@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022 IDsec Solutions AB
+ * Copyright 2019-2023 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,8 +22,7 @@ import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.Optional;
 
-import javax.annotation.PostConstruct;
-
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import se.idsec.signservice.integration.SignResponseProcessingParameters;
 import se.idsec.signservice.integration.core.error.ErrorCode;

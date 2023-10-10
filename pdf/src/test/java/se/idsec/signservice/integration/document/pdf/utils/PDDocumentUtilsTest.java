@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022 IDsec Solutions AB
+ * Copyright 2019-2023 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,8 @@ import java.io.IOException;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ClassPathResource;
 
 /**
@@ -41,9 +41,8 @@ public class PDDocumentUtilsTest {
 
       doc = PDDocumentUtils.insertDocument(doc, ins, 0);
 
-      Assert.assertEquals(5, doc.getNumberOfPages());
-      System.out.println(getContents(doc, 5));
-      Assert.assertTrue(getContents(doc, 5).contains("Document 1: This is page one"));
+      Assertions.assertEquals(5, doc.getNumberOfPages());
+      Assertions.assertTrue(getContents(doc, 5).contains("Document 1: This is page one"));
     }
     finally {
       PDDocumentUtils.close(doc);
@@ -61,9 +60,9 @@ public class PDDocumentUtilsTest {
 
       doc = PDDocumentUtils.insertDocument(doc, ins, 5);  // 5 is the new page number
 
-      Assert.assertEquals(5, doc.getNumberOfPages());
-      Assert.assertTrue(getContents(doc, 4).contains("Document 4: This is page four"));
-      Assert.assertTrue(getContents(doc, 5).contains("Document 1: This is page one"));
+      Assertions.assertEquals(5, doc.getNumberOfPages());
+      Assertions.assertTrue(getContents(doc, 4).contains("Document 4: This is page four"));
+      Assertions.assertTrue(getContents(doc, 5).contains("Document 1: This is page one"));
     }
     finally {
       PDDocumentUtils.close(doc);
@@ -81,10 +80,10 @@ public class PDDocumentUtilsTest {
 
       doc = PDDocumentUtils.insertDocument(doc, ins, 1);
 
-      Assert.assertEquals(6, doc.getNumberOfPages());
-      Assert.assertTrue(getContents(doc, 1).contains("Document 2: This is page one"));
-      Assert.assertTrue(getContents(doc, 2).contains("Document 2: This is page two"));
-      Assert.assertTrue(getContents(doc, 3).contains("Document 4: This is page one"));
+      Assertions.assertEquals(6, doc.getNumberOfPages());
+      Assertions.assertTrue(getContents(doc, 1).contains("Document 2: This is page one"));
+      Assertions.assertTrue(getContents(doc, 2).contains("Document 2: This is page two"));
+      Assertions.assertTrue(getContents(doc, 3).contains("Document 4: This is page one"));
     }
     finally {
       PDDocumentUtils.close(doc);
@@ -102,11 +101,11 @@ public class PDDocumentUtilsTest {
 
       doc = PDDocumentUtils.insertDocument(doc, ins, 3);
 
-      Assert.assertEquals(6, doc.getNumberOfPages());
-      Assert.assertTrue(getContents(doc, 2).contains("Document 4: This is page two"));
-      Assert.assertTrue(getContents(doc, 3).contains("Document 2: This is page one"));
-      Assert.assertTrue(getContents(doc, 4).contains("Document 2: This is page two"));
-      Assert.assertTrue(getContents(doc, 5).contains("Document 4: This is page three"));
+      Assertions.assertEquals(6, doc.getNumberOfPages());
+      Assertions.assertTrue(getContents(doc, 2).contains("Document 4: This is page two"));
+      Assertions.assertTrue(getContents(doc, 3).contains("Document 2: This is page one"));
+      Assertions.assertTrue(getContents(doc, 4).contains("Document 2: This is page two"));
+      Assertions.assertTrue(getContents(doc, 5).contains("Document 4: This is page three"));
     }
     finally {
       PDDocumentUtils.close(doc);

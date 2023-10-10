@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022 IDsec Soslutions AB
+ * Copyright 2019-2023 IDsec Soslutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,9 +36,9 @@ import se.idsec.signservice.integration.dss.SignRequestWrapper;
 import se.idsec.signservice.integration.signmessage.SignMessageParameters;
 import se.idsec.signservice.integration.state.impl.DefaultSignatureState;
 import se.idsec.signservice.xml.DOMUtils;
-import se.idsec.signservice.xml.JAXBMarshaller;
-import se.idsec.signservice.xml.JAXBUnmarshaller;
 import se.swedenconnect.schemas.dss_1_0.SignRequest;
+import se.swedenconnect.xml.jaxb.JAXBMarshaller;
+import se.swedenconnect.xml.jaxb.JAXBUnmarshaller;
 
 /**
  * Representation of the signature session state. See {@link DefaultSignatureState}.

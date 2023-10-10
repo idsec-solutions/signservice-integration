@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022 IDsec Solutions AB
+ * Copyright 2019-2023 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,8 @@ import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 /**
  * Test cases for DefaultContentLoader. The API-project don't have Spring in the classpath, so we test this part here.
@@ -41,18 +41,18 @@ public class DefaultContentLoaderTest {
     Field field2 = loader.getClass().getDeclaredField("getResourceMethod");
     field2.setAccessible(true);
 
-    Assert.assertNotNull(field1.get(loader));
-    Assert.assertNotNull(field2.get(loader));
+    Assertions.assertNotNull(field1.get(loader));
+    Assertions.assertNotNull(field2.get(loader));
   }
 
   @Test
   public void testLoadFromClasspath() throws Exception {
     DefaultContentLoader loader = new DefaultContentLoader();
     byte[] contents = loader.loadContent("classpath:testfile.txt");
-    Assert.assertArrayEquals(expectedContents, contents);
+    Assertions.assertArrayEquals(expectedContents, contents);
 
     contents = loader.loadContent("classpath:/testfile.txt");
-    Assert.assertArrayEquals(expectedContents, contents);
+    Assertions.assertArrayEquals(expectedContents, contents);
   }
 
   @Test
@@ -60,11 +60,11 @@ public class DefaultContentLoaderTest {
     DefaultContentLoader loader = new DefaultContentLoader();
     byte[] contents = loader.loadContent(String.format("file://%s/src/test/resources/testfile.txt",
       Paths.get("").toAbsolutePath().toString()));
-    Assert.assertArrayEquals(expectedContents, contents);
+    Assertions.assertArrayEquals(expectedContents, contents);
 
     loader.loadContent(String.format("%s/src/test/resources/testfile.txt",
       Paths.get("").toAbsolutePath().toString()));
-    Assert.assertArrayEquals(expectedContents, contents);
+    Assertions.assertArrayEquals(expectedContents, contents);
   }
 
   @Test
@@ -73,21 +73,21 @@ public class DefaultContentLoaderTest {
 
     try {
       loader.loadContent("classpath:no-such-file.txt");
-      Assert.fail("Expected IOException");
+      Assertions.fail("Expected IOException");
     }
     catch (IOException e) {
     }
 
     try {
       loader.loadContent("file://no-such-file.txt");
-      Assert.fail("Expected IOException");
+      Assertions.fail("Expected IOException");
     }
     catch (IOException e) {
     }
 
     try {
       loader.loadContent("/home/user/no-such-file.txt");
-      Assert.fail("Expected IOException");
+      Assertions.fail("Expected IOException");
     }
     catch (IOException e) {
     }

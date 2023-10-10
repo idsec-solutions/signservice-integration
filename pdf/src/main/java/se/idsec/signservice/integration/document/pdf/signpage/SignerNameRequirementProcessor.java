@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022 IDsec Solutions AB
+ * Copyright 2019-2023 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,8 +30,7 @@ public interface SignerNameRequirementProcessor {
   /**
    * Get the attribute requirements for including a name in the visible sign image.
    *
-   * @param signerAttrlist
-   *          list of name attributes included in the sign request representing the signer identity
+   * @param signerAttrlist list of name attributes included in the sign request representing the signer identity
    * @return signer name requirements
    */
   SignerNameRequirement getSignerNameRequirements(final List<SignerIdentityAttributeValue> signerAttrlist);

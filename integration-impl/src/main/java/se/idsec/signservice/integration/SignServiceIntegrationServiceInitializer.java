@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022 IDsec Solutions AB
+ * Copyright 2019-2023 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,6 @@
  * limitations under the License.
  */
 package se.idsec.signservice.integration;
-
-import java.security.AccessController;
-import java.security.PrivilegedAction;
 
 import lombok.extern.slf4j.Slf4j;
 import se.swedenconnect.opensaml.OpenSAMLInitializer;
@@ -43,7 +40,7 @@ import se.swedenconnect.opensaml.xmlsec.config.SecurityConfiguration;
  *
  *   public SignServiceIntegrationInitComponent() throws Exception {
  *     SignServiceIntegrationServiceInitializer.initialize(
- *       new SwedishEidSecurityConfiguration());
+ *         new SwedishEidSecurityConfiguration());
  *   }
  * }
  * </pre>
@@ -60,8 +57,7 @@ public class SignServiceIntegrationServiceInitializer {
   /**
    * Initializes Apache xmlsec and OpenSAML with default algorithm settings.
    *
-   * @throws Exception
-   *           for initialization errors
+   * @throws Exception for initialization errors
    */
   public synchronized static void initialize() throws Exception {
     initialize(null);
@@ -78,10 +74,8 @@ public class SignServiceIntegrationServiceInitializer {
    * <a href="docs.swedenconnect.se">https://docs.swedenconnect.se</a>.</li>
    * </ul>
    *
-   * @param securityConfiguration
-   *          the OpenSAML security configuration to apply
-   * @throws Exception
-   *           for initialization errors
+   * @param securityConfiguration the OpenSAML security configuration to apply
+   * @throws Exception for initialization errors
    */
   public synchronized static void initialize(final SecurityConfiguration securityConfiguration) throws Exception {
 
@@ -95,17 +89,17 @@ public class SignServiceIntegrationServiceInitializer {
     // to signature validation errors (.Net software etc).
     //
     log.info("Setting system property 'org.apache.xml.security.ignoreLineBreaks' to true");
-    AccessController.doPrivileged(
-      (PrivilegedAction<String>) () -> System.setProperty("org.apache.xml.security.ignoreLineBreaks", "true"));
+    System.setProperty("org.apache.xml.security.ignoreLineBreaks", "true");
 
     // Initialize OpenSAML (Apache xmlsec will be initialized by OpenSAML).
     //
-    final SecurityConfiguration openSamlConf = securityConfiguration != null ? securityConfiguration : new DefaultSecurityConfiguration();
+    final SecurityConfiguration openSamlConf =
+        securityConfiguration != null ? securityConfiguration : new DefaultSecurityConfiguration();
     log.info("Initializing OpenSAML with security configuration '{}'", openSamlConf.getClass().getName());
     OpenSAMLInitializer.getInstance()
-      .initialize(
-        new OpenSAMLSecurityDefaultsConfig(openSamlConf),
-        new OpenSAMLSecurityExtensionConfig());
+        .initialize(
+            new OpenSAMLSecurityDefaultsConfig(openSamlConf),
+            new OpenSAMLSecurityExtensionConfig());
 
     initialized = true;
     log.debug("SignService Integration Service was successfully initialized");

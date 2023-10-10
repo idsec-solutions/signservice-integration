@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022 IDsec Solutions AB
+ * Copyright 2019-2023 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,21 +15,23 @@
  */
 package se.idsec.signservice.integration.dss;
 
-import javax.xml.bind.JAXBException;
+import java.io.Serializable;
 
 import org.w3c.dom.Element;
 
+import jakarta.xml.bind.JAXBException;
 import lombok.extern.slf4j.Slf4j;
 import se.idsec.signservice.integration.core.error.impl.SignServiceProtocolException;
 import se.idsec.signservice.integration.core.impl.CorrelationID;
-import se.idsec.signservice.xml.JAXBMarshaller;
-import se.idsec.signservice.xml.JAXBUnmarshaller;
 import se.swedenconnect.schemas.csig.dssext_1_1.SignResponseExtension;
 import se.swedenconnect.schemas.csig.dssext_1_1.SignTasks;
 import se.swedenconnect.schemas.dss_1_0.AnyType;
 import se.swedenconnect.schemas.dss_1_0.Result;
 import se.swedenconnect.schemas.dss_1_0.SignResponse;
 import se.swedenconnect.schemas.dss_1_0.SignatureObject;
+import se.swedenconnect.xml.jaxb.JAXBMarshaller;
+import se.swedenconnect.xml.jaxb.JAXBSerializable;
+import se.swedenconnect.xml.jaxb.JAXBUnmarshaller;
 
 /**
  * A wrapper for a {@link SignResponse} object where we introduce utility methods for access of extension elements.
@@ -38,35 +40,37 @@ import se.swedenconnect.schemas.dss_1_0.SignatureObject;
  * @author Stefan Santesson (stefan@idsec.se)
  */
 @Slf4j
-public class SignResponseWrapper extends SignResponse {
+public class SignResponseWrapper extends SignResponse implements Serializable {
+
+  private static final long serialVersionUID = -3618698475882073845L;
 
   /** Object factory for DSS objects. */
-  private static se.swedenconnect.schemas.dss_1_0.ObjectFactory dssObjectFactory = new se.swedenconnect.schemas.dss_1_0.ObjectFactory();
+  private static se.swedenconnect.schemas.dss_1_0.ObjectFactory dssObjectFactory =
+      new se.swedenconnect.schemas.dss_1_0.ObjectFactory();
 
   /** The wrapped SignResponse. */
-  private final SignResponse signResponse;
+  private final JAXBSerializable<SignResponse> signResponse;
 
   /** The SignTasks (stored in SignatureObject). */
-  private SignTasks signTasks;
+  private transient SignTasks signTasks;
 
   /** The SignResponseExtension (stored in OptionalOutputs). */
-  private SignResponseExtension signResponseExtension;
+  private transient SignResponseExtension signResponseExtension;
 
   /**
    * Constructor setting up an empty {@code SignResponse}.
    */
   public SignResponseWrapper() {
-    this.signResponse = dssObjectFactory.createSignResponse();
+    this.signResponse = new JAXBSerializable<>(dssObjectFactory.createSignResponse(), SignResponse.class);
   }
 
   /**
    * Constructor.
    *
-   * @param signResponse
-   *          the wrapped sign response
+   * @param signResponse the wrapped sign response
    */
   public SignResponseWrapper(final SignResponse signResponse) {
-    this.signResponse = signResponse;
+    this.signResponse = new JAXBSerializable<>(signResponse, SignResponse.class);
   }
 
   /**
@@ -75,50 +79,50 @@ public class SignResponseWrapper extends SignResponse {
    * @return the wrapped SignResponse
    */
   public SignResponse getWrappedSignResponse() {
-    return this.signResponse;
+    return this.signResponse.get();
   }
 
   /** {@inheritDoc} */
   @Override
   public SignatureObject getSignatureObject() {
-    return this.signResponse.getSignatureObject();
+    return this.getWrappedSignResponse().getSignatureObject();
   }
 
   /** {@inheritDoc} */
   @Override
   public void setSignatureObject(final SignatureObject value) {
     this.signTasks = null;
-    this.signResponse.setSignatureObject(value);
+    this.getWrappedSignResponse().setSignatureObject(value);
   }
 
   /** {@inheritDoc} */
   @Override
   public boolean isSetSignatureObject() {
-    return this.signResponse.isSetSignatureObject();
+    return this.getWrappedSignResponse().isSetSignatureObject();
   }
 
   /**
    * Utility method that gets the {@code SignTasks} object from the {@code SignatureObject}.
    *
    * @return the SignTasks (or null)
-   * @throws SignServiceProtocolException
-   *           for unmarshalling errors
+   * @throws SignServiceProtocolException for unmarshalling errors
    */
   public SignTasks getSignTasks() throws SignServiceProtocolException {
     if (this.signTasks != null) {
       return this.signTasks;
     }
-    if (this.signResponse.getSignatureObject() == null || this.signResponse.getSignatureObject().getOther() == null) {
+    if (this.getWrappedSignResponse().getSignatureObject() == null
+        || this.getWrappedSignResponse().getSignatureObject().getOther() == null) {
       return null;
     }
-    final Element signTasksElement = this.signResponse.getSignatureObject()
-      .getOther()
-      .getAnies()
-      .stream()
-      .filter(e -> "SignTasks".equals(e.getLocalName()))
-      .filter(e -> DssUtils.DSS_EXT_NAMESPACE.equals(e.getNamespaceURI()))
-      .findFirst()
-      .orElse(null);
+    final Element signTasksElement = this.getWrappedSignResponse().getSignatureObject()
+        .getOther()
+        .getAnies()
+        .stream()
+        .filter(e -> "SignTasks".equals(e.getLocalName()))
+        .filter(e -> DssUtils.DSS_EXT_NAMESPACE.equals(e.getNamespaceURI()))
+        .findFirst()
+        .orElse(null);
     if (signTasksElement != null) {
       try {
         this.signTasks = JAXBUnmarshaller.unmarshall(signTasksElement, SignTasks.class);
@@ -135,18 +139,16 @@ public class SignResponseWrapper extends SignResponse {
    * Utility method that add a SignTasks object to {@code Other} object of the {@code SignatureObject}. Any previous
    * sign tasks set in {@code Other} will be overwritten.
    *
-   * @param signTasks
-   *          the object to add
-   * @throws SignServiceProtocolException
-   *           for marshalling errors
+   * @param signTasks the object to add
+   * @throws SignServiceProtocolException for marshalling errors
    */
   public void setSignTasks(final SignTasks signTasks) throws SignServiceProtocolException {
     this.signTasks = signTasks;
-    if (this.signResponse.getSignatureObject() == null) {
-      this.signResponse.setSignatureObject(dssObjectFactory.createSignatureObject());
+    if (this.getWrappedSignResponse().getSignatureObject() == null) {
+      this.getWrappedSignResponse().setSignatureObject(dssObjectFactory.createSignatureObject());
     }
-    if (this.signResponse.getSignatureObject().getOther() == null) {
-      this.signResponse.getSignatureObject().setOther(dssObjectFactory.createAnyType());
+    if (this.getWrappedSignResponse().getSignatureObject().getOther() == null) {
+      this.getWrappedSignResponse().getSignatureObject().setOther(dssObjectFactory.createAnyType());
     }
 
     Element signTasksElement;
@@ -157,40 +159,40 @@ public class SignResponseWrapper extends SignResponse {
       log.error("Failed to marshall SignTasks - {}", e.getMessage(), e);
       throw new SignServiceProtocolException("Failed to marshall SignTasks", e);
     }
-    for (int i = 0; i < this.signResponse.getSignatureObject().getOther().getAnies().size(); i++) {
-      final Element elm = this.signResponse.getSignatureObject().getOther().getAnies().get(i);
+    for (int i = 0; i < this.getWrappedSignResponse().getSignatureObject().getOther().getAnies().size(); i++) {
+      final Element elm = this.getWrappedSignResponse().getSignatureObject().getOther().getAnies().get(i);
       if (elm.getLocalName().equals("SignTasks")) {
         // Overwrite this ...
-        this.signResponse.getSignatureObject().getOther().getAnies().set(i, signTasksElement);
+        this.getWrappedSignResponse().getSignatureObject().getOther().getAnies().set(i, signTasksElement);
         return;
       }
     }
     // We didn't have to overwrite. Add it.
-    this.signResponse.getSignatureObject().getOther().getAnies().add(signTasksElement);
+    this.getWrappedSignResponse().getSignatureObject().getOther().getAnies().add(signTasksElement);
   }
 
   /** {@inheritDoc} */
   @Override
   public Result getResult() {
-    return this.signResponse.getResult();
+    return this.getWrappedSignResponse().getResult();
   }
 
   /** {@inheritDoc} */
   @Override
   public void setResult(final Result value) {
-    this.signResponse.setResult(value);
+    this.getWrappedSignResponse().setResult(value);
   }
 
   /** {@inheritDoc} */
   @Override
   public boolean isSetResult() {
-    return this.signResponse.isSetResult();
+    return this.getWrappedSignResponse().isSetResult();
   }
 
   /** {@inheritDoc} */
   @Override
   public AnyType getOptionalOutputs() {
-    return this.signResponse.getOptionalOutputs();
+    return this.getWrappedSignResponse().getOptionalOutputs();
   }
 
   /** {@inheritDoc} */
@@ -198,39 +200,40 @@ public class SignResponseWrapper extends SignResponse {
   public void setOptionalOutputs(final AnyType value) {
     // Reset our cache for signResponseExtension.
     this.signResponseExtension = null;
-    this.signResponse.setOptionalOutputs(value);
+    this.getWrappedSignResponse().setOptionalOutputs(value);
   }
 
   /** {@inheritDoc} */
   @Override
   public boolean isSetOptionalOutputs() {
-    return this.signResponse.isSetOptionalOutputs();
+    return this.getWrappedSignResponse().isSetOptionalOutputs();
   }
 
   /**
    * Gets the {@code SignResponseExtension} element from the {@code OptionalOutput} object.
    *
    * @return the SignResponseExtension (or null)
-   * @throws SignServiceProtocolException
-   *           for unmarshalling errors
+   * @throws SignServiceProtocolException for unmarshalling errors
    */
   public SignResponseExtension getSignResponseExtension() throws SignServiceProtocolException {
     if (this.signResponseExtension != null) {
       return this.signResponseExtension;
     }
-    if (this.signResponse.getOptionalOutputs() == null || !this.signResponse.getOptionalOutputs().isSetAnies()) {
+    if (this.getWrappedSignResponse().getOptionalOutputs() == null
+        || !this.getWrappedSignResponse().getOptionalOutputs().isSetAnies()) {
       return null;
     }
-    final Element signResponseExtensionElement = this.signResponse.getOptionalOutputs()
-      .getAnies()
-      .stream()
-      .filter(e -> "SignResponseExtension".equals(e.getLocalName()))
-      .filter(e -> DssUtils.DSS_EXT_NAMESPACE.equals(e.getNamespaceURI()))
-      .findFirst()
-      .orElse(null);
+    final Element signResponseExtensionElement = this.getWrappedSignResponse().getOptionalOutputs()
+        .getAnies()
+        .stream()
+        .filter(e -> "SignResponseExtension".equals(e.getLocalName()))
+        .filter(e -> DssUtils.DSS_EXT_NAMESPACE.equals(e.getNamespaceURI()))
+        .findFirst()
+        .orElse(null);
     if (signResponseExtensionElement != null) {
       try {
-        this.signResponseExtension = JAXBUnmarshaller.unmarshall(signResponseExtensionElement, SignResponseExtension.class);
+        this.signResponseExtension =
+            JAXBUnmarshaller.unmarshall(signResponseExtensionElement, SignResponseExtension.class);
       }
       catch (final JAXBException e) {
         log.error("Failed to decode SignResponseExtension - {}", e.getMessage(), e);
@@ -246,14 +249,13 @@ public class SignResponseWrapper extends SignResponse {
    * Note: If the OptionalOutputs already contains data it is overwritten.
    * </p>
    *
-   * @param signResponseExtension
-   *          the extension to add
-   * @throws SignServiceProtocolException
-   *           for JAXB errors
+   * @param signResponseExtension the extension to add
+   * @throws SignServiceProtocolException for JAXB errors
    */
-  public void setSignResponseExtension(final SignResponseExtension signResponseExtension) throws SignServiceProtocolException {
+  public void setSignResponseExtension(final SignResponseExtension signResponseExtension)
+      throws SignServiceProtocolException {
     if (signResponseExtension == null) {
-      this.signResponse.setOptionalOutputs(null);
+      this.getWrappedSignResponse().setOptionalOutputs(null);
       this.signResponseExtension = null;
       return;
     }
@@ -261,7 +263,7 @@ public class SignResponseWrapper extends SignResponse {
     try {
       final AnyType optionalOutputs = dssObjectFactory.createAnyType();
       optionalOutputs.getAnies().add(JAXBMarshaller.marshall(signResponseExtension).getDocumentElement());
-      this.signResponse.setOptionalOutputs(optionalOutputs);
+      this.getWrappedSignResponse().setOptionalOutputs(optionalOutputs);
       this.signResponseExtension = signResponseExtension;
     }
     catch (final JAXBException e) {
@@ -273,37 +275,37 @@ public class SignResponseWrapper extends SignResponse {
   /** {@inheritDoc} */
   @Override
   public String getRequestID() {
-    return this.signResponse.getRequestID();
+    return this.getWrappedSignResponse().getRequestID();
   }
 
   /** {@inheritDoc} */
   @Override
   public void setRequestID(final String value) {
-    this.signResponse.setRequestID(value);
+    this.getWrappedSignResponse().setRequestID(value);
   }
 
   /** {@inheritDoc} */
   @Override
   public boolean isSetRequestID() {
-    return this.signResponse.isSetRequestID();
+    return this.getWrappedSignResponse().isSetRequestID();
   }
 
   /** {@inheritDoc} */
   @Override
   public String getProfile() {
-    return this.signResponse.getProfile();
+    return this.getWrappedSignResponse().getProfile();
   }
 
   /** {@inheritDoc} */
   @Override
   public void setProfile(final String value) {
-    this.signResponse.setProfile(value);
+    this.getWrappedSignResponse().setProfile(value);
   }
 
   /** {@inheritDoc} */
   @Override
   public boolean isSetProfile() {
-    return this.signResponse.isSetProfile();
+    return this.getWrappedSignResponse().isSetProfile();
   }
 
 }

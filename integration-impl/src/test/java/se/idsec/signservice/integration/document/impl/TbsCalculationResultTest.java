@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022 IDsec Solutions AB
+ * Copyright 2019-2023 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,8 @@
  */
 package se.idsec.signservice.integration.document.impl;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 /**
  * Test cases for {@code TbsCalculationResult}. Mainly to get code coverage.
@@ -34,10 +34,10 @@ public class TbsCalculationResultTest {
     r.setAdesSignatureId("ID");
     r.setAdesObjectBytes("ades".getBytes());
 
-    Assert.assertEquals("XML", r.getSigType());
-    Assert.assertArrayEquals("bytes".getBytes(), r.getToBeSignedBytes());
-    Assert.assertEquals("ID", r.getAdesSignatureId());
-    Assert.assertArrayEquals("ades".getBytes(), r.getAdesObjectBytes());
+    Assertions.assertEquals("XML", r.getSigType());
+    Assertions.assertArrayEquals("bytes".getBytes(), r.getToBeSignedBytes());
+    Assertions.assertEquals("ID", r.getAdesSignatureId());
+    Assertions.assertArrayEquals("ades".getBytes(), r.getAdesObjectBytes());
   }
 
   @Test
@@ -49,19 +49,19 @@ public class TbsCalculationResultTest {
         .adesObjectBytes("ades".getBytes())
         .build();
 
-    Assert.assertEquals("XML", r.getSigType());
-    Assert.assertArrayEquals("bytes".getBytes(), r.getToBeSignedBytes());
-    Assert.assertEquals("ID", r.getAdesSignatureId());
-    Assert.assertArrayEquals("ades".getBytes(), r.getAdesObjectBytes());
+    Assertions.assertEquals("XML", r.getSigType());
+    Assertions.assertArrayEquals("bytes".getBytes(), r.getToBeSignedBytes());
+    Assertions.assertEquals("ID", r.getAdesSignatureId());
+    Assertions.assertArrayEquals("ades".getBytes(), r.getAdesObjectBytes());
 
     r = TbsCalculationResult.builder().build();
 
-    Assert.assertNull(r.getSigType());
-    Assert.assertNull(r.getToBeSignedBytes());
-    Assert.assertNull(r.getAdesSignatureId());
-    Assert.assertNull(r.getAdesObjectBytes());
+    Assertions.assertNull(r.getSigType());
+    Assertions.assertNull(r.getToBeSignedBytes());
+    Assertions.assertNull(r.getAdesSignatureId());
+    Assertions.assertNull(r.getAdesObjectBytes());
 
-    Assert.assertTrue(TbsCalculationResult.builder().toString().startsWith("TbsCalculationResult.TbsCalculationResultBuilder"));
+    Assertions.assertTrue(TbsCalculationResult.builder().toString().startsWith("TbsCalculationResult.TbsCalculationResultBuilder"));
   }
 
 

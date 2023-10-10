@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022 IDsec Solutions AB
+ * Copyright 2019-2023 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  */
 package se.idsec.signservice.integration.certificate.impl;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import se.idsec.signservice.integration.authentication.SignerIdentityAttribute;
 import se.idsec.signservice.integration.certificate.CertificateAttributeMapping;
@@ -74,7 +74,8 @@ public class SigningCertificateRequirementsValidator extends
       }
       else {
         if (StringUtils.isBlank(mapping.getDestination().getType())) {
-          result.rejectValue("attributeMappings[" + pos + "].destination.type", "Missing type for destination attribute");
+          result.rejectValue("attributeMappings[" + pos + "].destination.type",
+              "Missing type for destination attribute");
         }
         else {
           try {
@@ -85,14 +86,16 @@ public class SigningCertificateRequirementsValidator extends
           }
         }
         if (StringUtils.isBlank(mapping.getDestination().getName())) {
-          result.rejectValue("attributeMappings[" + pos + "].destination.name", "Missing name for destination attribute");
+          result.rejectValue("attributeMappings[" + pos + "].destination.name",
+              "Missing name for destination attribute");
         }
       }
 
       if (mapping.getSources() == null || mapping.getSources().isEmpty()) {
         if (mapping.getDestination() != null && Boolean.TRUE.equals(mapping.getDestination().getRequired())
             && mapping.getDestination().getDefaultValue() == null) {
-          result.rejectValue("attributeMappings[" + pos + "]", "Attribute mapping has no sources and destination has no default value - illegal");
+          result.rejectValue("attributeMappings[" + pos + "]",
+              "Attribute mapping has no sources and destination has no default value - illegal");
         }
       }
       else {
@@ -100,7 +103,7 @@ public class SigningCertificateRequirementsValidator extends
         for (SignerIdentityAttribute source : mapping.getSources()) {
           if (source.getType() != null && !SignerIdentityAttribute.SAML_TYPE.equalsIgnoreCase(source.getType())) {
             result.rejectValue("attributeMappings[" + pos + "].sources[" + spos + "].type",
-              String.format("Unsupported attribute type - %s", source.getType()));
+                String.format("Unsupported attribute type - %s", source.getType()));
           }
           if (StringUtils.isBlank(source.getName())) {
             result.rejectValue("attributeMappings[" + pos + "].sources[" + spos + "].name", "Missing attribute name");

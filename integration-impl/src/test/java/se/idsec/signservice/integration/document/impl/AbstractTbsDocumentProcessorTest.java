@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022 IDsec Solutions AB
+ * Copyright 2019-2023 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,8 @@ package se.idsec.signservice.integration.document.impl;
 
 import java.util.UUID;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import lombok.Setter;
 import se.idsec.signservice.integration.SignRequestInput;
@@ -52,7 +52,8 @@ public class AbstractTbsDocumentProcessorTest extends TestBase {
 
   private final DocumentCache documentCache = new InMemoryDocumentCache();
 
-  private final IntegrationServiceConfiguration config = DefaultIntegrationServiceConfiguration.builder().stateless(false).build();
+  private final IntegrationServiceConfiguration config =
+      DefaultIntegrationServiceConfiguration.builder().stateless(false).build();
 
   @Test
   public void testPreProcess() throws Exception {
@@ -68,11 +69,11 @@ public class AbstractTbsDocumentProcessorTest extends TestBase {
     processor.afterPropertiesSet();
     ProcessedTbsDocument pd = processor.preProcess(tbsDocument, null, config, this.documentCache, "tbs");
 
-    Assert.assertEquals("123", pd.getTbsDocument().getId());
-    Assert.assertEquals("DOCUMENT", pd.getTbsDocument().getContent());
-    Assert.assertNotNull(pd.getTbsDocument().getAdesRequirement());
-    Assert.assertTrue(TestDocumentType.class.isInstance(pd.getDocumentObject()));
-    Assert.assertEquals("DOCUMENT", pd.getDocumentObject(TestDocumentType.class).getContents());
+    Assertions.assertEquals("123", pd.getTbsDocument().getId());
+    Assertions.assertEquals("DOCUMENT", pd.getTbsDocument().getContent());
+    Assertions.assertNotNull(pd.getTbsDocument().getAdesRequirement());
+    Assertions.assertTrue(TestDocumentType.class.isInstance(pd.getDocumentObject()));
+    Assertions.assertEquals("DOCUMENT", pd.getDocumentObject(TestDocumentType.class).getContents());
   }
 
   @Test
@@ -96,13 +97,13 @@ public class AbstractTbsDocumentProcessorTest extends TestBase {
     sri.addExtensionValue(SignServiceIntegrationService.OWNER_ID_EXTENSION_KEY, "the-requester");
     ProcessedTbsDocument pd = processor.preProcess(tbsDocument, sri, this.config, this.documentCache, "tbs");
 
-    Assert.assertEquals("123", pd.getTbsDocument().getId());
-    Assert.assertEquals(documentContents, pd.getTbsDocument().getContent());
-    Assert.assertNotNull(pd.getTbsDocument().getAdesRequirement());
-    Assert.assertTrue(TestDocumentType.class.isInstance(pd.getDocumentObject()));
-    Assert.assertEquals("DOCUMENT", pd.getDocumentObject(TestDocumentType.class).getContents());
+    Assertions.assertEquals("123", pd.getTbsDocument().getId());
+    Assertions.assertEquals(documentContents, pd.getTbsDocument().getContent());
+    Assertions.assertNotNull(pd.getTbsDocument().getAdesRequirement());
+    Assertions.assertTrue(TestDocumentType.class.isInstance(pd.getDocumentObject()));
+    Assertions.assertEquals("DOCUMENT", pd.getDocumentObject(TestDocumentType.class).getContents());
 
-    Assert.assertNull(this.documentCache.get(docRef, null));
+    Assertions.assertNull(this.documentCache.get(docRef, null));
   }
 
   @Test
@@ -122,15 +123,16 @@ public class AbstractTbsDocumentProcessorTest extends TestBase {
 
     TestTbsDocumentProcessor processor = new TestTbsDocumentProcessor();
     processor.afterPropertiesSet();
-    ProcessedTbsDocument pd = processor.preProcess(tbsDocument, new SignRequestInput(), this.config, this.documentCache, "tbs");
+    ProcessedTbsDocument pd =
+        processor.preProcess(tbsDocument, new SignRequestInput(), this.config, this.documentCache, "tbs");
 
-    Assert.assertEquals("123", pd.getTbsDocument().getId());
-    Assert.assertEquals(documentContents, pd.getTbsDocument().getContent());
-    Assert.assertNotNull(pd.getTbsDocument().getAdesRequirement());
-    Assert.assertTrue(TestDocumentType.class.isInstance(pd.getDocumentObject()));
-    Assert.assertEquals("DOCUMENT", pd.getDocumentObject(TestDocumentType.class).getContents());
+    Assertions.assertEquals("123", pd.getTbsDocument().getId());
+    Assertions.assertEquals(documentContents, pd.getTbsDocument().getContent());
+    Assertions.assertNotNull(pd.getTbsDocument().getAdesRequirement());
+    Assertions.assertTrue(TestDocumentType.class.isInstance(pd.getDocumentObject()));
+    Assertions.assertEquals("DOCUMENT", pd.getDocumentObject(TestDocumentType.class).getContents());
 
-    Assert.assertNull(this.documentCache.get(docRef, null));
+    Assertions.assertNull(this.documentCache.get(docRef, null));
   }
 
   @Test
@@ -155,14 +157,14 @@ public class AbstractTbsDocumentProcessorTest extends TestBase {
 
     try {
       processor.preProcess(tbsDocument, sri, this.config, this.documentCache, "tbs");
-      Assert.fail("Expected InputValidationException");
+      Assertions.fail("Expected InputValidationException");
     }
     catch (InputValidationException e) {
-      Assert.assertEquals("tbs.contentReference", e.getObjectName());
-      Assert.assertTrue(NoAccessException.class.isInstance(e.getCause()));
+      Assertions.assertEquals("tbs.contentReference", e.getObjectName());
+      Assertions.assertTrue(NoAccessException.class.isInstance(e.getCause()));
     }
     // Make sure that the document is not removed from the cache ...
-    Assert.assertNotNull(this.documentCache.get(docRef, "the-owner"));
+    Assertions.assertNotNull(this.documentCache.get(docRef, "the-owner"));
   }
 
   @Test
@@ -186,14 +188,14 @@ public class AbstractTbsDocumentProcessorTest extends TestBase {
 
     try {
       processor.preProcess(tbsDocument, sri, this.config, this.documentCache, "tbs");
-      Assert.fail("Expected InputValidationException");
+      Assertions.fail("Expected InputValidationException");
     }
     catch (InputValidationException e) {
-      Assert.assertEquals("tbs.contentReference", e.getObjectName());
-      Assert.assertTrue(NoAccessException.class.isInstance(e.getCause()));
+      Assertions.assertEquals("tbs.contentReference", e.getObjectName());
+      Assertions.assertTrue(NoAccessException.class.isInstance(e.getCause()));
     }
     // Make sure that the document is not removed from the cache ...
-    Assert.assertNotNull(this.documentCache.get(docRef, "the-owner"));
+    Assertions.assertNotNull(this.documentCache.get(docRef, "the-owner"));
   }
 
   @Test
@@ -210,14 +212,14 @@ public class AbstractTbsDocumentProcessorTest extends TestBase {
     processor.afterPropertiesSet();
     try {
       processor.preProcess(tbsDocument, new SignRequestInput(), this.config, this.documentCache, "tbs");
-      Assert.fail("Expected InputValidationException");
+      Assertions.fail("Expected InputValidationException");
     }
     catch (InputValidationException e) {
-      Assert.assertEquals("tbs.contentReference", e.getObjectName());
+      Assertions.assertEquals("tbs.contentReference", e.getObjectName());
     }
   }
 
-  @Test(expected = InputValidationException.class)
+  @Test
   public void testPreProcessCachedBothSet() throws Exception {
 
     TbsDocument tbsDocument = TbsDocument.builder()
@@ -230,10 +232,12 @@ public class AbstractTbsDocumentProcessorTest extends TestBase {
 
     TestTbsDocumentProcessor processor = new TestTbsDocumentProcessor();
     processor.afterPropertiesSet();
-    processor.preProcess(tbsDocument, null, this.config, this.documentCache, "tbs");
+    Assertions.assertThrows(InputValidationException.class, () -> {
+      processor.preProcess(tbsDocument, null, this.config, this.documentCache, "tbs");
+    });
   }
 
-  @Test(expected = InputValidationException.class)
+  @Test
   public void testPreProcessCachedStateless() throws Exception {
 
     final IntegrationServiceConfiguration stateLessConfig =
@@ -248,7 +252,9 @@ public class AbstractTbsDocumentProcessorTest extends TestBase {
 
     TestTbsDocumentProcessor processor = new TestTbsDocumentProcessor();
     processor.afterPropertiesSet();
-    processor.preProcess(tbsDocument, null, stateLessConfig, this.documentCache, "tbs");
+    Assertions.assertThrows(InputValidationException.class, () -> {
+      processor.preProcess(tbsDocument, null, stateLessConfig, this.documentCache, "tbs");
+    });
   }
 
   @Test
@@ -266,11 +272,11 @@ public class AbstractTbsDocumentProcessorTest extends TestBase {
     processor.afterPropertiesSet();
     try {
       processor.preProcess(tbsDocument, null, this.config, this.documentCache, "tbs");
-      Assert.fail("Expected InputValidationException");
+      Assertions.fail("Expected InputValidationException");
     }
     catch (InputValidationException e) {
-      Assert.assertEquals("tbs.content", e.getObjectName());
-      Assert.assertTrue(DocumentProcessingException.class.isInstance(e.getCause()));
+      Assertions.assertEquals("tbs.content", e.getObjectName());
+      Assertions.assertTrue(DocumentProcessingException.class.isInstance(e.getCause()));
     }
   }
 
@@ -286,7 +292,7 @@ public class AbstractTbsDocumentProcessorTest extends TestBase {
     processor.afterPropertiesSet();
     ProcessedTbsDocument pd = processor.preProcess(tbsDocument, null, this.config, this.documentCache, "tbs");
 
-    Assert.assertNotNull(pd.getTbsDocument().getId());
+    Assertions.assertNotNull(pd.getTbsDocument().getId());
   }
 
   @Test
@@ -302,7 +308,7 @@ public class AbstractTbsDocumentProcessorTest extends TestBase {
     TestTbsDocumentProcessor processor = new TestTbsDocumentProcessor();
     processor.afterPropertiesSet();
     ProcessedTbsDocument pd = processor.preProcess(tbsDocument, null, this.config, this.documentCache, "tbs");
-    Assert.assertNull(pd.getTbsDocument().getAdesRequirement());
+    Assertions.assertNull(pd.getTbsDocument().getAdesRequirement());
   }
 
   // Makes sure that a TbsDocumentValidator is created even if we forget afterPropertiesSet
@@ -310,8 +316,8 @@ public class AbstractTbsDocumentProcessorTest extends TestBase {
   public void testAutoCreateValidator() throws Exception {
     TestTbsDocumentProcessor processor = new TestTbsDocumentProcessor();
     ProcessedTbsDocument pd = processor.preProcess(TbsDocument.builder()
-      .id("123").content("DOCUMENT").mimeType("TEST").build(), null, this.config, this.documentCache, "tbs");
-    Assert.assertNotNull(pd);
+        .id("123").content("DOCUMENT").mimeType("TEST").build(), null, this.config, this.documentCache, "tbs");
+    Assertions.assertNotNull(pd);
   }
 
   @Test
@@ -327,15 +333,15 @@ public class AbstractTbsDocumentProcessorTest extends TestBase {
     ProcessedTbsDocument pd = processor.preProcess(tbsDocument, null, this.config, this.documentCache, "tbs");
 
     SignTaskData std = processor.process(pd, "dummy", null);
-    Assert.assertArrayEquals("DOCUMENT".getBytes(), std.getToBeSignedBytes());
-    Assert.assertEquals("TEST", std.getSigType());
-    Assert.assertEquals("123", std.getSignTaskId());
-    Assert.assertEquals("None", std.getAdESType());
+    Assertions.assertArrayEquals("DOCUMENT".getBytes(), std.getToBeSignedBytes());
+    Assertions.assertEquals("TEST", std.getSigType());
+    Assertions.assertEquals("123", std.getSignTaskId());
+    Assertions.assertEquals("None", std.getAdESType());
 
-    Assert.assertNull(std.getAdESObject());
-    Assert.assertNull(std.getProcessingRules());
-    Assert.assertNull(std.getBase64Signature());
-    Assert.assertNull(std.getOtherSignTaskData());
+    Assertions.assertNull(std.getAdESObject());
+    Assertions.assertNull(std.getProcessingRules());
+    Assertions.assertNull(std.getBase64Signature());
+    Assertions.assertNull(std.getOtherSignTaskData());
   }
 
   @Test
@@ -345,8 +351,8 @@ public class AbstractTbsDocumentProcessorTest extends TestBase {
         .content("DOCUMENT")
         .mimeType("TEST")
         .adesRequirement(EtsiAdesRequirement.builder()
-          .adesFormat(AdesType.BES)
-          .build())
+            .adesFormat(AdesType.BES)
+            .build())
         .build();
 
     TestTbsDocumentProcessor processor = new TestTbsDocumentProcessor();
@@ -355,15 +361,15 @@ public class AbstractTbsDocumentProcessorTest extends TestBase {
     ProcessedTbsDocument pd = processor.preProcess(tbsDocument, null, this.config, this.documentCache, "tbs");
 
     SignTaskData std = processor.process(pd, "dummy", null);
-    Assert.assertArrayEquals("DOCUMENT".getBytes(), std.getToBeSignedBytes());
-    Assert.assertEquals("TEST", std.getSigType());
-    Assert.assertEquals("123", std.getSignTaskId());
-    Assert.assertEquals("BES", std.getAdESType());
-    Assert.assertEquals("ID", std.getAdESObject().getSignatureId());
+    Assertions.assertArrayEquals("DOCUMENT".getBytes(), std.getToBeSignedBytes());
+    Assertions.assertEquals("TEST", std.getSigType());
+    Assertions.assertEquals("123", std.getSignTaskId());
+    Assertions.assertEquals("BES", std.getAdESType());
+    Assertions.assertEquals("ID", std.getAdESObject().getSignatureId());
 
-    Assert.assertNull(std.getProcessingRules());
-    Assert.assertNull(std.getBase64Signature());
-    Assert.assertNull(std.getOtherSignTaskData());
+    Assertions.assertNull(std.getProcessingRules());
+    Assertions.assertNull(std.getBase64Signature());
+    Assertions.assertNull(std.getOtherSignTaskData());
   }
 
   @Test
@@ -373,8 +379,8 @@ public class AbstractTbsDocumentProcessorTest extends TestBase {
         .content("DOCUMENT")
         .mimeType("TEST")
         .adesRequirement(EtsiAdesRequirement.builder()
-          .adesFormat(AdesType.BES)
-          .build())
+            .adesFormat(AdesType.BES)
+            .build())
         .build();
 
     TestTbsDocumentProcessor processor = new TestTbsDocumentProcessor();
@@ -383,15 +389,15 @@ public class AbstractTbsDocumentProcessorTest extends TestBase {
     ProcessedTbsDocument pd = processor.preProcess(tbsDocument, null, this.config, this.documentCache, "tbs");
 
     SignTaskData std = processor.process(pd, "dummy", null);
-    Assert.assertArrayEquals("DOCUMENT".getBytes(), std.getToBeSignedBytes());
-    Assert.assertEquals("TEST", std.getSigType());
-    Assert.assertEquals("123", std.getSignTaskId());
-    Assert.assertEquals("BES", std.getAdESType());
+    Assertions.assertArrayEquals("DOCUMENT".getBytes(), std.getToBeSignedBytes());
+    Assertions.assertEquals("TEST", std.getSigType());
+    Assertions.assertEquals("123", std.getSignTaskId());
+    Assertions.assertEquals("BES", std.getAdESType());
 
-    Assert.assertNull(std.getAdESObject());
-    Assert.assertNull(std.getProcessingRules());
-    Assert.assertNull(std.getBase64Signature());
-    Assert.assertNull(std.getOtherSignTaskData());
+    Assertions.assertNull(std.getAdESObject());
+    Assertions.assertNull(std.getProcessingRules());
+    Assertions.assertNull(std.getBase64Signature());
+    Assertions.assertNull(std.getOtherSignTaskData());
   }
 
   @Test
@@ -401,9 +407,9 @@ public class AbstractTbsDocumentProcessorTest extends TestBase {
         .content("DOCUMENT")
         .mimeType("TEST")
         .adesRequirement(EtsiAdesRequirement.builder()
-          .adesFormat(AdesType.EPES)
-          .adesObject("adesobject")
-          .build())
+            .adesFormat(AdesType.EPES)
+            .adesObject("adesobject")
+            .build())
         .build();
 
     TestTbsDocumentProcessor processor = new TestTbsDocumentProcessor();
@@ -412,16 +418,16 @@ public class AbstractTbsDocumentProcessorTest extends TestBase {
     ProcessedTbsDocument pd = processor.preProcess(tbsDocument, null, this.config, this.documentCache, "tbs");
 
     SignTaskData std = processor.process(pd, "dummy", null);
-    Assert.assertArrayEquals("DOCUMENT".getBytes(), std.getToBeSignedBytes());
-    Assert.assertEquals("TEST", std.getSigType());
-    Assert.assertEquals("123", std.getSignTaskId());
-    Assert.assertEquals("EPES", std.getAdESType());
-    Assert.assertEquals("ID", std.getAdESObject().getSignatureId());
-    Assert.assertArrayEquals("adesobject".getBytes(), std.getAdESObject().getAdESObjectBytes());
+    Assertions.assertArrayEquals("DOCUMENT".getBytes(), std.getToBeSignedBytes());
+    Assertions.assertEquals("TEST", std.getSigType());
+    Assertions.assertEquals("123", std.getSignTaskId());
+    Assertions.assertEquals("EPES", std.getAdESType());
+    Assertions.assertEquals("ID", std.getAdESObject().getSignatureId());
+    Assertions.assertArrayEquals("adesobject".getBytes(), std.getAdESObject().getAdESObjectBytes());
 
-    Assert.assertNull(std.getProcessingRules());
-    Assert.assertNull(std.getBase64Signature());
-    Assert.assertNull(std.getOtherSignTaskData());
+    Assertions.assertNull(std.getProcessingRules());
+    Assertions.assertNull(std.getBase64Signature());
+    Assertions.assertNull(std.getOtherSignTaskData());
   }
 
   @Test
@@ -431,10 +437,10 @@ public class AbstractTbsDocumentProcessorTest extends TestBase {
         .content("DOCUMENT")
         .mimeType("TEST")
         .adesRequirement(EtsiAdesRequirement.builder()
-          .adesFormat(AdesType.EPES)
-          .adesObject("adesobject")
-          .signaturePolicy("policy")
-          .build())
+            .adesFormat(AdesType.EPES)
+            .adesObject("adesobject")
+            .signaturePolicy("policy")
+            .build())
         .build();
 
     TestTbsDocumentProcessor processor = new TestTbsDocumentProcessor();
@@ -443,16 +449,16 @@ public class AbstractTbsDocumentProcessorTest extends TestBase {
     ProcessedTbsDocument pd = processor.preProcess(tbsDocument, null, this.config, this.documentCache, "tbs");
 
     SignTaskData std = processor.process(pd, "dummy", null);
-    Assert.assertArrayEquals("DOCUMENT".getBytes(), std.getToBeSignedBytes());
-    Assert.assertEquals("TEST", std.getSigType());
-    Assert.assertEquals("123", std.getSignTaskId());
-    Assert.assertEquals("EPES", std.getAdESType());
-    Assert.assertEquals("ID", std.getAdESObject().getSignatureId());
-    Assert.assertArrayEquals("adesobject".getBytes(), std.getAdESObject().getAdESObjectBytes());
-    Assert.assertEquals("policy", std.getProcessingRules());
+    Assertions.assertArrayEquals("DOCUMENT".getBytes(), std.getToBeSignedBytes());
+    Assertions.assertEquals("TEST", std.getSigType());
+    Assertions.assertEquals("123", std.getSignTaskId());
+    Assertions.assertEquals("EPES", std.getAdESType());
+    Assertions.assertEquals("ID", std.getAdESObject().getSignatureId());
+    Assertions.assertArrayEquals("adesobject".getBytes(), std.getAdESObject().getAdESObjectBytes());
+    Assertions.assertEquals("policy", std.getProcessingRules());
 
-    Assert.assertNull(std.getBase64Signature());
-    Assert.assertNull(std.getOtherSignTaskData());
+    Assertions.assertNull(std.getBase64Signature());
+    Assertions.assertNull(std.getOtherSignTaskData());
   }
 
   public static class TestTbsDocumentProcessor extends AbstractTbsDocumentProcessor<TestDocumentType> {

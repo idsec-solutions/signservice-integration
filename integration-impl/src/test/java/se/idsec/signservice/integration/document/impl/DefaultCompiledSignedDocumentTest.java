@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022 IDsec Solutions AB
+ * Copyright 2019-2023 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,8 @@
  */
 package se.idsec.signservice.integration.document.impl;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import se.idsec.signservice.integration.document.DocumentProcessingException;
 import se.idsec.signservice.integration.document.DocumentType;
@@ -40,27 +40,27 @@ public class DefaultCompiledSignedDocumentTest {
     try {
       new DefaultCompiledSignedDocument<TestDocumentType, TestAdesObject>(
           null, new TestDocumentType("Content"), DocumentType.XML.getMimeType(), encoder);
-      Assert.fail("Missing id - expected IllegalArgumentException");
+      Assertions.fail("Missing id - expected IllegalArgumentException");
     }
     catch (IllegalArgumentException e) {
     }
     try {
       new DefaultCompiledSignedDocument<TestDocumentType, TestAdesObject>("id", null, DocumentType.XML.getMimeType(), encoder);
-      Assert.fail("Missing document - expected IllegalArgumentException");
+      Assertions.fail("Missing document - expected IllegalArgumentException");
     }
     catch (IllegalArgumentException e) {
     }
     try {
       new DefaultCompiledSignedDocument<TestDocumentType, TestAdesObject>(
           "id", new TestDocumentType("Content"), null, encoder);
-      Assert.fail("Missing mimeType - expected IllegalArgumentException");
+      Assertions.fail("Missing mimeType - expected IllegalArgumentException");
     }
     catch (IllegalArgumentException e) {
     }
     try {
       new DefaultCompiledSignedDocument<TestDocumentType, TestAdesObject>(
           "id", new TestDocumentType("Content"), DocumentType.XML.getMimeType(), null);
-      Assert.fail("Missing document - expected IllegalArgumentException");
+      Assertions.fail("Missing document - expected IllegalArgumentException");
     }
     catch (IllegalArgumentException e) {
     }
@@ -71,22 +71,22 @@ public class DefaultCompiledSignedDocumentTest {
     DefaultCompiledSignedDocument<TestDocumentType, TestAdesObject> csd = new DefaultCompiledSignedDocument<>(
         "id", new TestDocumentType("DOCUMENT"), DocumentType.XML.getMimeType(), encoder, new TestAdesObject(null));
 
-    Assert.assertEquals("DOCUMENT", csd.getDocument().getContents());
-    Assert.assertNotNull(csd.getAdesObject());
+    Assertions.assertEquals("DOCUMENT", csd.getDocument().getContents());
+    Assertions.assertNotNull(csd.getAdesObject());
 
     SignedDocument sd = csd.getSignedDocument();
 
-    Assert.assertEquals("id", sd.getId());
-    Assert.assertEquals(DocumentType.XML.getMimeType(), sd.getMimeType());
-    Assert.assertNull(sd.getExtension());
-    Assert.assertEquals("DOCUMENT", sd.getSignedContent());
+    Assertions.assertEquals("id", sd.getId());
+    Assertions.assertEquals(DocumentType.XML.getMimeType(), sd.getMimeType());
+    Assertions.assertNull(sd.getExtension());
+    Assertions.assertEquals("DOCUMENT", sd.getSignedContent());
 
     // The document encoding is internally cached. Make sure we get the same result ...
     sd = csd.getSignedDocument();
-    Assert.assertEquals("id", sd.getId());
-    Assert.assertEquals(DocumentType.XML.getMimeType(), sd.getMimeType());
-    Assert.assertNull(sd.getExtension());
-    Assert.assertEquals("DOCUMENT", sd.getSignedContent());
+    Assertions.assertEquals("id", sd.getId());
+    Assertions.assertEquals(DocumentType.XML.getMimeType(), sd.getMimeType());
+    Assertions.assertNull(sd.getExtension());
+    Assertions.assertEquals("DOCUMENT", sd.getSignedContent());
   }
 
   @Test
@@ -98,10 +98,10 @@ public class DefaultCompiledSignedDocumentTest {
 
     try {
       csd.getSignedDocument();
-      Assert.fail("Expected RuntimeException");
+      Assertions.fail("Expected RuntimeException");
     }
     catch (RuntimeException e) {
-      Assert.assertTrue(DocumentProcessingException.class.isInstance(e.getCause()));
+      Assertions.assertTrue(DocumentProcessingException.class.isInstance(e.getCause()));
     }
   }
 

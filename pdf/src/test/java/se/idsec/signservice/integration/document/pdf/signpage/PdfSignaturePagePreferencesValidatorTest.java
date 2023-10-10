@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022 IDsec Solutions AB
+ * Copyright 2019-2023 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,8 @@
  */
 package se.idsec.signservice.integration.document.pdf.signpage;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
 import se.idsec.signservice.integration.config.impl.DefaultIntegrationServiceConfiguration;
@@ -51,7 +51,7 @@ public class PdfSignaturePagePreferencesValidatorTest {
     PdfSignaturePagePreferences object = PdfSignaturePagePreferences.builder().build();
     try {
       validator.validateObject(object, "prefs", config);
-      Assert.fail("Expected InputValidationException");
+      Assertions.fail("Expected InputValidationException");
     }
     catch (InputValidationException e) {
     }
@@ -63,10 +63,10 @@ public class PdfSignaturePagePreferencesValidatorTest {
       .build();
     try {
       validator.validateObject(object, "prefs", config);
-      Assert.fail("Expected InputValidationException");
+      Assertions.fail("Expected InputValidationException");
     }
     catch (InputValidationException e) {
-      Assert.assertNotNull(e.getDetails().get("prefs.signaturePageReference"));
+      Assertions.assertNotNull(e.getDetails().get("prefs.signaturePageReference"));
     }
 
     config = DefaultIntegrationServiceConfiguration.builder()
@@ -78,10 +78,10 @@ public class PdfSignaturePagePreferencesValidatorTest {
 
     try {
       validator.validateObject(object, "prefs", config);
-      Assert.fail("Expected InputValidationException");
+      Assertions.fail("Expected InputValidationException");
     }
     catch (InputValidationException e) {
-      Assert.assertNotNull(e.getDetails().get("prefs.signaturePageReference"));
+      Assertions.assertNotNull(e.getDetails().get("prefs.signaturePageReference"));
     }
   }
 
@@ -100,7 +100,7 @@ public class PdfSignaturePagePreferencesValidatorTest {
 
     try {
       validator.validateObject(object, "prefs", config);
-      Assert.fail("Expected InputValidationException");
+      Assertions.fail("Expected InputValidationException");
     }
     catch (InputValidationException e) {
     }
@@ -133,10 +133,10 @@ public class PdfSignaturePagePreferencesValidatorTest {
 
     try {
       validator.validateObject(object, "prefs", config);
-      Assert.fail("Expected InputValidationException");
+      Assertions.fail("Expected InputValidationException");
     }
     catch (InputValidationException e) {
-      Assert.assertNotNull(e.getDetails().get("prefs.visiblePdfSignatureUserInformation"));
+      Assertions.assertNotNull(e.getDetails().get("prefs.visiblePdfSignatureUserInformation"));
     }
   }
 
@@ -167,11 +167,11 @@ public class PdfSignaturePagePreferencesValidatorTest {
 
     try {
       validator.validateObject(object, "prefs", config);
-      Assert.fail("Expected InputValidationException");
+      Assertions.fail("Expected InputValidationException");
     }
     catch (InputValidationException e) {
-      Assert.assertNotNull(e.getDetails().get("prefs.signaturePage.signatureImageReference"));
-      Assert.assertNull(e.getDetails().get("prefs.visiblePdfSignatureUserInformation"));
+      Assertions.assertNotNull(e.getDetails().get("prefs.signaturePage.signatureImageReference"));
+      Assertions.assertNull(e.getDetails().get("prefs.visiblePdfSignatureUserInformation"));
     }
 
     config = DefaultIntegrationServiceConfiguration.builder()
@@ -198,12 +198,12 @@ public class PdfSignaturePagePreferencesValidatorTest {
 
     try {
       validator.validateObject(object, "prefs", config);
-      Assert.fail("Expected InputValidationException");
+      Assertions.fail("Expected InputValidationException");
     }
     catch (InputValidationException e) {
       System.out.println(e.getMessage());
-      Assert.assertNull(e.getDetails().get("prefs.signaturePage.signatureImageReference"));
-      Assert.assertNotNull(e.getDetails().get("prefs.visiblePdfSignatureUserInformation"));
+      Assertions.assertNull(e.getDetails().get("prefs.signaturePage.signatureImageReference"));
+      Assertions.assertNotNull(e.getDetails().get("prefs.visiblePdfSignatureUserInformation"));
     }
   }
 
@@ -239,7 +239,7 @@ public class PdfSignaturePagePreferencesValidatorTest {
 
     validator.validateObject(object, "prefs", config);
     final ValidationResult result = validator.validate(object, "prefs", config);
-    Assert.assertFalse(result.hasErrors());
+    Assertions.assertFalse(result.hasErrors());
   }
 
 }

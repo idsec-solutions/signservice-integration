@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022 IDsec Solutions AB
+ * Copyright 2019-2023 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,13 +58,15 @@ public class ExtendedPdfSignaturePageValidator extends PdfSignaturePageValidator
             if (config.getPage() != null) {
               if (config.getPage().intValue() > document.getNumberOfPages()) {
                 result.rejectValue("imagePlacementConfiguration.page", String.format(
-                  "Invalid page number. Document has %d page(s), but page is %d", document.getNumberOfPages(), config.getPage()));
+                    "Invalid page number. Document has %d page(s), but page is %d", document.getNumberOfPages(),
+                    config.getPage()));
               }
             }
           }
         }
         catch (final Exception e) {
-          result.rejectValue("pdfDocument", String.format("Invalid PDF document - can not be loaded - %s", e.getMessage()));
+          result.rejectValue("pdfDocument",
+              String.format("Invalid PDF document - can not be loaded - %s", e.getMessage()));
         }
         finally {
           PDDocumentUtils.close(document);

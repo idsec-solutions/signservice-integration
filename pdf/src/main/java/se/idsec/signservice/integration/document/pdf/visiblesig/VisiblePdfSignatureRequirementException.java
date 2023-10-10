@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022 IDsec Solutions AB
+ * Copyright 2019-2023 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,8 +29,7 @@ public class VisiblePdfSignatureRequirementException extends Exception {
   /**
    * Constructor.
    *
-   * @param message
-   *          error message
+   * @param message error message
    */
   public VisiblePdfSignatureRequirementException(final String message) {
     super(message);
@@ -39,10 +38,8 @@ public class VisiblePdfSignatureRequirementException extends Exception {
   /**
    * Constructor.
    *
-   * @param message
-   *          error message
-   * @param cause
-   *          the cause of the error
+   * @param message error message
+   * @param cause the cause of the error
    */
   public VisiblePdfSignatureRequirementException(final String message, final Throwable cause) {
     super(message, cause);

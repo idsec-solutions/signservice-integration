@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022 IDsec Solutions AB
+ * Copyright 2019-2023 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,8 @@
  */
 package se.idsec.signservice.integration.document.impl;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import se.idsec.signservice.integration.authentication.SignerIdentityAttribute;
 import se.idsec.signservice.integration.core.error.InputValidationException;
@@ -43,7 +43,7 @@ public class VisiblePdfSignatureUserInformationValidatorTest {
 
     try {
       validator.validateObject(object, "name", null);
-      Assert.fail("Expected InputValidationException");
+      Assertions.fail("Expected InputValidationException");
     }
     catch (InputValidationException e) {
     }
@@ -64,10 +64,10 @@ public class VisiblePdfSignatureUserInformationValidatorTest {
 
     try {
       validator.validateObject(object, "name", hint);
-      Assert.fail("Expected InputValidationException");
+      Assertions.fail("Expected InputValidationException");
     }
     catch (InputValidationException e) {
-      Assert.assertNotNull(e.getDetails().get("name.signerName"));
+      Assertions.assertNotNull(e.getDetails().get("name.signerName"));
     }
 
     object = VisiblePdfSignatureUserInformation.toBuilder()
@@ -77,10 +77,10 @@ public class VisiblePdfSignatureUserInformationValidatorTest {
 
     try {
       validator.validateObject(object, "name", hint);
-      Assert.fail("Expected InputValidationException");
+      Assertions.fail("Expected InputValidationException");
     }
     catch (InputValidationException e) {
-      Assert.assertNotNull(e.getDetails().get("name.signerName"));
+      Assertions.assertNotNull(e.getDetails().get("name.signerName"));
     }
 
   }
@@ -104,11 +104,11 @@ public class VisiblePdfSignatureUserInformationValidatorTest {
 
     try {
       validator.validateObject(object, "name", hint);
-      Assert.fail("Expected InputValidationException");
+      Assertions.fail("Expected InputValidationException");
     }
     catch (InputValidationException e) {
-      Assert.assertNotNull(e.getDetails().get("name.fieldValues.IDP"));
-      Assert.assertNotNull(e.getDetails().get("name.fieldValues.Foo"));
+      Assertions.assertNotNull(e.getDetails().get("name.fieldValues.IDP"));
+      Assertions.assertNotNull(e.getDetails().get("name.fieldValues.Foo"));
     }
 
     object = VisiblePdfSignatureUserInformation.toBuilder()
@@ -120,10 +120,10 @@ public class VisiblePdfSignatureUserInformationValidatorTest {
 
     try {
       validator.validateObject(object, "name", hint);
-      Assert.fail("Expected InputValidationException");
+      Assertions.fail("Expected InputValidationException");
     }
     catch (InputValidationException e) {
-      Assert.assertNotNull(e.getDetails().get("name.fieldValues.Foo"));
+      Assertions.assertNotNull(e.getDetails().get("name.fieldValues.Foo"));
     }
   }
 
@@ -148,6 +148,6 @@ public class VisiblePdfSignatureUserInformationValidatorTest {
 
     validator.validateObject(object, "name", hint);
     final ValidationResult result = validator.validate(object, "name", hint);
-    Assert.assertFalse(result.hasErrors());
+    Assertions.assertFalse(result.hasErrors());
   }
 }

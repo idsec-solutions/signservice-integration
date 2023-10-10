@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022 IDsec Solutions AB
+ * Copyright 2019-2023 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,8 @@ package se.idsec.signservice.integration.document.impl;
 import java.util.Arrays;
 import java.util.Base64;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import se.idsec.signservice.integration.core.FileResource;
 import se.idsec.signservice.integration.core.error.InputValidationException;
@@ -42,10 +42,10 @@ public class PdfSignaturePageValidatorTest {
 
     try {
       validator.validateObject(new PdfSignaturePage(), "page", null);
-      Assert.fail("Expected InputValidationException");
+      Assertions.fail("Expected InputValidationException");
     }
     catch (InputValidationException e) {
-      Assert.assertNotNull(e.getDetails().get("page.id"));
+      Assertions.assertNotNull(e.getDetails().get("page.id"));
     }
   }
 
@@ -55,11 +55,11 @@ public class PdfSignaturePageValidatorTest {
 
     try {
       validator.validateObject(PdfSignaturePage.builder().id("ID").build(), "page", null);
-      Assert.fail("Expected InputValidationException");
+      Assertions.fail("Expected InputValidationException");
     }
     catch (InputValidationException e) {
-      Assert.assertNull(e.getDetails().get("page.id"));
-      Assert.assertNotNull(e.getDetails().get("page.pdfDocument"));
+      Assertions.assertNull(e.getDetails().get("page.id"));
+      Assertions.assertNotNull(e.getDetails().get("page.pdfDocument"));
     }
   }
 
@@ -76,12 +76,12 @@ public class PdfSignaturePageValidatorTest {
 
     try {
       validator.validateObject(page, "page", null);
-      Assert.fail("Expected InputValidationException");
+      Assertions.fail("Expected InputValidationException");
     }
     catch (InputValidationException e) {
-      Assert.assertNull(e.getDetails().get("page.id"));
-      Assert.assertNull(e.getDetails().get("page.pdfDocument"));
-      Assert.assertNotNull(e.getDetails().get("page.signatureImageReference"));
+      Assertions.assertNull(e.getDetails().get("page.id"));
+      Assertions.assertNull(e.getDetails().get("page.pdfDocument"));
+      Assertions.assertNotNull(e.getDetails().get("page.signatureImageReference"));
     }
   }
 
@@ -99,10 +99,10 @@ public class PdfSignaturePageValidatorTest {
 
     try {
       validator.validateObject(page, "page", null);
-      Assert.fail("Expected InputValidationException");
+      Assertions.fail("Expected InputValidationException");
     }
     catch (InputValidationException e) {
-      Assert.assertNotNull(e.getDetails().get("page.signatureImageReference"));
+      Assertions.assertNotNull(e.getDetails().get("page.signatureImageReference"));
     }
 
     final PdfSignatureImageTemplate template = PdfSignatureImageTemplate.builder()
@@ -111,10 +111,10 @@ public class PdfSignaturePageValidatorTest {
 
     try {
       validator.validateObject(page, "page", Arrays.asList(template));
-      Assert.fail("Expected InputValidationException");
+      Assertions.fail("Expected InputValidationException");
     }
     catch (InputValidationException e) {
-      Assert.assertNotNull(e.getDetails().get("page.signatureImageReference"));
+      Assertions.assertNotNull(e.getDetails().get("page.signatureImageReference"));
     }
   }
 
@@ -136,10 +136,10 @@ public class PdfSignaturePageValidatorTest {
 
     try {
       validator.validateObject(page, "page", Arrays.asList(template));
-      Assert.fail("Expected InputValidationException");
+      Assertions.fail("Expected InputValidationException");
     }
     catch (InputValidationException e) {
-      Assert.assertNotNull(e.getDetails().get("page.imagePlacementConfiguration"));
+      Assertions.assertNotNull(e.getDetails().get("page.imagePlacementConfiguration"));
     }
   }
 
@@ -163,54 +163,54 @@ public class PdfSignaturePageValidatorTest {
     // Missing X
     try {
       validator.validateObject(page, "page", Arrays.asList(template));
-      Assert.fail("Expected InputValidationException due to missing xPosition");
+      Assertions.fail("Expected InputValidationException due to missing xPosition");
     }
     catch (InputValidationException e) {
-      Assert.assertNotNull(e.getDetails().get("page.imagePlacementConfiguration.xPosition"));
+      Assertions.assertNotNull(e.getDetails().get("page.imagePlacementConfiguration.xPosition"));
 
-      Assert.assertNull(e.getDetails().get("page.imagePlacementConfiguration.xIncrement"));
-      Assert.assertNull(e.getDetails().get("page.imagePlacementConfiguration.yIncrement"));
+      Assertions.assertNull(e.getDetails().get("page.imagePlacementConfiguration.xIncrement"));
+      Assertions.assertNull(e.getDetails().get("page.imagePlacementConfiguration.yIncrement"));
     }
 
     // Invalid value for X
     page.getImagePlacementConfiguration().setXPosition(-10);
     try {
       validator.validateObject(page, "page", Arrays.asList(template));
-      Assert.fail("Expected InputValidationException due to invalid xPosition");
+      Assertions.fail("Expected InputValidationException due to invalid xPosition");
     }
     catch (InputValidationException e) {
-      Assert.assertNotNull(e.getDetails().get("page.imagePlacementConfiguration.xPosition"));
+      Assertions.assertNotNull(e.getDetails().get("page.imagePlacementConfiguration.xPosition"));
 
-      Assert.assertNull(e.getDetails().get("page.imagePlacementConfiguration.xIncrement"));
-      Assert.assertNull(e.getDetails().get("page.imagePlacementConfiguration.yIncrement"));
+      Assertions.assertNull(e.getDetails().get("page.imagePlacementConfiguration.xIncrement"));
+      Assertions.assertNull(e.getDetails().get("page.imagePlacementConfiguration.yIncrement"));
     }
 
     // Missing Y
     page.getImagePlacementConfiguration().setXPosition(10);
     try {
       validator.validateObject(page, "page", Arrays.asList(template));
-      Assert.fail("Expected InputValidationException due to missing yPosition");
+      Assertions.fail("Expected InputValidationException due to missing yPosition");
     }
     catch (InputValidationException e) {
-      Assert.assertNotNull(e.getDetails().get("page.imagePlacementConfiguration.yPosition"));
+      Assertions.assertNotNull(e.getDetails().get("page.imagePlacementConfiguration.yPosition"));
 
-      Assert.assertNull(e.getDetails().get("page.imagePlacementConfiguration.xPosition"));
-      Assert.assertNull(e.getDetails().get("page.imagePlacementConfiguration.xIncrement"));
-      Assert.assertNull(e.getDetails().get("page.imagePlacementConfiguration.yIncrement"));
+      Assertions.assertNull(e.getDetails().get("page.imagePlacementConfiguration.xPosition"));
+      Assertions.assertNull(e.getDetails().get("page.imagePlacementConfiguration.xIncrement"));
+      Assertions.assertNull(e.getDetails().get("page.imagePlacementConfiguration.yIncrement"));
     }
 
     // Invalid value for Y
     page.getImagePlacementConfiguration().setYPosition(-10);
     try {
       validator.validateObject(page, "page", Arrays.asList(template));
-      Assert.fail("Expected InputValidationException due to invalid yPosition");
+      Assertions.fail("Expected InputValidationException due to invalid yPosition");
     }
     catch (InputValidationException e) {
-      Assert.assertNotNull(e.getDetails().get("page.imagePlacementConfiguration.yPosition"));
+      Assertions.assertNotNull(e.getDetails().get("page.imagePlacementConfiguration.yPosition"));
 
-      Assert.assertNull(e.getDetails().get("page.imagePlacementConfiguration.xPosition"));
-      Assert.assertNull(e.getDetails().get("page.imagePlacementConfiguration.xIncrement"));
-      Assert.assertNull(e.getDetails().get("page.imagePlacementConfiguration.yIncrement"));
+      Assertions.assertNull(e.getDetails().get("page.imagePlacementConfiguration.xPosition"));
+      Assertions.assertNull(e.getDetails().get("page.imagePlacementConfiguration.xIncrement"));
+      Assertions.assertNull(e.getDetails().get("page.imagePlacementConfiguration.yIncrement"));
     }
 
     // Missing X increment
@@ -218,14 +218,14 @@ public class PdfSignaturePageValidatorTest {
     page.setColumns(2);
     try {
       validator.validateObject(page, "page", Arrays.asList(template));
-      Assert.fail("Expected InputValidationException due to missing xIncrement");
+      Assertions.fail("Expected InputValidationException due to missing xIncrement");
     }
     catch (InputValidationException e) {
-      Assert.assertNotNull(e.getDetails().get("page.imagePlacementConfiguration.xIncrement"));
+      Assertions.assertNotNull(e.getDetails().get("page.imagePlacementConfiguration.xIncrement"));
 
-      Assert.assertNull(e.getDetails().get("page.imagePlacementConfiguration.xPosition"));
-      Assert.assertNull(e.getDetails().get("page.imagePlacementConfiguration.yPosition"));
-      Assert.assertNull(e.getDetails().get("page.imagePlacementConfiguration.yIncrement"));
+      Assertions.assertNull(e.getDetails().get("page.imagePlacementConfiguration.xPosition"));
+      Assertions.assertNull(e.getDetails().get("page.imagePlacementConfiguration.yPosition"));
+      Assertions.assertNull(e.getDetails().get("page.imagePlacementConfiguration.yIncrement"));
     }
 
     // Missing Y increment
@@ -233,14 +233,14 @@ public class PdfSignaturePageValidatorTest {
     page.getImagePlacementConfiguration().setXIncrement(100);
     try {
       validator.validateObject(page, "page", Arrays.asList(template));
-      Assert.fail("Expected InputValidationException due to missing yIncrement");
+      Assertions.fail("Expected InputValidationException due to missing yIncrement");
     }
     catch (InputValidationException e) {
-      Assert.assertNotNull(e.getDetails().get("page.imagePlacementConfiguration.yIncrement"));
+      Assertions.assertNotNull(e.getDetails().get("page.imagePlacementConfiguration.yIncrement"));
 
-      Assert.assertNull(e.getDetails().get("page.imagePlacementConfiguration.xPosition"));
-      Assert.assertNull(e.getDetails().get("page.imagePlacementConfiguration.yPosition"));
-      Assert.assertNull(e.getDetails().get("page.imagePlacementConfiguration.xIncrement"));
+      Assertions.assertNull(e.getDetails().get("page.imagePlacementConfiguration.xPosition"));
+      Assertions.assertNull(e.getDetails().get("page.imagePlacementConfiguration.yPosition"));
+      Assertions.assertNull(e.getDetails().get("page.imagePlacementConfiguration.xIncrement"));
     }
   }
 
@@ -271,7 +271,7 @@ public class PdfSignaturePageValidatorTest {
 
     validator.validateObject(page, "page", Arrays.asList(template));
     final ValidationResult result = validator.validate(page, "page", Arrays.asList(template));
-    Assert.assertFalse(result.hasErrors());
+    Assertions.assertFalse(result.hasErrors());
   }
 
 }

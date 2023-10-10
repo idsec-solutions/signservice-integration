@@ -15,9 +15,8 @@
  */
 package se.idsec.signservice.integration.process.impl;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import se.idsec.signservice.integration.SignResponseProcessingParameters;
 import se.idsec.signservice.integration.authentication.SignerAssertionInformation;
 import se.idsec.signservice.integration.core.error.SignServiceIntegrationException;

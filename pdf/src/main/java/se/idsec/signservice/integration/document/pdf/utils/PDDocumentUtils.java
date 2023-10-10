@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022 IDsec Solutions AB
+ * Copyright 2019-2023 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,11 +49,9 @@ public class PDDocumentUtils {
    * The returned object must later be closes (see {@link #close(PDDocument)}).
    * </p>
    *
-   * @param contents
-   *          the PDF file contents
+   * @param contents the PDF file contents
    * @return a loaded PDDocument object
-   * @throws DocumentProcessingException
-   *           for loading errors
+   * @throws DocumentProcessingException for loading errors
    */
   public static PDDocument load(final byte[] contents) throws DocumentProcessingException {
     try {
@@ -68,8 +66,7 @@ public class PDDocumentUtils {
   /**
    * Closes an open {@link PDDocument} object and releases its allocated resources.
    *
-   * @param document
-   *          the document to close
+   * @param document the document to close
    */
   public static void close(final PDDocument document) {
     if (document != null) {
@@ -85,11 +82,9 @@ public class PDDocumentUtils {
   /**
    * Encodes the supplied PDF document into a byte array.
    *
-   * @param document
-   *          the document to encode
+   * @param document the document to encode
    * @return a byte array of the contents
-   * @throws DocumentProcessingException
-   *           for processing errors
+   * @throws DocumentProcessingException for processing errors
    */
   public static byte[] toBytes(final PDDocument document) throws DocumentProcessingException {
     try {
@@ -107,15 +102,11 @@ public class PDDocumentUtils {
    * Inserts the {@code insertDocument} in {@code document} at position {@code page} (1-based). This means that the
    * given page number is the page number for the first page of the {@code insertDocument} after insertion.
    *
-   * @param document
-   *          the document to be updated (will be closed)
-   * @param insertDocument
-   *          the document to insert
-   * @param page
-   *          the page (1-based) number where to insert, 0 means at the end of the file
+   * @param document the document to be updated (will be closed)
+   * @param insertDocument the document to insert
+   * @param page the page (1-based) number where to insert, 0 means at the end of the file
    * @return the updated document
-   * @throws DocumentProcessingException
-   *           for errors
+   * @throws DocumentProcessingException for errors
    */
   public static PDDocument insertDocument(final PDDocument document, final PDDocument insertDocument, final int page)
       throws DocumentProcessingException {
@@ -150,11 +141,11 @@ public class PDDocumentUtils {
     }
     catch (IndexOutOfBoundsException | IllegalStateException | IllegalArgumentException e) {
       throw new DocumentProcessingException(new ErrorCode.Code("pdf"),
-        String.format("Failed to insert sign page at page %d of document (no such page)", page), e);
+          String.format("Failed to insert sign page at page %d of document (no such page)", page), e);
     }
     catch (final IOException e) {
       throw new DocumentProcessingException(new ErrorCode.Code("pdf"),
-        String.format("Failed to insert sign page into document"), e);
+          String.format("Failed to insert sign page into document"), e);
     }
     finally {
       PDDocumentUtils.close(document);

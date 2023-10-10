@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022 IDsec Solutions AB
+ * Copyright 2019-2023 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -68,18 +68,19 @@ public class PdfSignaturePagePreferencesValidator
     else if (object.getSignaturePageReference() != null) {
       // Find the sign page ...
       page = hint.getPdfSignaturePages().stream()
-        .filter(p -> object.getSignaturePageReference().equals(p.getId()))
-        .findAny()
-        .orElse(null);
+          .filter(p -> object.getSignaturePageReference().equals(p.getId()))
+          .findAny()
+          .orElse(null);
       if (page == null) {
         result.rejectValue("signaturePageReference",
-          String.format("Configuration '%s' does not hold a PdfSignaturePage with id '%s'", hint.getPolicy(),
-            object.getSignaturePageReference()));
+            String.format("Configuration '%s' does not hold a PdfSignaturePage with id '%s'", hint.getPolicy(),
+                object.getSignaturePageReference()));
       }
     }
     else if (object.getSignaturePage() != null) {
       result.setFieldErrors(
-        this.pdfSignaturePageValidator.validate(object.getSignaturePage(), "signaturePage", hint.getPdfSignatureImageTemplates()));
+          this.pdfSignaturePageValidator.validate(object.getSignaturePage(), "signaturePage",
+              hint.getPdfSignatureImageTemplates()));
       page = object.getSignaturePage();
     }
 
@@ -91,14 +92,14 @@ public class PdfSignaturePagePreferencesValidator
       if (page != null) {
         final PdfSignaturePage _page = page;
         template = hint.getPdfSignatureImageTemplates().stream()
-          .filter(t -> _page.getSignatureImageReference().equals(t.getReference()))
-          .findFirst()
-          .orElse(null);
+            .filter(t -> _page.getSignatureImageReference().equals(t.getReference()))
+            .findFirst()
+            .orElse(null);
       }
       if (template != null || object.getSignaturePageReference() != null) {
         result.setFieldErrors(
-          this.visiblePdfSignatureUserInformationValidator.validate(
-            object.getVisiblePdfSignatureUserInformation(), "visiblePdfSignatureUserInformation", template));
+            this.visiblePdfSignatureUserInformationValidator.validate(
+                object.getVisiblePdfSignatureUserInformation(), "visiblePdfSignatureUserInformation", template));
       }
     }
 

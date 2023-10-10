@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022 IDsec Solutions AB
+ * Copyright 2019-2023 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,8 @@
  */
 package se.idsec.signservice.integration.process;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import se.idsec.signservice.integration.SignResponseCancelStatusException;
 import se.idsec.signservice.integration.SignResponseErrorStatusException;
 import se.idsec.signservice.integration.SignResponseProcessingParameters;
@@ -37,21 +36,14 @@ public interface SignResponseProcessor {
   /**
    * Processes the supplied SignResponse according to the supplied processing parameters and the session state.
    *
-   * @param signResponse
-   *          the encoded SignResponse message
-   * @param sessionState
-   *          the state
-   * @param config
-   *          the policy configuration
-   * @param parameters
-   *          optional processing parameters
+   * @param signResponse the encoded SignResponse message
+   * @param sessionState the state
+   * @param config the policy configuration
+   * @param parameters optional processing parameters
    * @return a signature response
-   * @throws SignResponseCancelStatusException
-   *           if the user cancelled the operation
-   * @throws SignResponseErrorStatusException
-   *           if the sign service reported an error
-   * @throws SignServiceIntegrationException
-   *           for processing and validation errors
+   * @throws SignResponseCancelStatusException if the user cancelled the operation
+   * @throws SignResponseErrorStatusException if the sign service reported an error
+   * @throws SignServiceIntegrationException for processing and validation errors
    */
   @Nonnull
   SignatureResult processSignResponse(@Nonnull final String signResponse,

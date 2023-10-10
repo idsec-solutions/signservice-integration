@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022 IDsec Solutions AB
+ * Copyright 2019-2023 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,16 +45,13 @@ public class SignatureImagePlacement {
   /**
    * Create sign image placement.
    *
-   * @param signImageXpos
-   *          image X coordinate
-   * @param signImageYpos
-   *          image Y coordinate
-   * @param signImageScale
-   *          zoom percentage
-   * @param signImagePage
-   *          1 based page placement. 0 for last page
+   * @param signImageXpos image X coordinate
+   * @param signImageYpos image Y coordinate
+   * @param signImageScale zoom percentage
+   * @param signImagePage 1 based page placement. 0 for last page
    */
-  public SignatureImagePlacement(final int signImageXpos, final int signImageYpos, final int signImageScale, final int signImagePage) {
+  public SignatureImagePlacement(final int signImageXpos, final int signImageYpos, final int signImageScale,
+      final int signImagePage) {
     this.signImageXpos = signImageXpos;
     this.signImageYpos = signImageYpos;
     this.signImageScale = signImageScale;
@@ -64,12 +61,9 @@ public class SignatureImagePlacement {
   /**
    * Get new sign image placement with relative location change.
    *
-   * @param addX
-   *          add placement this number of pixels on the x axis
-   * @param addY
-   *          add placement this number of pixels on the y axis
-   * @param basePlacement
-   *          the base placement
+   * @param addX add placement this number of pixels on the x axis
+   * @param addY add placement this number of pixels on the y axis
+   * @param basePlacement the base placement
    */
   public SignatureImagePlacement(final int addX, final int addY, final SignatureImagePlacement basePlacement) {
     this.signImageXpos = basePlacement.getSignImageXpos() + addX;
@@ -81,16 +75,13 @@ public class SignatureImagePlacement {
   /**
    * Get new sign image placement with relative location change.
    *
-   * @param addX
-   *          add placement this number of pixels on the x axis
-   * @param addY
-   *          add placement this number of pixels on the y axis
-   * @param signImageScale
-   *          new scale
-   * @param basePlacement
-   *          the base placement
+   * @param addX add placement this number of pixels on the x axis
+   * @param addY add placement this number of pixels on the y axis
+   * @param signImageScale new scale
+   * @param basePlacement the base placement
    */
-  public SignatureImagePlacement(final int addX, final int addY, final int signImageScale, final SignatureImagePlacement basePlacement) {
+  public SignatureImagePlacement(final int addX, final int addY, final int signImageScale,
+      final SignatureImagePlacement basePlacement) {
     this.signImageXpos = basePlacement.getSignImageXpos() + addX;
     this.signImageYpos = basePlacement.getSignImageYpos() + addY;
     this.signImageScale = signImageScale;

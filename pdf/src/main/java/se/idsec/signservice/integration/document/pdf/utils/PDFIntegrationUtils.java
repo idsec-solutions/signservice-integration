@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022 IDsec Solutions AB
+ * Copyright 2019-2023 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,8 +29,7 @@ public class PDFIntegrationUtils {
   /**
    * Get the {@link AdesProfileType} for a PAdES requirement in a {@link TbsDocument}.
    *
-   * @param requestedAdes
-   *          AdES requirement
+   * @param requestedAdes AdES requirement
    * @return enum the AdES requirement
    */
   public static AdesProfileType getPadesRequirement(final TbsDocument.EtsiAdesRequirement requestedAdes) {
