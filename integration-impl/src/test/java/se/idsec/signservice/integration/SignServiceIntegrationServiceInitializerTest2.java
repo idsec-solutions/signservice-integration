@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022 IDsec Solutions AB
+ * Copyright 2019-2023 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,8 @@
  */
 package se.idsec.signservice.integration;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.opensaml.core.config.ConfigurationService;
 import org.opensaml.core.xml.XMLRuntimeException;
 import org.opensaml.core.xml.util.XMLObjectSupport;
@@ -42,13 +42,9 @@ public class SignServiceIntegrationServiceInitializerTest2 {
     }
 
     // Try creating OpenSAML object. Should not be possible.
-    try {
+    Assertions.assertThrows(XMLRuntimeException.class, () -> {
       XMLObjectSupport.buildXMLObject(Issuer.DEFAULT_ELEMENT_NAME);
-      Assert.fail("Expected XMLRuntimeException");
-    }
-    catch (XMLRuntimeException e) {
-      // XMLObjectProviderRegistry was not available from the ConfigurationService.
-    }
+    });
 
     SignServiceIntegrationServiceInitializer.initialize(new SwedishEidSecurityConfiguration());
 
@@ -60,7 +56,7 @@ public class SignServiceIntegrationServiceInitializerTest2 {
     EncryptionConfiguration encConfig = ConfigurationService.get(EncryptionConfiguration.class);
     int cbcPos = encConfig.getDataEncryptionAlgorithms().indexOf(EncryptionConstants.ALGO_ID_BLOCKCIPHER_AES128);
     int gcmPos = encConfig.getDataEncryptionAlgorithms().indexOf(EncryptionConstants.ALGO_ID_BLOCKCIPHER_AES128_GCM);
-    Assert.assertTrue(cbcPos < gcmPos);
+    Assertions.assertTrue(cbcPos < gcmPos);
   }
 
 }

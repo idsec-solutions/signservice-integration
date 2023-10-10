@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022 IDsec Solutions AB
+ * Copyright 2019-2023 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,16 +41,13 @@ public class GenericSignImagePlacementCalculator implements SignatureImagePlacem
   /**
    * Default constructor for the sign image calculator
    *
-   * @param cols
-   *          number of columns used to place sign images
-   * @param rows
-   *          number of maximum rows to place sign images
-   * @param xIncrement
-   *          the x axis increment amount between sign images on the same row
-   * @param yIncrement
-   *          the y (height) axis increment amount between sign image rows
+   * @param cols number of columns used to place sign images
+   * @param rows number of maximum rows to place sign images
+   * @param xIncrement the x axis increment amount between sign images on the same row
+   * @param yIncrement the y (height) axis increment amount between sign image rows
    */
-  public GenericSignImagePlacementCalculator(final int cols, final int rows, final int xIncrement, final int yIncrement) {
+  public GenericSignImagePlacementCalculator(final int cols, final int rows, final int xIncrement,
+      final int yIncrement) {
     this.cols = cols;
     this.rows = rows;
     this.xIncrement = xIncrement;
@@ -72,6 +69,7 @@ public class GenericSignImagePlacementCalculator implements SignatureImagePlacem
     if (row >= this.rows) {
       return new SignatureImagePlacement();
     }
-    return new SignatureImagePlacement(this.startXoffset + col * this.xIncrement, this.startYoffset + row * this.yIncrement, basePlacement);
+    return new SignatureImagePlacement(this.startXoffset + col * this.xIncrement,
+        this.startYoffset + row * this.yIncrement, basePlacement);
   }
 }

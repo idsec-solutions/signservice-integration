@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022 IDsec Solutions AB
+ * Copyright 2019-2023 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,8 @@ package se.idsec.signservice.integration.document.pdf;
 
 import java.util.Base64;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import se.idsec.signservice.integration.authentication.SignerIdentityAttribute;
 import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
@@ -87,8 +87,8 @@ public class VisiblePdfSignatureRequirementValidatorTest {
   @Test
   public void testEmpty() throws Exception {
     ValidationResult result = this.validator.validate(null, OBJECT_NAME, this.configuration);
-    Assert.assertFalse(result.hasErrors());
-    Assert.assertEquals(OBJECT_NAME, result.getObjectName());
+    Assertions.assertFalse(result.hasErrors());
+    Assertions.assertEquals(OBJECT_NAME, result.getObjectName());
   }
 
   @Test
@@ -104,10 +104,10 @@ public class VisiblePdfSignatureRequirementValidatorTest {
 
     ValidationResult result = this.validator.validate(req, OBJECT_NAME, this.configuration);
 
-    Assert.assertTrue(result.hasErrors());
-    Assert.assertNotNull(result.getFieldErrors().get(OBJECT_NAME + ".templateImageRef"));
-    Assert.assertNotNull(result.getFieldErrors().get(OBJECT_NAME + ".visiblePdfSignatureRequirement"));
-    Assert.assertEquals(2, result.getFieldErrors().size());
+    Assertions.assertTrue(result.hasErrors());
+    Assertions.assertNotNull(result.getFieldErrors().get(OBJECT_NAME + ".templateImageRef"));
+    Assertions.assertNotNull(result.getFieldErrors().get(OBJECT_NAME + ".visiblePdfSignatureRequirement"));
+    Assertions.assertEquals(2, result.getFieldErrors().size());
 
     // The template reference does not exist in the configuration
     //
@@ -117,10 +117,10 @@ public class VisiblePdfSignatureRequirementValidatorTest {
         .yPosition(100)
         .build();
     result = this.validator.validate(req, OBJECT_NAME, this.configuration);
-    Assert.assertTrue(result.hasErrors());
-    Assert.assertNotNull(result.getFieldErrors().get(OBJECT_NAME + ".templateImageRef"));
-    Assert.assertNotNull(result.getFieldErrors().get(OBJECT_NAME + ".visiblePdfSignatureRequirement"));
-    Assert.assertEquals(2, result.getFieldErrors().size());
+    Assertions.assertTrue(result.hasErrors());
+    Assertions.assertNotNull(result.getFieldErrors().get(OBJECT_NAME + ".templateImageRef"));
+    Assertions.assertNotNull(result.getFieldErrors().get(OBJECT_NAME + ".visiblePdfSignatureRequirement"));
+    Assertions.assertEquals(2, result.getFieldErrors().size());
 
     // OK case
     //
@@ -130,7 +130,7 @@ public class VisiblePdfSignatureRequirementValidatorTest {
         .yPosition(100)
         .build();
     result = this.validator.validate(req, OBJECT_NAME, this.configuration);
-    Assert.assertFalse(result.hasErrors());
+    Assertions.assertFalse(result.hasErrors());
   }
 
   @Test
@@ -146,9 +146,9 @@ public class VisiblePdfSignatureRequirementValidatorTest {
 
     ValidationResult result = this.validator.validate(req, OBJECT_NAME, this.configuration);
 
-    Assert.assertTrue(result.hasErrors());
-    Assert.assertNotNull(result.getFieldErrors().get(OBJECT_NAME + ".xPosition"));
-    Assert.assertEquals(1, result.getFieldErrors().size());
+    Assertions.assertTrue(result.hasErrors());
+    Assertions.assertNotNull(result.getFieldErrors().get(OBJECT_NAME + ".xPosition"));
+    Assertions.assertEquals(1, result.getFieldErrors().size());
 
     req = VisiblePdfSignatureRequirement.builder()
         .templateImageRef("ref1")
@@ -158,9 +158,9 @@ public class VisiblePdfSignatureRequirementValidatorTest {
 
     result = this.validator.validate(req, OBJECT_NAME, this.configuration);
 
-    Assert.assertTrue(result.hasErrors());
-    Assert.assertNotNull(result.getFieldErrors().get(OBJECT_NAME + ".yPosition"));
-    Assert.assertEquals(1, result.getFieldErrors().size());
+    Assertions.assertTrue(result.hasErrors());
+    Assertions.assertNotNull(result.getFieldErrors().get(OBJECT_NAME + ".yPosition"));
+    Assertions.assertEquals(1, result.getFieldErrors().size());
 
     // Bad value
     //
@@ -172,10 +172,10 @@ public class VisiblePdfSignatureRequirementValidatorTest {
 
     result = this.validator.validate(req, OBJECT_NAME, this.configuration);
 
-    Assert.assertTrue(result.hasErrors());
-    Assert.assertNotNull(result.getFieldErrors().get(OBJECT_NAME + ".xPosition"));
-    Assert.assertNotNull(result.getFieldErrors().get(OBJECT_NAME + ".yPosition"));
-    Assert.assertEquals(2, result.getFieldErrors().size());
+    Assertions.assertTrue(result.hasErrors());
+    Assertions.assertNotNull(result.getFieldErrors().get(OBJECT_NAME + ".xPosition"));
+    Assertions.assertNotNull(result.getFieldErrors().get(OBJECT_NAME + ".yPosition"));
+    Assertions.assertEquals(2, result.getFieldErrors().size());
   }
 
   @Test
@@ -192,7 +192,7 @@ public class VisiblePdfSignatureRequirementValidatorTest {
 
     // Should work for template ref1 since it doesn't require signer name
     ValidationResult result = this.validator.validate(req, OBJECT_NAME, this.configuration);
-    Assert.assertFalse(result.hasErrors());
+    Assertions.assertFalse(result.hasErrors());
 
     // Should fail for template ref2 since it requires signer name
     req = VisiblePdfSignatureRequirement.builder()
@@ -203,8 +203,8 @@ public class VisiblePdfSignatureRequirementValidatorTest {
         .build();
 
     result = this.validator.validate(req, OBJECT_NAME, this.configuration);
-    Assert.assertTrue(result.hasErrors());
-    Assert.assertNotNull(result.getFieldErrors().get(OBJECT_NAME + ".signerName"));
+    Assertions.assertTrue(result.hasErrors());
+    Assertions.assertNotNull(result.getFieldErrors().get(OBJECT_NAME + ".signerName"));
 
     // Should fail if we have a signer name but no attributes
     req = VisiblePdfSignatureRequirement.builder()
@@ -215,8 +215,8 @@ public class VisiblePdfSignatureRequirementValidatorTest {
         .build();
 
     result = this.validator.validate(req, OBJECT_NAME, this.configuration);
-    Assert.assertTrue(result.hasErrors());
-    Assert.assertNotNull(result.getFieldErrors().get(OBJECT_NAME + ".signerName"));
+    Assertions.assertTrue(result.hasErrors());
+    Assertions.assertNotNull(result.getFieldErrors().get(OBJECT_NAME + ".signerName"));
 
     // Successful case
     req = VisiblePdfSignatureRequirement.builder()
@@ -230,7 +230,7 @@ public class VisiblePdfSignatureRequirementValidatorTest {
         .build();
 
     result = this.validator.validate(req, OBJECT_NAME, this.configuration);
-    Assert.assertFalse(result.hasErrors());
+    Assertions.assertFalse(result.hasErrors());
   }
 
   @Test
@@ -246,8 +246,8 @@ public class VisiblePdfSignatureRequirementValidatorTest {
 
     // Should work for template ref1 since it doesn't require signer name
     ValidationResult result = this.validator.validate(req, OBJECT_NAME, this.configuration);
-    Assert.assertTrue(result.hasErrors());
-    Assert.assertNotNull(result.getFieldErrors().get(OBJECT_NAME + ".fieldValues.abc"));
+    Assertions.assertTrue(result.hasErrors());
+    Assertions.assertNotNull(result.getFieldErrors().get(OBJECT_NAME + ".fieldValues.abc"));
 
     // A field value is given but the one that is required by the template
     req = VisiblePdfSignatureRequirement.builder()
@@ -258,8 +258,8 @@ public class VisiblePdfSignatureRequirementValidatorTest {
         .build();
 
     result = this.validator.validate(req, OBJECT_NAME, this.configuration);
-    Assert.assertTrue(result.hasErrors());
-    Assert.assertNotNull(result.getFieldErrors().get(OBJECT_NAME + ".fieldValues.abc"));
+    Assertions.assertTrue(result.hasErrors());
+    Assertions.assertNotNull(result.getFieldErrors().get(OBJECT_NAME + ".fieldValues.abc"));
 
     // Successful case
     req = VisiblePdfSignatureRequirement.builder()
@@ -271,6 +271,6 @@ public class VisiblePdfSignatureRequirementValidatorTest {
         .build();
 
     result = this.validator.validate(req, OBJECT_NAME, this.configuration);
-    Assert.assertFalse(result.hasErrors());
+    Assertions.assertFalse(result.hasErrors());
   }
 }

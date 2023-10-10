@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022 IDsec Solutions AB
+ * Copyright 2019-2023 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,11 +55,9 @@ public class VisibleSignatureImageSerializer {
   /**
    * Serialize a {@link VisibleSignatureImage} object to a compressed value in a Base64 string.
    *
-   * @param signImage
-   *          object to serialize
+   * @param signImage object to serialize
    * @return serialized object
-   * @throws IOException
-   *           on invalid input
+   * @throws IOException on invalid input
    */
   public static String serializeVisibleSignatureObject(final VisibleSignatureImage signImage) throws IOException {
     final String json = objectMapper.writeValueAsString(signImage);
@@ -69,11 +67,9 @@ public class VisibleSignatureImageSerializer {
   /**
    * Restores a {@link VisibleSignatureImage} object from a serialized state.
    *
-   * @param serializedSignImage
-   *          serialized sign image object
+   * @param serializedSignImage serialized sign image object
    * @return VisibleSigImage object
-   * @throws IOException
-   *           on invalid input
+   * @throws IOException on invalid input
    */
   public static VisibleSignatureImage deserializeVisibleSignImage(final String serializedSignImage) throws IOException {
     final String json = new String(decompress(Base64.getDecoder().decode(serializedSignImage)), StandardCharsets.UTF_8);
@@ -83,11 +79,9 @@ public class VisibleSignatureImageSerializer {
   /**
    * Compression of the supplied data.
    *
-   * @param data
-   *          data to compress
+   * @param data data to compress
    * @return compressed data
-   * @throws IOException
-   *           on invalid input
+   * @throws IOException on invalid input
    */
   private static byte[] compress(final byte[] data) throws IOException {
     final Deflater deflater = new Deflater();
@@ -106,11 +100,9 @@ public class VisibleSignatureImageSerializer {
   /**
    * Decompression of data.
    *
-   * @param data
-   *          data to be inflated
+   * @param data data to be inflated
    * @return inflated data
-   * @throws IOException
-   *           on invalid input
+   * @throws IOException on invalid input
    */
   private static byte[] decompress(final byte[] data) throws IOException {
     try {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022 IDsec Solutions AB
+ * Copyright 2019-2023 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,7 @@
  */
 package se.idsec.signservice.integration.signmessage;
 
-import javax.annotation.Nonnull;
-
+import jakarta.annotation.Nonnull;
 import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
 import se.idsec.signservice.integration.core.error.SignServiceIntegrationException;
 import se.swedenconnect.schemas.csig.dssext_1_1.SignMessage;

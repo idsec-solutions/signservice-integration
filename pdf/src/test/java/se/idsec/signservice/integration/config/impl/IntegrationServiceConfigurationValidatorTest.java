@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022 IDsec Solutions AB
+ * Copyright 2019-2023 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,8 @@ package se.idsec.signservice.integration.config.impl;
 
 import java.lang.reflect.Field;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import se.idsec.signservice.integration.document.pdf.signpage.impl.ExtendedPdfSignaturePageValidator;
 
@@ -41,7 +41,7 @@ public class IntegrationServiceConfigurationValidatorTest {
     Field field = validator.getClass().getDeclaredField("pdfSignaturePageValidator");
     field.setAccessible(true);
     Object object = field.get(validator);
-    Assert.assertTrue(ExtendedPdfSignaturePageValidator.class.isInstance(object));
+    Assertions.assertTrue(ExtendedPdfSignaturePageValidator.class.isInstance(object));
   }
 
 }

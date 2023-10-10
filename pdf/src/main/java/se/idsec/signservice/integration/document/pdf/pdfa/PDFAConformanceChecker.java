@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022 IDsec Solutions AB
+ * Copyright 2019-2023 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,21 +17,21 @@ package se.idsec.signservice.integration.document.pdf.pdfa;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.common.PDMetadata;
+
 import se.idsec.signservice.integration.document.DocumentProcessingException;
 
 /**
  * Interface for testing PDF/A conformance
  *
  * <p>
- *   Implementations of this interface may provide different level of compliance testing, from
- *   just checking compliance declarations to different levels of conformance checking.
+ * Implementations of this interface may provide different level of compliance testing, from just checking compliance
+ * declarations to different levels of conformance checking.
  * </p>
- *
  */
 public interface PDFAConformanceChecker {
 
   /**
-   * Examines PDF document metadata for declarations that this PDF is compliant with the PDF/A profile
+   * Examines PDF document metadata for declarations that this PDF is compliant with the PDF/A profile.
    *
    * @param metadata PDF document metadata
    * @return PDF/A declaration data
@@ -39,7 +39,7 @@ public interface PDFAConformanceChecker {
   PDFAStatus checkPDFAConformance(final PDMetadata metadata);
 
   /**
-   * Check PDF/A consistency between the main document to be signed and a sign page added to the main document
+   * Check PDF/A consistency between the main document to be signed and a sign page added to the main document.
    *
    * @param tbsDoc the pdf document to be signed
    * @param signPage the sign page added to the document to be signed

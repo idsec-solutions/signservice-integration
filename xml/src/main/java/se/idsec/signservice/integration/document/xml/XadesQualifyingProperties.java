@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022 IDsec Solutions AB
+ * Copyright 2019-2023 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,24 +15,23 @@
  */
 package se.idsec.signservice.integration.document.xml;
 
-import javax.xml.bind.JAXBException;
-
 import org.apache.xml.security.binding.xmldsig.ObjectType;
 import org.w3c.dom.Element;
 
+import jakarta.xml.bind.JAXBException;
 import lombok.extern.slf4j.Slf4j;
 import se.idsec.signservice.integration.core.error.ErrorCode;
 import se.idsec.signservice.integration.core.impl.CorrelationID;
 import se.idsec.signservice.integration.document.DocumentProcessingException;
 import se.idsec.signservice.integration.document.ades.AdesObject;
 import se.idsec.signservice.integration.document.ades.AdesSigningCertificateDigest;
-import se.idsec.signservice.xml.JAXBMarshaller;
-import se.idsec.signservice.xml.JAXBUnmarshaller;
 import se.swedenconnect.schemas.etsi.xades_1_3_2.DigestAlgAndValueType;
 import se.swedenconnect.schemas.etsi.xades_1_3_2.QualifyingProperties;
 import se.swedenconnect.schemas.etsi.xades_1_3_2.SignaturePolicyIdentifier;
 import se.swedenconnect.schemas.etsi.xades_1_3_2.SigningCertificate;
 import se.swedenconnect.schemas.etsi.xades_1_3_2.SigningCertificateV2;
+import se.swedenconnect.xml.jaxb.JAXBMarshaller;
+import se.swedenconnect.xml.jaxb.JAXBUnmarshaller;
 
 /**
  * The XAdES object for XML signatures is a {@code xades:QualifyingProperties} object.

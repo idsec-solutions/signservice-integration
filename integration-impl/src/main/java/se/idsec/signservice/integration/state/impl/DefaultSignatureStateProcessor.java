@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022 IDsec Solutions AB
+ * Copyright 2019-2023 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,11 +18,10 @@ package se.idsec.signservice.integration.state.impl;
 import java.io.IOException;
 import java.io.Serializable;
 
-import javax.annotation.PostConstruct;
-import javax.xml.bind.JAXBException;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import jakarta.annotation.PostConstruct;
+import jakarta.xml.bind.JAXBException;
 import lombok.extern.slf4j.Slf4j;
 import se.idsec.signservice.integration.SignRequestInput;
 import se.idsec.signservice.integration.SignServiceIntegrationService;
@@ -39,8 +38,7 @@ import se.idsec.signservice.integration.state.SignatureStateProcessor;
 import se.idsec.signservice.integration.state.StateException;
 import se.idsec.signservice.utils.AssertThat;
 import se.idsec.signservice.xml.DOMUtils;
-import se.idsec.signservice.xml.InternalXMLException;
-import se.idsec.signservice.xml.JAXBMarshaller;
+import se.swedenconnect.xml.jaxb.JAXBMarshaller;
 
 /**
  * Default implementation for signature state processing.
@@ -91,7 +89,7 @@ public class DefaultSignatureStateProcessor implements SignatureStateProcessor {
       catch (final JAXBException e) {
         // This should never happen since the same SignRequest was marshalled during the process phase,
         // and if wouldn't have been ok, it would have been reported at that stage.
-        throw new InternalXMLException("Failed to marshall SignRequest", e);
+        throw new RuntimeException("Failed to marshall SignRequest", e);
       }
     }
     else {

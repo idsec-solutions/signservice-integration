@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022 IDsec Solutions AB
+ * Copyright 2019-2023 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,8 @@ import java.util.Base64;
 
 import org.apache.pdfbox.io.IOUtils;
 import org.apache.pdfbox.pdmodel.PDDocument;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ClassPathResource;
 
 import se.idsec.signservice.integration.SignServiceIntegrationService;
@@ -66,42 +66,42 @@ public class DefaultPdfSignaturePagePreparatorTest {
     // Only set config settings relevant for PDF pages and PDF visible signatures ...
     //
     this.configStateless = DefaultIntegrationServiceConfiguration.builder()
-      .policy("stateless-policy")
-      .pdfSignatureImageTemplate(PdfSignatureImageTemplate.builder()
-        .reference("default-template")
-        .svgImageFile(FileResource.builder()
-          .resource("classpath:config/eduSign-image.svg")
-          .description("Sign image for eduSign")
-          .build())
-        .height(351)
-        .width(967)
-        .includeSignerName(true)
-        .includeSigningTime(true)
-        .field("IDP", "The textual description of the IdP")
-        .build())
-      .pdfSignaturePage(PdfSignaturePage.builder()
-        .id("default-sign-page")
-        .pdfDocument(FileResource.builder()
-          .resource("classpath:config/eduSign-page.pdf")
-          .description("Sign page for eduSign")
-          .build())
-        .rows(4)
-        .columns(2)
-        .signatureImageReference("default-template")
-        .imagePlacementConfiguration(PdfSignatureImagePlacementConfiguration.builder()
-          .xPosition(xPosition)
-          .xIncrement(xIncrement)
-          .yPosition(yPosition)
-          .yIncrement(yIncrement)
-          .scale(scale)
-          .build())
-        .build())
-      .stateless(true)
-      .build();
+        .policy("stateless-policy")
+        .pdfSignatureImageTemplate(PdfSignatureImageTemplate.builder()
+            .reference("default-template")
+            .svgImageFile(FileResource.builder()
+                .resource("classpath:config/eduSign-image.svg")
+                .description("Sign image for eduSign")
+                .build())
+            .height(351)
+            .width(967)
+            .includeSignerName(true)
+            .includeSigningTime(true)
+            .field("IDP", "The textual description of the IdP")
+            .build())
+        .pdfSignaturePage(PdfSignaturePage.builder()
+            .id("default-sign-page")
+            .pdfDocument(FileResource.builder()
+                .resource("classpath:config/eduSign-page.pdf")
+                .description("Sign page for eduSign")
+                .build())
+            .rows(4)
+            .columns(2)
+            .signatureImageReference("default-template")
+            .imagePlacementConfiguration(PdfSignatureImagePlacementConfiguration.builder()
+                .xPosition(xPosition)
+                .xIncrement(xIncrement)
+                .yPosition(yPosition)
+                .yIncrement(yIncrement)
+                .scale(scale)
+                .build())
+            .build())
+        .stateless(true)
+        .build();
     this.configStateful = this.configStateless.toBuilder()
-      .policy("stateful-policy")
-      .stateless(false)
-      .build();
+        .policy("stateful-policy")
+        .stateless(false)
+        .build();
   }
 
   @Test
@@ -110,26 +110,26 @@ public class DefaultPdfSignaturePagePreparatorTest {
 
     try {
       preparator.preparePdfSignaturePage(loadContents("pdf/sample-8-signatures.pdf"), null, this.configStateless);
-      Assert.fail("Expected InputValidationException");
+      Assertions.fail("Expected InputValidationException");
     }
     catch (InputValidationException e) {
-      Assert.assertEquals("signaturePagePreferences", e.getObjectName());
+      Assertions.assertEquals("signaturePagePreferences", e.getObjectName());
     }
 
     try {
       preparator.preparePdfSignaturePage(null, getDefaultPrefs(), this.configStateless);
-      Assert.fail("Expected InputValidationException");
+      Assertions.fail("Expected InputValidationException");
     }
     catch (InputValidationException e) {
-      Assert.assertEquals("pdfDocument", e.getObjectName());
+      Assertions.assertEquals("pdfDocument", e.getObjectName());
     }
 
     try {
       preparator.preparePdfSignaturePage(loadContents("pdf/sample-8-signatures.pdf"), getDefaultPrefs(), null);
-      Assert.fail("Expected InputValidationException");
+      Assertions.fail("Expected InputValidationException");
     }
     catch (InputValidationException e) {
-      Assert.assertEquals("policy", e.getObjectName());
+      Assertions.assertEquals("policy", e.getObjectName());
     }
   }
 
@@ -138,11 +138,11 @@ public class DefaultPdfSignaturePagePreparatorTest {
     final DefaultPdfSignaturePagePreparator preparator = new DefaultPdfSignaturePagePreparator();
     try {
       preparator.preparePdfSignaturePage("ABCDEF".getBytes(), getDefaultPrefs(), this.configStateless);
-      Assert.fail("Expected InputValidationException");
+      Assertions.fail("Expected InputValidationException");
     }
     catch (InputValidationException e) {
-      Assert.assertEquals("pdfDocument", e.getObjectName());
-      Assert.assertTrue(DocumentProcessingException.class.isInstance(e.getCause()));
+      Assertions.assertEquals("pdfDocument", e.getObjectName());
+      Assertions.assertTrue(DocumentProcessingException.class.isInstance(e.getCause()));
     }
   }
 
@@ -155,7 +155,7 @@ public class DefaultPdfSignaturePagePreparatorTest {
       preparator.preparePdfSignaturePage(loadContents("pdf/sample-encrypted.pdf"), prefs, this.configStateless);
     }
     catch (InputValidationException e) {
-      Assert.assertEquals("pdfDocument", e.getObjectName());
+      Assertions.assertEquals("pdfDocument", e.getObjectName());
     }
   }
 
@@ -164,20 +164,20 @@ public class DefaultPdfSignaturePagePreparatorTest {
     final DefaultPdfSignaturePagePreparator preparator = new DefaultPdfSignaturePagePreparator();
     PdfSignaturePagePreferences prefs = getDefaultPrefs();
     final PreparedPdfDocument result = preparator.preparePdfSignaturePage(
-      loadContents("pdf/sample-8-signatures.pdf"), prefs, this.configStateless);
+        loadContents("pdf/sample-8-signatures.pdf"), prefs, this.configStateless);
 
-    Assert.assertNull(result.getUpdatedPdfDocument());
-    Assert.assertEquals("stateless-policy", result.getPolicy());
-    Assert.assertEquals("true", result.getVisiblePdfSignatureRequirement()
-      .getExtensionValue(
-        VisiblePdfSignatureRequirement.NULL_INDICATOR_EXTENSION));
+    Assertions.assertNull(result.getUpdatedPdfDocument());
+    Assertions.assertEquals("stateless-policy", result.getPolicy());
+    Assertions.assertEquals("true", result.getVisiblePdfSignatureRequirement()
+        .getExtensionValue(
+            VisiblePdfSignatureRequirement.NULL_INDICATOR_EXTENSION));
 
     // The same, but this time we don't accept a full page ...
     //
     prefs.setFailWhenSignPageFull(true);
     try {
       preparator.preparePdfSignaturePage(loadContents("pdf/sample-8-signatures.pdf"), prefs, this.configStateless);
-      Assert.fail("Expected PdfSignaturePageFullException");
+      Assertions.fail("Expected PdfSignaturePageFullException");
     }
     catch (PdfSignaturePageFullException e) {
     }
@@ -188,28 +188,30 @@ public class DefaultPdfSignaturePagePreparatorTest {
     final DefaultPdfSignaturePagePreparator preparator = new DefaultPdfSignaturePagePreparator();
     final PdfSignaturePagePreferences prefs = getDefaultPrefs();
     final PreparedPdfDocument result = preparator.preparePdfSignaturePage(
-      loadContents("pdf/sample-0-signature.pdf"), prefs, this.configStateless);
+        loadContents("pdf/sample-0-signature.pdf"), prefs, this.configStateless);
 
-    Assert.assertNotNull(result.getUpdatedPdfDocument());
+    Assertions.assertNotNull(result.getUpdatedPdfDocument());
 
     final PDDocument doc = PDDocumentUtils.load(Base64.getDecoder().decode(result.getUpdatedPdfDocument()));
-    Assert.assertEquals(2, doc.getNumberOfPages());
+    Assertions.assertEquals(2, doc.getNumberOfPages());
     PDDocumentUtils.close(doc);
 
-    Assert.assertEquals("stateless-policy", result.getPolicy());
+    Assertions.assertEquals("stateless-policy", result.getPolicy());
     final VisiblePdfSignatureRequirement reqs = result.getVisiblePdfSignatureRequirement();
-    Assert.assertEquals("default-template", reqs.getTemplateImageRef());
-    Assert.assertEquals(2, reqs.getPage().intValue());
-    Assert.assertEquals(xPosition, reqs.getXPosition().intValue());
-    Assert.assertEquals(yPosition, reqs.getYPosition().intValue());
-    Assert.assertEquals(scale, reqs.getScale().intValue());
-    Assert.assertEquals(prefs.getVisiblePdfSignatureUserInformation().getFieldValues(), reqs.getFieldValues());
-    Assert.assertEquals(prefs.getVisiblePdfSignatureUserInformation().getSignerName().getSignerAttributes().size(),
-      reqs.getSignerName().getSignerAttributes().size());
-    Assert.assertEquals(prefs.getVisiblePdfSignatureUserInformation().getSignerName().getSignerAttributes().get(0).getName(),
-      reqs.getSignerName().getSignerAttributes().get(0).getName());
-    Assert.assertEquals(prefs.getVisiblePdfSignatureUserInformation().getSignerName().getFormatting(), reqs.getSignerName()
-      .getFormatting());
+    Assertions.assertEquals("default-template", reqs.getTemplateImageRef());
+    Assertions.assertEquals(2, reqs.getPage().intValue());
+    Assertions.assertEquals(xPosition, reqs.getXPosition().intValue());
+    Assertions.assertEquals(yPosition, reqs.getYPosition().intValue());
+    Assertions.assertEquals(scale, reqs.getScale().intValue());
+    Assertions.assertEquals(prefs.getVisiblePdfSignatureUserInformation().getFieldValues(), reqs.getFieldValues());
+    Assertions.assertEquals(prefs.getVisiblePdfSignatureUserInformation().getSignerName().getSignerAttributes().size(),
+        reqs.getSignerName().getSignerAttributes().size());
+    Assertions.assertEquals(
+        prefs.getVisiblePdfSignatureUserInformation().getSignerName().getSignerAttributes().get(0).getName(),
+        reqs.getSignerName().getSignerAttributes().get(0).getName());
+    Assertions.assertEquals(prefs.getVisiblePdfSignatureUserInformation().getSignerName().getFormatting(),
+        reqs.getSignerName()
+            .getFormatting());
   }
 
   @Test
@@ -223,30 +225,32 @@ public class DefaultPdfSignaturePagePreparatorTest {
     final PdfSignaturePagePreferences prefs = getDefaultPrefs();
     prefs.setReturnDocumentReference(true);
     final PreparedPdfDocument result = preparator.preparePdfSignaturePage(
-      loadContents("pdf/sample-0-signature.pdf"), prefs, this.configStateful);
+        loadContents("pdf/sample-0-signature.pdf"), prefs, this.configStateful);
 
-    Assert.assertNull(result.getUpdatedPdfDocument());
-    Assert.assertNotNull(result.getUpdatedPdfDocumentReference());
+    Assertions.assertNull(result.getUpdatedPdfDocument());
+    Assertions.assertNotNull(result.getUpdatedPdfDocumentReference());
     final String updatedDocument = docCache.get(result.getUpdatedPdfDocumentReference(), null);
 
     final PDDocument doc = PDDocumentUtils.load(Base64.getDecoder().decode(updatedDocument));
-    Assert.assertEquals(2, doc.getNumberOfPages());
+    Assertions.assertEquals(2, doc.getNumberOfPages());
     PDDocumentUtils.close(doc);
 
-    Assert.assertEquals("stateful-policy", result.getPolicy());
+    Assertions.assertEquals("stateful-policy", result.getPolicy());
     final VisiblePdfSignatureRequirement reqs = result.getVisiblePdfSignatureRequirement();
-    Assert.assertEquals("default-template", reqs.getTemplateImageRef());
-    Assert.assertEquals(2, reqs.getPage().intValue());
-    Assert.assertEquals(xPosition, reqs.getXPosition().intValue());
-    Assert.assertEquals(yPosition, reqs.getYPosition().intValue());
-    Assert.assertEquals(scale, reqs.getScale().intValue());
-    Assert.assertEquals(prefs.getVisiblePdfSignatureUserInformation().getFieldValues(), reqs.getFieldValues());
-    Assert.assertEquals(prefs.getVisiblePdfSignatureUserInformation().getSignerName().getSignerAttributes().size(),
-      reqs.getSignerName().getSignerAttributes().size());
-    Assert.assertEquals(prefs.getVisiblePdfSignatureUserInformation().getSignerName().getSignerAttributes().get(0).getName(),
-      reqs.getSignerName().getSignerAttributes().get(0).getName());
-    Assert.assertEquals(prefs.getVisiblePdfSignatureUserInformation().getSignerName().getFormatting(), reqs.getSignerName()
-      .getFormatting());
+    Assertions.assertEquals("default-template", reqs.getTemplateImageRef());
+    Assertions.assertEquals(2, reqs.getPage().intValue());
+    Assertions.assertEquals(xPosition, reqs.getXPosition().intValue());
+    Assertions.assertEquals(yPosition, reqs.getYPosition().intValue());
+    Assertions.assertEquals(scale, reqs.getScale().intValue());
+    Assertions.assertEquals(prefs.getVisiblePdfSignatureUserInformation().getFieldValues(), reqs.getFieldValues());
+    Assertions.assertEquals(prefs.getVisiblePdfSignatureUserInformation().getSignerName().getSignerAttributes().size(),
+        reqs.getSignerName().getSignerAttributes().size());
+    Assertions.assertEquals(
+        prefs.getVisiblePdfSignatureUserInformation().getSignerName().getSignerAttributes().get(0).getName(),
+        reqs.getSignerName().getSignerAttributes().get(0).getName());
+    Assertions.assertEquals(prefs.getVisiblePdfSignatureUserInformation().getSignerName().getFormatting(),
+        reqs.getSignerName()
+            .getFormatting());
   }
 
   @Test
@@ -254,69 +258,71 @@ public class DefaultPdfSignaturePagePreparatorTest {
     final DefaultPdfSignaturePagePreparator preparator = new DefaultPdfSignaturePagePreparator();
     final PdfSignaturePagePreferences prefs = getDefaultPrefs();
     PreparedPdfDocument result = preparator.preparePdfSignaturePage(
-      loadContents("pdf/sample-1-signature.pdf"), prefs, this.configStateless);
+        loadContents("pdf/sample-1-signature.pdf"), prefs, this.configStateless);
 
-    Assert.assertNull(result.getUpdatedPdfDocument());
+    Assertions.assertNull(result.getUpdatedPdfDocument());
 
-    Assert.assertEquals("stateless-policy", result.getPolicy());
+    Assertions.assertEquals("stateless-policy", result.getPolicy());
     VisiblePdfSignatureRequirement reqs = result.getVisiblePdfSignatureRequirement();
-    Assert.assertEquals("default-template", reqs.getTemplateImageRef());
-    Assert.assertEquals(2, reqs.getPage().intValue());
-    Assert.assertEquals(xPosition + xIncrement, reqs.getXPosition().intValue());
-    Assert.assertEquals(yPosition, reqs.getYPosition().intValue());
-    Assert.assertEquals(scale, reqs.getScale().intValue());
-    Assert.assertEquals(prefs.getVisiblePdfSignatureUserInformation().getFieldValues(), reqs.getFieldValues());
-    Assert.assertEquals(prefs.getVisiblePdfSignatureUserInformation().getSignerName().getSignerAttributes().size(),
-      reqs.getSignerName().getSignerAttributes().size());
-    Assert.assertEquals(prefs.getVisiblePdfSignatureUserInformation().getSignerName().getSignerAttributes().get(0).getName(),
-      reqs.getSignerName().getSignerAttributes().get(0).getName());
-    Assert.assertEquals(prefs.getVisiblePdfSignatureUserInformation().getSignerName().getFormatting(), reqs.getSignerName()
-      .getFormatting());
+    Assertions.assertEquals("default-template", reqs.getTemplateImageRef());
+    Assertions.assertEquals(2, reqs.getPage().intValue());
+    Assertions.assertEquals(xPosition + xIncrement, reqs.getXPosition().intValue());
+    Assertions.assertEquals(yPosition, reqs.getYPosition().intValue());
+    Assertions.assertEquals(scale, reqs.getScale().intValue());
+    Assertions.assertEquals(prefs.getVisiblePdfSignatureUserInformation().getFieldValues(), reqs.getFieldValues());
+    Assertions.assertEquals(prefs.getVisiblePdfSignatureUserInformation().getSignerName().getSignerAttributes().size(),
+        reqs.getSignerName().getSignerAttributes().size());
+    Assertions.assertEquals(
+        prefs.getVisiblePdfSignatureUserInformation().getSignerName().getSignerAttributes().get(0).getName(),
+        reqs.getSignerName().getSignerAttributes().get(0).getName());
+    Assertions.assertEquals(prefs.getVisiblePdfSignatureUserInformation().getSignerName().getFormatting(),
+        reqs.getSignerName()
+            .getFormatting());
 
     result = preparator.preparePdfSignaturePage(
-      loadContents("pdf/sample-2-signatures.pdf"), prefs, this.configStateless);
+        loadContents("pdf/sample-2-signatures.pdf"), prefs, this.configStateless);
 
-    Assert.assertNull(result.getUpdatedPdfDocument());
+    Assertions.assertNull(result.getUpdatedPdfDocument());
 
     reqs = result.getVisiblePdfSignatureRequirement();
-    Assert.assertEquals(2, reqs.getPage().intValue());
-    Assert.assertEquals(xPosition, reqs.getXPosition().intValue());
-    Assert.assertEquals(yPosition + yIncrement, reqs.getYPosition().intValue());
+    Assertions.assertEquals(2, reqs.getPage().intValue());
+    Assertions.assertEquals(xPosition, reqs.getXPosition().intValue());
+    Assertions.assertEquals(yPosition + yIncrement, reqs.getYPosition().intValue());
 
     result = preparator.preparePdfSignaturePage(
-      loadContents("pdf/sample-3-signatures.pdf"), prefs, this.configStateless);
+        loadContents("pdf/sample-3-signatures.pdf"), prefs, this.configStateless);
 
     reqs = result.getVisiblePdfSignatureRequirement();
-    Assert.assertEquals(xPosition + xIncrement, reqs.getXPosition().intValue());
-    Assert.assertEquals(yPosition + yIncrement, reqs.getYPosition().intValue());
+    Assertions.assertEquals(xPosition + xIncrement, reqs.getXPosition().intValue());
+    Assertions.assertEquals(yPosition + yIncrement, reqs.getYPosition().intValue());
 
     result = preparator.preparePdfSignaturePage(
-      loadContents("pdf/sample-4-signatures.pdf"), prefs, this.configStateless);
+        loadContents("pdf/sample-4-signatures.pdf"), prefs, this.configStateless);
 
     reqs = result.getVisiblePdfSignatureRequirement();
-    Assert.assertEquals(xPosition, reqs.getXPosition().intValue());
-    Assert.assertEquals(yPosition + 2 * yIncrement, reqs.getYPosition().intValue());
+    Assertions.assertEquals(xPosition, reqs.getXPosition().intValue());
+    Assertions.assertEquals(yPosition + 2 * yIncrement, reqs.getYPosition().intValue());
 
     result = preparator.preparePdfSignaturePage(
-      loadContents("pdf/sample-5-signatures.pdf"), prefs, this.configStateless);
+        loadContents("pdf/sample-5-signatures.pdf"), prefs, this.configStateless);
 
     reqs = result.getVisiblePdfSignatureRequirement();
-    Assert.assertEquals(xPosition + xIncrement, reqs.getXPosition().intValue());
-    Assert.assertEquals(yPosition + 2 * yIncrement, reqs.getYPosition().intValue());
+    Assertions.assertEquals(xPosition + xIncrement, reqs.getXPosition().intValue());
+    Assertions.assertEquals(yPosition + 2 * yIncrement, reqs.getYPosition().intValue());
 
     result = preparator.preparePdfSignaturePage(
-      loadContents("pdf/sample-6-signatures.pdf"), prefs, this.configStateless);
+        loadContents("pdf/sample-6-signatures.pdf"), prefs, this.configStateless);
 
     reqs = result.getVisiblePdfSignatureRequirement();
-    Assert.assertEquals(xPosition, reqs.getXPosition().intValue());
-    Assert.assertEquals(yPosition + 3 * yIncrement, reqs.getYPosition().intValue());
+    Assertions.assertEquals(xPosition, reqs.getXPosition().intValue());
+    Assertions.assertEquals(yPosition + 3 * yIncrement, reqs.getYPosition().intValue());
 
     result = preparator.preparePdfSignaturePage(
-      loadContents("pdf/sample-7-signatures.pdf"), prefs, this.configStateless);
+        loadContents("pdf/sample-7-signatures.pdf"), prefs, this.configStateless);
 
     reqs = result.getVisiblePdfSignatureRequirement();
-    Assert.assertEquals(xPosition + xIncrement, reqs.getXPosition().intValue());
-    Assert.assertEquals(yPosition + 3 * yIncrement, reqs.getYPosition().intValue());
+    Assertions.assertEquals(xPosition + xIncrement, reqs.getXPosition().intValue());
+    Assertions.assertEquals(yPosition + 3 * yIncrement, reqs.getYPosition().intValue());
   }
 
   @Test
@@ -331,40 +337,41 @@ public class DefaultPdfSignaturePagePreparatorTest {
     prefs.addExtensionValue(SignServiceIntegrationService.OWNER_ID_EXTENSION_KEY, "userid");
     final byte[] uploadedDocument = loadContents("pdf/sample-1-signature.pdf");
     PreparedPdfDocument result = preparator.preparePdfSignaturePage(
-      uploadedDocument, prefs, this.configStateful);
+        uploadedDocument, prefs, this.configStateful);
 
-    Assert.assertNull(result.getUpdatedPdfDocument());
-    Assert.assertNotNull(result.getUpdatedPdfDocumentReference());
+    Assertions.assertNull(result.getUpdatedPdfDocument());
+    Assertions.assertNotNull(result.getUpdatedPdfDocumentReference());
     try {
       docCache.get(result.getUpdatedPdfDocumentReference(), null);
-      Assert.fail("Expected NoAccessException");
+      Assertions.fail("Expected NoAccessException");
     }
     catch (NoAccessException e) {
     }
     try {
       docCache.get(result.getUpdatedPdfDocumentReference(), "otheruser");
-      Assert.fail("Expected NoAccessException");
+      Assertions.fail("Expected NoAccessException");
     }
     catch (NoAccessException e) {
     }
     final String cachedDocument = docCache.get(result.getUpdatedPdfDocumentReference(), "userid");
     final byte[] cachedDocumentBytes = Base64.getDecoder().decode(cachedDocument);
-    Assert.assertArrayEquals(uploadedDocument, cachedDocumentBytes);
+    Assertions.assertArrayEquals(uploadedDocument, cachedDocumentBytes);
 
-    Assert.assertEquals("stateful-policy", result.getPolicy());
+    Assertions.assertEquals("stateful-policy", result.getPolicy());
   }
 
   private static PdfSignaturePagePreferences getDefaultPrefs() {
     return PdfSignaturePagePreferences.builder()
-      .signaturePageReference("default-sign-page")
-      .visiblePdfSignatureUserInformation(VisiblePdfSignatureUserInformation.toBuilder()
-        .signerName(SignerName.builder()
-          .signerAttribute(SignerIdentityAttribute.createBuilder().name("urn:oid:2.16.840.1.113730.3.1.241").build())
-          .build())
-        .fieldValue("IDP", "eduID Sverige")
-        .build())
-      .failWhenSignPageFull(false)
-      .build();
+        .signaturePageReference("default-sign-page")
+        .visiblePdfSignatureUserInformation(VisiblePdfSignatureUserInformation.toBuilder()
+            .signerName(SignerName.builder()
+                .signerAttribute(
+                    SignerIdentityAttribute.createBuilder().name("urn:oid:2.16.840.1.113730.3.1.241").build())
+                .build())
+            .fieldValue("IDP", "eduID Sverige")
+            .build())
+        .failWhenSignPageFull(false)
+        .build();
   }
 
   private static byte[] loadContents(final String resource) throws IOException {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022 IDsec Solutions AB
+ * Copyright 2019-2023 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,24 +15,24 @@
  */
 package se.idsec.signservice.integration.document.pdf.pdfa;
 
-import junit.framework.TestCase;
-import org.apache.commons.io.IOUtils;
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.Objects;
 
+import org.apache.commons.io.IOUtils;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+
 /**
  * Tests for the DefaultPDFADeclarationChecker
  */
-@RunWith(JUnit4.class)
-public class BasicMetadataPDFAConformanceCheckerTest extends TestCase {
+public class BasicMetadataPDFAConformanceCheckerTest {
   static File pdfFile;
   static File pdfaFile;
   static String pdfaMetadataStr;
@@ -41,51 +41,52 @@ public class BasicMetadataPDFAConformanceCheckerTest extends TestCase {
   static PDFAConformanceChecker pdfaConformanceChecker;
   static PDFAConformanceChecker nothingValidPDFAConformanceChecker;
 
-  @BeforeClass
+  @BeforeAll
   public static void init() throws Exception {
 
-    pdfFile = new File(BasicMetadataPDFAConformanceCheckerTest.class.getClassLoader().getResource("pdfa/Test.pdf").getFile());
+    pdfFile =
+        new File(BasicMetadataPDFAConformanceCheckerTest.class.getClassLoader().getResource("pdfa/Test.pdf").getFile());
     pdfaFile = new File(
-      BasicMetadataPDFAConformanceCheckerTest.class.getClassLoader().getResource("pdfa/Test_pdfa.pdf").getFile());
+        BasicMetadataPDFAConformanceCheckerTest.class.getClassLoader().getResource("pdfa/Test_pdfa.pdf").getFile());
     pdfaMetadataStr = new String(
-      IOUtils.toByteArray(Objects.requireNonNull(
-        BasicMetadataPDFAConformanceCheckerTest.class.getClassLoader().getResourceAsStream("pdfa/pdfaMetadata"))),
-      StandardCharsets.UTF_8
-    );
+        IOUtils.toByteArray(Objects.requireNonNull(
+            BasicMetadataPDFAConformanceCheckerTest.class.getClassLoader().getResourceAsStream("pdfa/pdfaMetadata"))),
+        StandardCharsets.UTF_8);
     pdfaMetadataAttrStr = new String(
-      IOUtils.toByteArray(Objects.requireNonNull(
-        BasicMetadataPDFAConformanceCheckerTest.class.getClassLoader().getResourceAsStream("pdfa/pdfaMdAttribute"))),
-      StandardCharsets.UTF_8
-    );
+        IOUtils.toByteArray(Objects.requireNonNull(
+            BasicMetadataPDFAConformanceCheckerTest.class.getClassLoader()
+                .getResourceAsStream("pdfa/pdfaMdAttribute"))),
+        StandardCharsets.UTF_8);
     noPfdaMetadataStr = new String(
-      IOUtils.toByteArray(Objects.requireNonNull(
-        BasicMetadataPDFAConformanceCheckerTest.class.getClassLoader().getResourceAsStream("pdfa/noPdfaMetadata"))),
-      StandardCharsets.UTF_8
-    );
+        IOUtils.toByteArray(Objects.requireNonNull(
+            BasicMetadataPDFAConformanceCheckerTest.class.getClassLoader().getResourceAsStream("pdfa/noPdfaMetadata"))),
+        StandardCharsets.UTF_8);
     pdfaConformanceChecker = new BasicMetadataPDFAConformanceChecker();
     nothingValidPDFAConformanceChecker = new BasicMetadataPDFAConformanceChecker();
-    ((BasicMetadataPDFAConformanceChecker) nothingValidPDFAConformanceChecker).setSupportedConformanceValues(Collections.singletonList("A"));
-    ((BasicMetadataPDFAConformanceChecker) nothingValidPDFAConformanceChecker).setSupportedPartValues(Collections.singletonList("3"));
+    ((BasicMetadataPDFAConformanceChecker) nothingValidPDFAConformanceChecker)
+        .setSupportedConformanceValues(Collections.singletonList("A"));
+    ((BasicMetadataPDFAConformanceChecker) nothingValidPDFAConformanceChecker)
+        .setSupportedPartValues(Collections.singletonList("3"));
   }
 
   @Test
-  public void checkPDFADeclarationFromPdf() throws Exception{
+  public void checkPDFADeclarationFromPdf() throws Exception {
 
-    try (PDDocument document = PDDocument.load(pdfFile)){
+    try (PDDocument document = PDDocument.load(pdfFile)) {
       PDFAStatus pdfaStatus = pdfaConformanceChecker.checkPDFAConformance(
-        document.getDocumentCatalog().getMetadata());
+          document.getDocumentCatalog().getMetadata());
       assertFalse(pdfaStatus.isValid());
     }
 
-    try (PDDocument document = PDDocument.load(pdfaFile)){
+    try (PDDocument document = PDDocument.load(pdfaFile)) {
       PDFAStatus pdfaStatus = pdfaConformanceChecker.checkPDFAConformance(
-        document.getDocumentCatalog().getMetadata());
+          document.getDocumentCatalog().getMetadata());
       assertTrue(pdfaStatus.isValid());
       assertEquals("2", pdfaStatus.getPart());
       assertEquals("B", pdfaStatus.getConformance());
 
       pdfaStatus = nothingValidPDFAConformanceChecker.checkPDFAConformance(
-        document.getDocumentCatalog().getMetadata());
+          document.getDocumentCatalog().getMetadata());
       assertFalse(pdfaStatus.isValid());
       assertEquals("2", pdfaStatus.getPart());
       assertEquals("B", pdfaStatus.getConformance());
@@ -95,7 +96,7 @@ public class BasicMetadataPDFAConformanceCheckerTest extends TestCase {
   @Test
   public void checkPdfaMetadata() {
     PDFAStatus pdfaStatus = ((BasicMetadataPDFAConformanceChecker) pdfaConformanceChecker)
-      .checkPDFADeclaration(pdfaMetadataStr);
+        .checkPDFADeclaration(pdfaMetadataStr);
     assertTrue(pdfaStatus.isValid());
     assertEquals("2", pdfaStatus.getPart());
     assertEquals("B", pdfaStatus.getConformance());
@@ -104,7 +105,7 @@ public class BasicMetadataPDFAConformanceCheckerTest extends TestCase {
   @Test
   public void checkPdfaMetadataAttr() {
     PDFAStatus pdfaStatus = ((BasicMetadataPDFAConformanceChecker) pdfaConformanceChecker)
-      .checkPDFADeclaration(pdfaMetadataAttrStr);
+        .checkPDFADeclaration(pdfaMetadataAttrStr);
     assertTrue(pdfaStatus.isValid());
     assertEquals("2", pdfaStatus.getPart());
     assertEquals("B", pdfaStatus.getConformance());
@@ -113,14 +114,14 @@ public class BasicMetadataPDFAConformanceCheckerTest extends TestCase {
   @Test
   public void checkPdfMetadata() {
     PDFAStatus pdfaStatus = ((BasicMetadataPDFAConformanceChecker) pdfaConformanceChecker)
-      .checkPDFADeclaration(noPfdaMetadataStr);
+        .checkPDFADeclaration(noPfdaMetadataStr);
     assertFalse(pdfaStatus.isValid());
   }
 
   @Test
   public void checkUnsupportedDeclarations() {
     PDFAStatus pdfaStatus = ((BasicMetadataPDFAConformanceChecker) nothingValidPDFAConformanceChecker)
-      .checkPDFADeclaration(pdfaMetadataStr);
+        .checkPDFADeclaration(pdfaMetadataStr);
     assertFalse(pdfaStatus.isValid());
     assertEquals("2", pdfaStatus.getPart());
     assertEquals("B", pdfaStatus.getConformance());

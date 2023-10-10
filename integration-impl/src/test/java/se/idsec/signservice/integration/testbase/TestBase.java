@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022 IDsec Solutions AB
+ * Copyright 2019-2023 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  */
 package se.idsec.signservice.integration.testbase;
 
-import org.junit.BeforeClass;
+import org.junit.jupiter.api.BeforeAll;
 
 import se.idsec.signservice.integration.SignServiceIntegrationServiceInitializer;
 import se.swedenconnect.opensaml.sweid.xmlsec.config.SwedishEidSecurityConfiguration;
@@ -34,7 +34,7 @@ public abstract class TestBase {
    * @throws Exception
    *           for init errors
    */
-  @BeforeClass
+  @BeforeAll
   public static void initialize() throws Exception {
     SignServiceIntegrationServiceInitializer.initialize(new SwedishEidSecurityConfiguration());
   }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022 IDsec Solutions AB
+ * Copyright 2019-2023 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,7 @@ package se.idsec.signservice.integration.core.impl;
 
 import java.util.UUID;
 
-import javax.annotation.Nullable;
-
+import jakarta.annotation.Nullable;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -45,6 +44,7 @@ public class CorrelationID {
 
   /**
    * Is called to initialize the correlation ID. If no correlation ID is assigned, a random value will be inserted.
+   *
    * @param id the correlation ID (or null)
    */
   public static void init(@Nullable final String id) {
@@ -53,6 +53,7 @@ public class CorrelationID {
 
   /**
    * Returns this thread's correlation ID.
+   *
    * @return the correlation ID
    */
   public static String id() {

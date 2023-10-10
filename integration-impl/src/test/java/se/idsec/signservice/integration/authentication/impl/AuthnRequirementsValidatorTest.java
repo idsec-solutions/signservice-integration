@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022 IDsec Solutions AB
+ * Copyright 2019-2023 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,8 @@
  */
 package se.idsec.signservice.integration.authentication.impl;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import se.idsec.signservice.integration.authentication.AuthnRequirements;
 import se.idsec.signservice.integration.authentication.SignerIdentityAttributeValue;
@@ -47,17 +47,17 @@ public class AuthnRequirementsValidatorTest extends TestBase {
   public void testNullAndValidDefaults() throws Exception {
     AuthnRequirementsValidator validator = new AuthnRequirementsValidator();
     ValidationResult result = validator.validate(null, "a", this.defaultConfig);
-    Assert.assertFalse(result.hasErrors());
+    Assertions.assertFalse(result.hasErrors());
   }
 
   @Test
   public void testNullAndNoDefaults() throws Exception {
     AuthnRequirementsValidator validator = new AuthnRequirementsValidator();
     ValidationResult result = validator.validate(null, "a", new DefaultIntegrationServiceConfiguration());
-    Assert.assertTrue(result.hasErrors());
-    Assert.assertTrue(result.getFieldErrors().size() == 2);
-    Assert.assertNotNull(result.getFieldErrors().get("a.authnServiceID"));
-    Assert.assertNotNull(result.getFieldErrors().get("a.authnContextClassRefs"));
+    Assertions.assertTrue(result.hasErrors());
+    Assertions.assertTrue(result.getFieldErrors().size() == 2);
+    Assertions.assertNotNull(result.getFieldErrors().get("a.authnServiceID"));
+    Assertions.assertNotNull(result.getFieldErrors().get("a.authnContextClassRefs"));
   }
 
   @Test
@@ -67,10 +67,10 @@ public class AuthnRequirementsValidatorTest extends TestBase {
     AuthnRequirements ar = new AuthnRequirements();
 
     ValidationResult result = validator.validate(ar, "a", new DefaultIntegrationServiceConfiguration());
-    Assert.assertTrue(result.hasErrors());
-    Assert.assertTrue(result.getFieldErrors().size() == 2);
-    Assert.assertNotNull(result.getFieldErrors().get("a.authnServiceID"));
-    Assert.assertNotNull(result.getFieldErrors().get("a.authnContextClassRefs"));
+    Assertions.assertTrue(result.hasErrors());
+    Assertions.assertTrue(result.getFieldErrors().size() == 2);
+    Assertions.assertNotNull(result.getFieldErrors().get("a.authnServiceID"));
+    Assertions.assertNotNull(result.getFieldErrors().get("a.authnContextClassRefs"));
   }
 
   @Test
@@ -93,7 +93,7 @@ public class AuthnRequirementsValidatorTest extends TestBase {
           .build())
         .build();
     ValidationResult result = validator.validate(ar, "a", new DefaultIntegrationServiceConfiguration());
-    Assert.assertFalse(result.hasErrors());
+    Assertions.assertFalse(result.hasErrors());
   }
 
   @Test
@@ -119,11 +119,11 @@ public class AuthnRequirementsValidatorTest extends TestBase {
           .build())
         .build();
     ValidationResult result = validator.validate(ar, "a", new DefaultIntegrationServiceConfiguration());
-    Assert.assertTrue(result.hasErrors());
-    Assert.assertTrue(result.getFieldErrors().size() == 3);
-    Assert.assertNotNull(result.getFieldErrors().get("a.requestedSignerAttributes[0].type"));
-    Assert.assertNotNull(result.getFieldErrors().get("a.requestedSignerAttributes[1].value"));
-    Assert.assertNotNull(result.getFieldErrors().get("a.requestedSignerAttributes[2].name"));
+    Assertions.assertTrue(result.hasErrors());
+    Assertions.assertTrue(result.getFieldErrors().size() == 3);
+    Assertions.assertNotNull(result.getFieldErrors().get("a.requestedSignerAttributes[0].type"));
+    Assertions.assertNotNull(result.getFieldErrors().get("a.requestedSignerAttributes[1].value"));
+    Assertions.assertNotNull(result.getFieldErrors().get("a.requestedSignerAttributes[2].name"));
   }
 
 }

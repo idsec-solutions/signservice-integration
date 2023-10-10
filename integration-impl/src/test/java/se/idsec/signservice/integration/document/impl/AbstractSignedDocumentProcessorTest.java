@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022 IDsec Solutions AB
+ * Copyright 2019-2023 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,8 +22,8 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.List;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.opensaml.xmlsec.signature.support.SignatureConstants;
 import org.springframework.core.io.ClassPathResource;
 
@@ -110,7 +110,7 @@ public class AbstractSignedDocumentProcessorTest extends TestBase {
     try {
       processor.validateAdesObject(adesObject, this.cert, signTaskData, signRequest, new SignResponseWrapper(),
         new SignResponseProcessingParameters());
-      Assert.fail("Expected DocumentProcessingException");
+      Assertions.fail("Expected DocumentProcessingException");
     }
     catch (DocumentProcessingException e) {
     }
@@ -138,7 +138,7 @@ public class AbstractSignedDocumentProcessorTest extends TestBase {
     try {
       processor.validateAdesObject(adesObject, this.cert, signTaskData, signRequest, new SignResponseWrapper(),
         new SignResponseProcessingParameters());
-      Assert.fail("Expected InternalSignServiceIntegrationException");
+      Assertions.fail("Expected InternalSignServiceIntegrationException");
     }
     catch (InternalSignServiceIntegrationException e) {
     }
@@ -159,7 +159,7 @@ public class AbstractSignedDocumentProcessorTest extends TestBase {
     try {
       processor.validateAdesObject(adesObject, this.cert, signTaskData, signRequest, new SignResponseWrapper(),
         new SignResponseProcessingParameters());
-      Assert.fail("Expected DocumentProcessingException");
+      Assertions.fail("Expected DocumentProcessingException");
     }
     catch (DocumentProcessingException e) {
     }
@@ -169,7 +169,7 @@ public class AbstractSignedDocumentProcessorTest extends TestBase {
   public void testInit() throws Exception {
     SignedDocumentProcessor processor = new SignedDocumentProcessor();
     processor.afterPropertiesSet();
-    Assert.assertNotNull(processor.getProcessingConfiguration());
+    Assertions.assertNotNull(processor.getProcessingConfiguration());
   }
 
   @Test
@@ -181,11 +181,11 @@ public class AbstractSignedDocumentProcessorTest extends TestBase {
     processor.setProcessingConfiguration(ownConfig);
     processor.afterPropertiesSet();
 
-    Assert.assertEquals(100L, processor.getProcessingConfiguration().getMaximumAllowedProcessingTime());
+    Assertions.assertEquals(100L, processor.getProcessingConfiguration().getMaximumAllowedProcessingTime());
 
     // Assert that null is ignored
     processor.setProcessingConfiguration(null);
-    Assert.assertEquals(100L, processor.getProcessingConfiguration().getMaximumAllowedProcessingTime());
+    Assertions.assertEquals(100L, processor.getProcessingConfiguration().getMaximumAllowedProcessingTime());
   }
 
   @Test
@@ -194,7 +194,7 @@ public class AbstractSignedDocumentProcessorTest extends TestBase {
     // No after properties set is called
 
     // Assert that get creates a default config if null
-    Assert.assertNotNull(processor.getProcessingConfiguration());
+    Assertions.assertNotNull(processor.getProcessingConfiguration());
   }
 
   private static byte[] digest(final String jcaAlgorithm, final byte[] data) throws NoSuchAlgorithmException {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022 IDsec Solutions AB
+ * Copyright 2019-2023 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,8 @@
  */
 package se.idsec.signservice.integration.document.impl;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import se.idsec.signservice.integration.core.validation.ValidationResult;
 import se.idsec.signservice.integration.document.DocumentType;
@@ -35,7 +35,7 @@ public class TbsDocumentValidatorTest {
   public void testBadInit() throws Exception {
     try {
       new TbsDocumentValidator(null);
-      Assert.fail("Expected IllegalArgumentException");
+      Assertions.fail("Expected IllegalArgumentException");
     }
     catch (IllegalArgumentException e) {
     }
@@ -45,7 +45,7 @@ public class TbsDocumentValidatorTest {
   public void testNull() throws Exception {
     TbsDocumentValidator validator = new TbsDocumentValidator(new TestEtsiAdesRequirementValidator());
     ValidationResult result = validator.validate(null, "tbs", null);
-    Assert.assertFalse(result.hasErrors());
+    Assertions.assertFalse(result.hasErrors());
   }
 
   @Test
@@ -57,10 +57,10 @@ public class TbsDocumentValidatorTest {
         .mimeType(DocumentType.XML)
         .build();
     ValidationResult result = validator.validate(tbs, "tbs", null);
-    Assert.assertTrue(result.hasErrors());
-    Assert.assertNull(result.getGlobalError());
-    Assert.assertTrue(result.getFieldErrors().size() == 1);
-    Assert.assertNotNull(result.getFieldErrors().get("tbs.content"));
+    Assertions.assertTrue(result.hasErrors());
+    Assertions.assertNull(result.getGlobalError());
+    Assertions.assertTrue(result.getFieldErrors().size() == 1);
+    Assertions.assertNotNull(result.getFieldErrors().get("tbs.content"));
 
     // The same with an empty string ...
     tbs = TbsDocument.builder()
@@ -69,9 +69,9 @@ public class TbsDocumentValidatorTest {
         .mimeType(DocumentType.XML)
         .build();
     result = validator.validate(tbs, "tbs", null);
-    Assert.assertTrue(result.hasErrors());
-    Assert.assertTrue(result.getFieldErrors().size() == 1);
-    Assert.assertNotNull(result.getFieldErrors().get("tbs.content"));
+    Assertions.assertTrue(result.hasErrors());
+    Assertions.assertTrue(result.getFieldErrors().size() == 1);
+    Assertions.assertNotNull(result.getFieldErrors().get("tbs.content"));
   }
 
   @Test
@@ -80,13 +80,13 @@ public class TbsDocumentValidatorTest {
     TbsDocument tbs = TbsDocument.builder()
         .id("ID")
         .content("Hello")
-        .mimeType((DocumentType)null)
+        .mimeType((DocumentType) null)
         .build();
     ValidationResult result = validator.validate(tbs, "tbs", null);
-    Assert.assertTrue(result.hasErrors());
-    Assert.assertNull(result.getGlobalError());
-    Assert.assertTrue(result.getFieldErrors().size() == 1);
-    Assert.assertNotNull(result.getFieldErrors().get("tbs.mimeType"));
+    Assertions.assertTrue(result.hasErrors());
+    Assertions.assertNull(result.getGlobalError());
+    Assertions.assertTrue(result.getFieldErrors().size() == 1);
+    Assertions.assertNotNull(result.getFieldErrors().get("tbs.mimeType"));
 
     // The same with an empty string ...
     tbs = TbsDocument.builder()
@@ -95,9 +95,9 @@ public class TbsDocumentValidatorTest {
         .mimeType("   ")
         .build();
     result = validator.validate(tbs, "tbs", null);
-    Assert.assertTrue(result.hasErrors());
-    Assert.assertTrue(result.getFieldErrors().size() == 1);
-    Assert.assertNotNull(result.getFieldErrors().get("tbs.mimeType"));
+    Assertions.assertTrue(result.hasErrors());
+    Assertions.assertTrue(result.getFieldErrors().size() == 1);
+    Assertions.assertNotNull(result.getFieldErrors().get("tbs.mimeType"));
   }
 
   @Test
@@ -106,14 +106,14 @@ public class TbsDocumentValidatorTest {
     TbsDocument tbs = TbsDocument.builder()
         .id("ID")
         .content(null)
-        .mimeType((DocumentType)null)
+        .mimeType((DocumentType) null)
         .build();
     ValidationResult result = validator.validate(tbs, "tbs", null);
-    Assert.assertTrue(result.hasErrors());
-    Assert.assertNull(result.getGlobalError());
-    Assert.assertTrue(result.getFieldErrors().size() == 2);
-    Assert.assertNotNull(result.getFieldErrors().get("tbs.content"));
-    Assert.assertNotNull(result.getFieldErrors().get("tbs.mimeType"));
+    Assertions.assertTrue(result.hasErrors());
+    Assertions.assertNull(result.getGlobalError());
+    Assertions.assertTrue(result.getFieldErrors().size() == 2);
+    Assertions.assertNotNull(result.getFieldErrors().get("tbs.content"));
+    Assertions.assertNotNull(result.getFieldErrors().get("tbs.mimeType"));
 
     // The same with an empty string ...
     tbs = TbsDocument.builder()
@@ -122,10 +122,10 @@ public class TbsDocumentValidatorTest {
         .mimeType("   ")
         .build();
     result = validator.validate(tbs, "tbs", null);
-    Assert.assertTrue(result.hasErrors());
-    Assert.assertTrue(result.getFieldErrors().size() == 2);
-    Assert.assertNotNull(result.getFieldErrors().get("tbs.content"));
-    Assert.assertNotNull(result.getFieldErrors().get("tbs.mimeType"));
+    Assertions.assertTrue(result.hasErrors());
+    Assertions.assertTrue(result.getFieldErrors().size() == 2);
+    Assertions.assertNotNull(result.getFieldErrors().get("tbs.content"));
+    Assertions.assertNotNull(result.getFieldErrors().get("tbs.mimeType"));
   }
 
 }

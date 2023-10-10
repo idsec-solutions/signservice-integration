@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022 IDsec Solutions AB
+ * Copyright 2019-2023 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,8 @@ package se.idsec.signservice.integration.config.impl;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ClassPathResource;
 
 import se.idsec.signservice.integration.authentication.SignerIdentityAttribute;
@@ -109,18 +109,18 @@ public class DefaultConfigurationManagerTest {
     DefaultConfigurationManager mgr = new DefaultConfigurationManager(map);
 
     IntegrationServiceConfiguration c2b = mgr.getConfiguration("no2");
-    Assert.assertNull(c2b.getParentPolicy());
-    Assert.assertEquals("loa2", c2b.getDefaultAuthnContextRef());
-    Assert.assertEquals("Kalle", c2b.getDefaultSignRequesterID());
-    Assert.assertEquals("sha256", c2b.getDefaultSignatureAlgorithm());
+    Assertions.assertNull(c2b.getParentPolicy());
+    Assertions.assertEquals("loa2", c2b.getDefaultAuthnContextRef());
+    Assertions.assertEquals("Kalle", c2b.getDefaultSignRequesterID());
+    Assertions.assertEquals("sha256", c2b.getDefaultSignatureAlgorithm());
 
     IntegrationServiceConfiguration c3b = mgr.getConfiguration("no3");
-    Assert.assertNull(c3b.getParentPolicy());
-    Assert.assertEquals("loa2", c3b.getDefaultAuthnContextRef());
-    Assert.assertEquals("Kalle1", c3b.getDefaultSignRequesterID());
-    Assert.assertEquals("sha1", c3b.getDefaultSignatureAlgorithm());
+    Assertions.assertNull(c3b.getParentPolicy());
+    Assertions.assertEquals("loa2", c3b.getDefaultAuthnContextRef());
+    Assertions.assertEquals("Kalle1", c3b.getDefaultSignRequesterID());
+    Assertions.assertEquals("sha1", c3b.getDefaultSignatureAlgorithm());
 
-    Assert.assertEquals(c1.toString(), mgr.getConfiguration("default").toString());
+    Assertions.assertEquals(c1.toString(), mgr.getConfiguration("default").toString());
   }
 
   @Test
@@ -153,7 +153,7 @@ public class DefaultConfigurationManagerTest {
 
     try {
       new DefaultConfigurationManager(map);
-      Assert.fail("Expected IllegalArgumentException");
+      Assertions.fail("Expected IllegalArgumentException");
     }
     catch (IllegalArgumentException e) {
     }
@@ -177,7 +177,7 @@ public class DefaultConfigurationManagerTest {
 
     try {
       new DefaultConfigurationManager(map);
-      Assert.fail("Expected IllegalArgumentException");
+      Assertions.fail("Expected IllegalArgumentException");
     }
     catch (IllegalArgumentException e) {
     }

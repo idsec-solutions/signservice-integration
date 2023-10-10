@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022 IDsec Solutions AB
+ * Copyright 2019-2023 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,7 +39,6 @@ import se.idsec.signservice.integration.security.EncryptionParameters;
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
-@SuppressWarnings("deprecation")
 public class EncryptionConfigurationWrapper implements EncryptionConfiguration {
 
   /** The default encryption parameters for a given SignService Intergration policy. */
@@ -57,8 +56,7 @@ public class EncryptionConfigurationWrapper implements EncryptionConfiguration {
   /**
    * Constructor.
    *
-   * @param defaultEncryptionParameters
-   *          the default encryption parameters for a given SignService Integration policy
+   * @param defaultEncryptionParameters the default encryption parameters for a given SignService Integration policy
    */
   public EncryptionConfigurationWrapper(final EncryptionParameters defaultEncryptionParameters) {
     this.defaultEncryptionParameters = defaultEncryptionParameters;
@@ -75,8 +73,10 @@ public class EncryptionConfigurationWrapper implements EncryptionConfiguration {
   @Override
   public List<String> getDataEncryptionAlgorithms() {
     if (this.dataEncryptionAlgorithms == null) {
-      final List<String> _dataEncryptionAlgorithms = new LinkedList<>(this.systemConfiguration.getDataEncryptionAlgorithms());
-      final int index = _dataEncryptionAlgorithms.indexOf(this.defaultEncryptionParameters.getDataEncryptionAlgorithm());
+      final List<String> _dataEncryptionAlgorithms =
+          new LinkedList<>(this.systemConfiguration.getDataEncryptionAlgorithms());
+      final int index =
+          _dataEncryptionAlgorithms.indexOf(this.defaultEncryptionParameters.getDataEncryptionAlgorithm());
       if (index < 0) {
         _dataEncryptionAlgorithms.add(0, this.defaultEncryptionParameters.getDataEncryptionAlgorithm());
       }
@@ -101,7 +101,8 @@ public class EncryptionConfigurationWrapper implements EncryptionConfiguration {
     if (this.keyTransportEncryptionAlgorithms == null) {
       final List<String> _keyTransportEncryptionAlgorithms =
           new LinkedList<>(this.systemConfiguration.getKeyTransportEncryptionAlgorithms());
-      final int index = _keyTransportEncryptionAlgorithms.indexOf(this.defaultEncryptionParameters.getKeyTransportEncryptionAlgorithm());
+      final int index = _keyTransportEncryptionAlgorithms
+          .indexOf(this.defaultEncryptionParameters.getKeyTransportEncryptionAlgorithm());
       if (index < 0) {
         _keyTransportEncryptionAlgorithms.add(0, this.defaultEncryptionParameters.getKeyTransportEncryptionAlgorithm());
       }
@@ -130,9 +131,9 @@ public class EncryptionConfigurationWrapper implements EncryptionConfiguration {
   @Override
   public RSAOAEPParameters getRSAOAEPParameters() {
     return new RSAOAEPParameters(
-      this.defaultEncryptionParameters.getRsaOaepParameters().getDigestMethod(),
-      this.defaultEncryptionParameters.getRsaOaepParameters().getMaskGenerationFunction(),
-      this.defaultEncryptionParameters.getRsaOaepParameters().getOaepParams());
+        this.defaultEncryptionParameters.getRsaOaepParameters().getDigestMethod(),
+        this.defaultEncryptionParameters.getRsaOaepParameters().getMaskGenerationFunction(),
+        this.defaultEncryptionParameters.getRsaOaepParameters().getOaepParams());
   }
 
   /** {@inheritDoc} */
@@ -181,36 +182,6 @@ public class EncryptionConfigurationWrapper implements EncryptionConfiguration {
   @Override
   public org.opensaml.xmlsec.AlgorithmPolicyConfiguration.Precedence getIncludeExcludePrecedence() {
     return this.getIncludeExcludePrecedence();
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public Collection<String> getWhitelistedAlgorithms() {
-    return this.systemConfiguration.getWhitelistedAlgorithms();
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public boolean isWhitelistMerge() {
-    return this.systemConfiguration.isWhitelistMerge();
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public Collection<String> getBlacklistedAlgorithms() {
-    return this.systemConfiguration.getBlacklistedAlgorithms();
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public boolean isBlacklistMerge() {
-    return this.systemConfiguration.isBlacklistMerge();
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public Precedence getWhitelistBlacklistPrecedence() {
-    return this.systemConfiguration.getWhitelistBlacklistPrecedence();
   }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022 IDsec Solutions AB
+ * Copyright 2019-2023 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,18 +15,6 @@
  */
 package se.idsec.signservice.integration.document.pdf.pdfa;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.common.PDMetadata;
-import se.idsec.signservice.integration.core.error.ErrorCode;
-import se.idsec.signservice.integration.document.DocumentProcessingException;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -34,25 +22,35 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.common.PDMetadata;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
+import se.idsec.signservice.integration.core.error.ErrorCode;
+import se.idsec.signservice.integration.document.DocumentProcessingException;
+
 /**
  * Basic PDF/A conformance checker based on PDF metadata declaration inspection
  *
- * This conformance checker only checks if the PDF document metadata claims that the document
- * conforms to the PDF/A standard. This checker does not validate if the present document actually
- * is compliant with PDF/A.
+ * This conformance checker only checks if the PDF document metadata claims that the document conforms to the PDF/A
+ * standard. This checker does not validate if the present document actually is compliant with PDF/A.
  *
  * <p>
- *   For rules on how to detect PDF/A compliance declaration in metadata, see:
- *   https://www.pdfa.org/wp-content/uploads/2011/08/tn0001_pdfa-1_and_namespaces_2008-03-182.pdf
+ * For rules on how to detect PDF/A compliance declaration in metadata, see:
+ * https://www.pdfa.org/wp-content/uploads/2011/08/tn0001_pdfa-1_and_namespaces_2008-03-182.pdf
  * </p>
  *
  * <p>
- *   Note that this conformance checker does not support the earlier, but false PDF/A
- *   declaration namespaces such as ("http://www.aiim.org/pdfa/ns/id.html" and "http://www.aiim.org/pdfa/ns/id").
- *   However, it is possible to set the namespace identifier to a custom value to alter the behavior of this
- *   conformance checker.
+ * Note that this conformance checker does not support the earlier, but false PDF/A declaration namespaces such as
+ * ("http://www.aiim.org/pdfa/ns/id.html" and "http://www.aiim.org/pdfa/ns/id"). However, it is possible to set the
+ * namespace identifier to a custom value to alter the behavior of this conformance checker.
  * </p>
- *
  */
 @Slf4j
 public class BasicMetadataPDFAConformanceChecker implements PDFAConformanceChecker {
@@ -90,10 +88,10 @@ public class BasicMetadataPDFAConformanceChecker implements PDFAConformanceCheck
   /** {@inheritDoc} */
   @Override
   public PDFAStatus checkPDFAConformance(final PDMetadata metadata) {
-    if (metadata == null){
+    if (metadata == null) {
       return PDFAStatus.builder()
-        .valid(false)
-        .build();
+          .valid(false)
+          .build();
     }
     return checkPDFADeclaration(metadata.getCOSObject().toTextString());
   }
@@ -105,15 +103,16 @@ public class BasicMetadataPDFAConformanceChecker implements PDFAConformanceCheck
    * @param signPage the sign page added to the document to be signed
    * @throws DocumentProcessingException if the main document is PDF/A and the added sign page is not
    */
-  @Override public void checkPDFAConsistency(final PDDocument tbsDoc, final PDDocument signPage)
-    throws DocumentProcessingException {
+  @Override
+  public void checkPDFAConsistency(final PDDocument tbsDoc, final PDDocument signPage)
+      throws DocumentProcessingException {
     final PDFAStatus tbsDocPdfaStatus = checkPDFAConformance(
-      tbsDoc.getDocumentCatalog().getMetadata());
+        tbsDoc.getDocumentCatalog().getMetadata());
     final PDFAStatus signPagePdfaStatus = checkPDFAConformance(
-      signPage.getDocumentCatalog().getMetadata());
-    if (tbsDocPdfaStatus.isValid() && !signPagePdfaStatus.isValid()){
-      throw new DocumentProcessingException(new ErrorCode.Code("pdf"),"The document to be sign is PDF/A but the added "
-        + "sign page is not PDF/A. This will break PDF/A conformance of the document to be signed");
+        signPage.getDocumentCatalog().getMetadata());
+    if (tbsDocPdfaStatus.isValid() && !signPagePdfaStatus.isValid()) {
+      throw new DocumentProcessingException(new ErrorCode.Code("pdf"), "The document to be sign is PDF/A but the added "
+          + "sign page is not PDF/A. This will break PDF/A conformance of the document to be signed");
     }
   }
 
@@ -126,8 +125,8 @@ public class BasicMetadataPDFAConformanceChecker implements PDFAConformanceCheck
   public PDFAStatus checkPDFADeclaration(final String metadataStr) {
     if (StringUtils.isBlank(metadataStr)) {
       return PDFAStatus.builder()
-        .valid(false)
-        .build();
+          .valid(false)
+          .build();
     }
 
     try {
@@ -140,8 +139,8 @@ public class BasicMetadataPDFAConformanceChecker implements PDFAConformanceCheck
       final ElementData descritpion = getFirstContent(descElmName, metadataStr);
       if (descritpion == null) {
         return PDFAStatus.builder()
-          .valid(false)
-          .build();
+            .valid(false)
+            .build();
       }
 
       final String partVal = getAttributeOrElementValue(pdfaPartElmName, descritpion);
@@ -150,38 +149,40 @@ public class BasicMetadataPDFAConformanceChecker implements PDFAConformanceCheck
       if (partVal == null || conformanceVal == null) {
         log.debug("No valid PDF/A conformance declaration found");
         return PDFAStatus.builder()
-          .part(partVal)
-          .conformance(conformanceVal)
-          .valid(false)
-          .build();
+            .part(partVal)
+            .conformance(conformanceVal)
+            .valid(false)
+            .build();
       }
 
-      if (supportedPartValues.contains(partVal) && supportedConformanceValues.contains(conformanceVal)){
+      if (supportedPartValues.contains(partVal) && supportedConformanceValues.contains(conformanceVal)) {
         log.debug("Found supported PDF/A conformance declaration in metadata");
         return PDFAStatus.builder()
-          .part(partVal)
-          .conformance(conformanceVal)
-          .valid(true)
-          .build();
-      } else {
+            .part(partVal)
+            .conformance(conformanceVal)
+            .valid(true)
+            .build();
+      }
+      else {
         log.debug("Found invalid PDF/A conformance declaration");
         return PDFAStatus.builder()
-          .part(partVal)
-          .conformance(conformanceVal)
-          .valid(false)
-          .build();
+            .part(partVal)
+            .conformance(conformanceVal)
+            .valid(false)
+            .build();
       }
 
-    } catch (Exception ex) {
+    }
+    catch (Exception ex) {
       log.debug("PDF/A conformance test caused exception: {}", ex.toString());
       return PDFAStatus.builder()
-        .valid(false)
-        .build();
+          .valid(false)
+          .build();
     }
   }
 
   private String getAttributeOrElementValue(final String targetName, final ElementData element) {
-    if (element == null){
+    if (element == null) {
       return null;
     }
     if (element.getAttributeMap().containsKey(targetName)) {
@@ -194,8 +195,8 @@ public class BasicMetadataPDFAConformanceChecker implements PDFAConformanceCheck
   private String getFullElementName(final String nsUri, final String name, final String document) {
     String nsId = getNsId(nsUri, document);
     return nsId != null
-      ? nsId + ":" + name
-      : name;
+        ? nsId + ":" + name
+        : name;
   }
 
   private String getNsId(final String nsUri, final String xmlString) {
@@ -223,13 +224,12 @@ public class BasicMetadataPDFAConformanceChecker implements PDFAConformanceCheck
     while (matcher.find()) {
       String fullElement = matcher.group(0);
       ElementData elementData = ElementData.builder()
-        .element(fullElement)
-        .content(fullElement.substring(
-          fullElement.indexOf(">") + 1,
-          fullElement.lastIndexOf("</" + fullElementName + ">")
-        ))
-        .attributeMap(getAttributeMap(fullElementName, fullElement))
-        .build();
+          .element(fullElement)
+          .content(fullElement.substring(
+              fullElement.indexOf(">") + 1,
+              fullElement.lastIndexOf("</" + fullElementName + ">")))
+          .attributeMap(getAttributeMap(fullElementName, fullElement))
+          .build();
       elementDataList.add(elementData);
     }
     return elementDataList;
@@ -239,9 +239,8 @@ public class BasicMetadataPDFAConformanceChecker implements PDFAConformanceCheck
     Map<String, String> attributeMap = new HashMap<>();
 
     String attributeDataStr = fullElement.substring(
-      fullElementName.length() + 1,
-      fullElement.indexOf(">")
-    ).trim();
+        fullElementName.length() + 1,
+        fullElement.indexOf(">")).trim();
     if (attributeDataStr.length() > 0) {
       String[] attributes = attributeDataStr.split("\\s+");
       for (String attribute : attributes) {

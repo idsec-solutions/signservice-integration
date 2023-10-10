@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022 IDsec Solutions AB
+ * Copyright 2019-2023 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,8 @@
  */
 package se.idsec.signservice.integration.document;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import lombok.Getter;
 
 /**
@@ -40,10 +39,8 @@ public class ProcessedTbsDocument {
   /**
    * Constructor.
    *
-   * @param tbsDocument
-   *          the TbsDocument
-   * @param documentObject
-   *          the document as a Java object
+   * @param tbsDocument the TbsDocument
+   * @param documentObject the document as a Java object
    */
   public ProcessedTbsDocument(@Nonnull final TbsDocument tbsDocument, @Nullable final Object documentObject) {
     this.tbsDocument = tbsDocument;
@@ -53,10 +50,8 @@ public class ProcessedTbsDocument {
   /**
    * Gets the document object.
    *
-   * @param type
-   *          the required type
-   * @param <T>
-   *          the type
+   * @param type the required type
+   * @param <T> the type
    * @return the document object or null
    */
   public <T> T getDocumentObject(final Class<T> type) {

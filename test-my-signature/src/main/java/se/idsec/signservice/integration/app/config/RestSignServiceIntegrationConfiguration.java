@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 IDsec Solutions AB
+ * Copyright 2019-2023 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,15 +15,19 @@
  */
 package se.idsec.signservice.integration.app.config;
 
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
-
 import javax.net.ssl.SSLContext;
 
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.ssl.SSLContextBuilder;
-import org.apache.http.ssl.TrustStrategy;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.client5.http.impl.io.BasicHttpClientConnectionManager;
+import org.apache.hc.client5.http.socket.ConnectionSocketFactory;
+import org.apache.hc.client5.http.socket.PlainConnectionSocketFactory;
+import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
+import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
+import org.apache.hc.core5.http.config.Registry;
+import org.apache.hc.core5.http.config.RegistryBuilder;
+import org.apache.hc.core5.ssl.SSLContexts;
+import org.apache.hc.core5.ssl.TrustStrategy;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -35,7 +39,7 @@ import org.springframework.web.client.RestTemplate;
 
 /**
  * Configuration for using the SignService Integration API as a REST client.
- * 
+ *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
@@ -44,29 +48,32 @@ import org.springframework.web.client.RestTemplate;
 public class RestSignServiceIntegrationConfiguration {
 
   @Bean("restServerUrl")
-  public String restServerUrl(@Value("${signservice.rest.server-url}") final String serverUrl) {
+  String restServerUrl(@Value("${signservice.rest.server-url}") final String serverUrl) {
     return serverUrl;
   }
 
   @Bean
-  public RestTemplate restTemplate(
+  RestTemplate restTemplate(
       @Qualifier("restServerUrl") final String serverUrl,
       @Value("${signservice.rest.client-username}") final String username,
       @Value("${signservice.rest.client-password}") final String password) throws Exception {
-    
-    final SSLContext sslContext = new SSLContextBuilder().loadTrustMaterial(
-      new TrustStrategy() {
-        @Override
-        public boolean isTrusted(X509Certificate[] chain, String authType) throws CertificateException {
-          return true;
-        }
-      }).build();
 
+    final TrustStrategy acceptingTrustStrategy = (cert, authType) -> true;
+    final SSLContext sslContext = SSLContexts.custom()
+        .loadTrustMaterial(null, acceptingTrustStrategy)
+        .build();
+    final SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(sslContext, NoopHostnameVerifier.INSTANCE);
+    final Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder.<ConnectionSocketFactory> create()
+        .register("https", sslsf)
+        .register("http", new PlainConnectionSocketFactory())
+        .build();
+
+    final BasicHttpClientConnectionManager connectionManager =
+        new BasicHttpClientConnectionManager(socketFactoryRegistry);
     final CloseableHttpClient httpClient = HttpClients.custom()
-//      .setSSLHostnameVerifier(new NoopHostnameVerifier())
-      .setSSLContext(sslContext)
-      .disableRedirectHandling()
-      .build();
+        .setConnectionManager(connectionManager)
+        .disableRedirectHandling()
+        .build();
 
     final HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
     requestFactory.setHttpClient(httpClient);

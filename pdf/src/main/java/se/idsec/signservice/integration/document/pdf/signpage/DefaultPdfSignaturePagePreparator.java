@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022 IDsec Solutions AB
+ * Copyright 2019-2023 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,10 +20,10 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import lombok.Getter;
-import lombok.Setter;
 import org.apache.pdfbox.pdmodel.PDDocument;
 
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import se.idsec.signservice.integration.ExtendedSignServiceIntegrationService;
 import se.idsec.signservice.integration.SignServiceIntegrationService;
@@ -59,7 +59,8 @@ import se.idsec.signservice.utils.Pair;
 public class DefaultPdfSignaturePagePreparator implements PdfSignaturePagePreparator {
 
   /** Validator for PdfSignaturePagePreferences objects. */
-  private final PdfSignaturePagePreferencesValidator pdfSignaturePagePreferencesValidator = new PdfSignaturePagePreferencesValidator();
+  private final PdfSignaturePagePreferencesValidator pdfSignaturePagePreferencesValidator =
+      new PdfSignaturePagePreferencesValidator();
 
   /** The document cache. */
   private DocumentCache documentCache;
@@ -67,7 +68,7 @@ public class DefaultPdfSignaturePagePreparator implements PdfSignaturePagePrepar
   /** Encoder for PDF documents. */
   private static final DocumentEncoder<byte[]> encoder = new PdfDocumentEncoderDecoder();
 
-  /** Defines if PDF/A consistency check is done when adding a sign page to a document to be signed  */
+  /** Defines if PDF/A consistency check is done when adding a sign page to a document to be signed */
   @Setter
   @Getter
   private boolean enforcePdfaConsistency = false;
@@ -108,18 +109,19 @@ public class DefaultPdfSignaturePagePreparator implements PdfSignaturePagePrepar
       final int signatureCount = this.getSignatureCount(document);
 
       if (preferences.getSignaturePage().getMaxSignatureImages() <= signatureCount) {
-        final String msg = String.format("PDF signature page already has '%d' sign images - exceeds maximum allowed number",
-          signatureCount);
+        final String msg =
+            String.format("PDF signature page already has '%d' sign images - exceeds maximum allowed number",
+                signatureCount);
         log.info("{}", msg);
         if (preferences.isFailWhenSignPageFull()) {
           throw new PdfSignaturePageFullException(msg);
         }
         else {
           return PreparedPdfDocument.builder()
-            .policy(policyConfiguration.getPolicy())
-            .visiblePdfSignatureRequirement(
-              VisiblePdfSignatureRequirement.createNullVisiblePdfSignatureRequirement())
-            .build();
+              .policy(policyConfiguration.getPolicy())
+              .visiblePdfSignatureRequirement(
+                  VisiblePdfSignatureRequirement.createNullVisiblePdfSignatureRequirement())
+              .build();
         }
       }
 
@@ -133,7 +135,7 @@ public class DefaultPdfSignaturePagePreparator implements PdfSignaturePagePrepar
       if (signatureCount == 0) {
         log.debug("Adding PDF signature page to document ...");
         final Pair<PDDocument, Integer> updateResult = this.addSignaturePage(
-          document, preferences.getSignaturePage(), preferences.getInsertPageAt());
+            document, preferences.getSignaturePage(), preferences.getInsertPageAt());
         document = updateResult.getFirst();
         signPagePageNumber = updateResult.getSecond();
         log.debug("PDF signature page was inserted at page number {}", signPagePageNumber);
@@ -141,22 +143,23 @@ public class DefaultPdfSignaturePagePreparator implements PdfSignaturePagePrepar
       else {
         log.debug("PDF document already contains signatures");
         signPagePageNumber = this.getSignaturePagePosition(document, preferences.getSignaturePage(),
-          preferences.getInsertPageAt(), preferences.getExistingSignaturePageNumber());
+            preferences.getInsertPageAt(), preferences.getExistingSignaturePageNumber());
         log.debug("PDF signature page is located at page number {}", signPagePageNumber);
       }
 
       // Start creating a visible signature requirement result object ...
       //
-      final VisiblePdfSignatureRequirement visiblePdfSignatureRequirement = new VisiblePdfSignatureRequirement(preferences
-        .getVisiblePdfSignatureUserInformation());
+      final VisiblePdfSignatureRequirement visiblePdfSignatureRequirement =
+          new VisiblePdfSignatureRequirement(preferences
+              .getVisiblePdfSignatureUserInformation());
 
       visiblePdfSignatureRequirement.setTemplateImageRef(
-        preferences.getSignaturePage().getSignatureImageReference());
+          preferences.getSignaturePage().getSignatureImageReference());
       visiblePdfSignatureRequirement.setPage(signPagePageNumber);
       visiblePdfSignatureRequirement.setScale(
-        preferences.getSignaturePage().getImagePlacementConfiguration().getScale() != null
-            ? preferences.getSignaturePage().getImagePlacementConfiguration().getScale()
-            : 0);
+          preferences.getSignaturePage().getImagePlacementConfiguration().getScale() != null
+              ? preferences.getSignaturePage().getImagePlacementConfiguration().getScale()
+              : 0);
 
       // OK, the next step is to calculate where the signature image should be inserted ...
       //
@@ -170,12 +173,14 @@ public class DefaultPdfSignaturePagePreparator implements PdfSignaturePagePrepar
 
       boolean returnReference = false;
       if (!policyConfiguration.isStateless()) {
-        if (preferences.getReturnDocumentReference() == null || preferences.getReturnDocumentReference().booleanValue()) {
+        if (preferences.getReturnDocumentReference() == null
+            || preferences.getReturnDocumentReference().booleanValue()) {
           if (this.documentCache != null) {
             returnReference = true;
           }
           else {
-            log.warn("Caller has requested a document reference instead of entire document, but no document cache is configured");
+            log.warn(
+                "Caller has requested a document reference instead of entire document, but no document cache is configured");
           }
         }
       }
@@ -214,14 +219,10 @@ public class DefaultPdfSignaturePagePreparator implements PdfSignaturePagePrepar
    * Validates the input supplied to
    * {@link #preparePdfSignaturePage(byte[], PdfSignaturePagePreferences, IntegrationServiceConfiguration)}.
    *
-   * @param pdfDocument
-   *          the PDF document
-   * @param signaturePagePreferences
-   *          the signature page preferences
-   * @param policyConfiguration
-   *          the policy configuration
-   * @throws InputValidationException
-   *           for validation errors
+   * @param pdfDocument the PDF document
+   * @param signaturePagePreferences the signature page preferences
+   * @param policyConfiguration the policy configuration
+   * @throws InputValidationException for validation errors
    */
   private void validateInput(final byte[] pdfDocument,
       final PdfSignaturePagePreferences signaturePagePreferences,
@@ -237,62 +238,60 @@ public class DefaultPdfSignaturePagePreparator implements PdfSignaturePagePrepar
     if (policyConfiguration == null) {
       throw new InputValidationException("policy", "Can not find policy");
     }
-    this.pdfSignaturePagePreferencesValidator.validateObject(signaturePagePreferences, "signaturePagePreferences", policyConfiguration);
+    this.pdfSignaturePagePreferencesValidator.validateObject(signaturePagePreferences, "signaturePagePreferences",
+        policyConfiguration);
 
     // Update the preferences with settings from the config (if needed) ...
     // Note: No checks need to be applied since the validator would have failed if there is something missing.
     //
-    if (signaturePagePreferences.getSignaturePageReference() == null && signaturePagePreferences.getSignaturePage() == null) {
+    if (signaturePagePreferences.getSignaturePageReference() == null
+        && signaturePagePreferences.getSignaturePage() == null) {
       signaturePagePreferences.setSignaturePage(policyConfiguration.getPdfSignaturePages().get(0));
       log.debug("Using default PdfSignaturePage ({}) for policy '{}'",
-        signaturePagePreferences.getSignaturePage().getId(), policyConfiguration.getPolicy());
+          signaturePagePreferences.getSignaturePage().getId(), policyConfiguration.getPolicy());
     }
     if (signaturePagePreferences.getSignaturePageReference() != null) {
       signaturePagePreferences.setSignaturePage(policyConfiguration.getPdfSignaturePages()
-        .stream()
-        .filter(p -> signaturePagePreferences.getSignaturePageReference().equals(p.getId()))
-        .findFirst()
-        .orElse(null));
+          .stream()
+          .filter(p -> signaturePagePreferences.getSignaturePageReference().equals(p.getId()))
+          .findFirst()
+          .orElse(null));
     }
   }
 
   /**
    * Tells how many signatures that have been applied to the supplied document.
    *
-   * @param document
-   *          the document to check
+   * @param document the document to check
    * @return the number of signatures
-   * @throws SignServiceIntegrationException
-   *           for errors reading the document
+   * @throws SignServiceIntegrationException for errors reading the document
    */
   private int getSignatureCount(final PDDocument document) throws SignServiceIntegrationException {
     try {
       return document.getSignatureDictionaries()
-        .stream()
-        .filter(s -> !"ETSI.RFC3161".equalsIgnoreCase(s.getSubFilter()))
-        .collect(Collectors.counting())
-        .intValue();
+          .stream()
+          .filter(s -> !"ETSI.RFC3161".equalsIgnoreCase(s.getSubFilter()))
+          .collect(Collectors.counting())
+          .intValue();
     }
     catch (final IOException e) {
-      throw new DocumentProcessingException(new ErrorCode.Code("format-error"), "Failed to list dictionaries of PDF document", e);
+      throw new DocumentProcessingException(new ErrorCode.Code("format-error"),
+          "Failed to list dictionaries of PDF document", e);
     }
   }
 
   /**
    * Adds a signature page document according to the {@code insertPageAt} parameter.
    *
-   * @param document
-   *          the document to update
-   * @param signPage
-   *          the sign page to add
-   * @param insertPageAt
-   *          the (one-based) directive where the sign page should be inserted
+   * @param document the document to update
+   * @param signPage the sign page to add
+   * @param insertPageAt the (one-based) directive where the sign page should be inserted
    * @return a Pair of the updated document and the (one-based) page number where the sign page is located in the
-   *         updated document
-   * @throws SignServiceIntegrationException
-   *           for processing errors
+   *           updated document
+   * @throws SignServiceIntegrationException for processing errors
    */
-  private Pair<PDDocument, Integer> addSignaturePage(final PDDocument document, final PdfSignaturePage signPage, final Integer insertPageAt)
+  private Pair<PDDocument, Integer> addSignaturePage(final PDDocument document, final PdfSignaturePage signPage,
+      final Integer insertPageAt)
       throws SignServiceIntegrationException {
 
     final PDDocument signPageDocument = PDDocumentUtils.load(signPage.getContents());
@@ -306,7 +305,8 @@ public class DefaultPdfSignaturePagePreparator implements PdfSignaturePagePrepar
 
       final PDDocument updatedDocument = PDDocumentUtils.insertDocument(document, signPageDocument, newPagePos);
 
-      if (signPage.getImagePlacementConfiguration().getPage() == null || signPage.getImagePlacementConfiguration().getPage() == 1) {
+      if (signPage.getImagePlacementConfiguration().getPage() == null
+          || signPage.getImagePlacementConfiguration().getPage() == 1) {
         return new Pair<>(updatedDocument, newPagePos);
       }
       else if (signPage.getImagePlacementConfiguration().getPage() == 0) {
@@ -325,17 +325,12 @@ public class DefaultPdfSignaturePagePreparator implements PdfSignaturePagePrepar
    * Given a document that already has one or more signatures (and thus has a sign page), the method calculates the page
    * number (one-based) of the sign page.
    *
-   * @param document
-   *          the document
-   * @param signPage
-   *          the sign page parameters
-   * @param insertPageAt
-   *          the original configuration where the sign page should be inserted
-   * @param existingSignaturePageNumber
-   *          a given number where the sign page is placed (may be null)
+   * @param document the document
+   * @param signPage the sign page parameters
+   * @param insertPageAt the original configuration where the sign page should be inserted
+   * @param existingSignaturePageNumber a given number where the sign page is placed (may be null)
    * @return the page number
-   * @throws SignServiceIntegrationException
-   *           if the page doesn't contain a sign page
+   * @throws SignServiceIntegrationException if the page doesn't contain a sign page
    */
   private int getSignaturePagePosition(final PDDocument document, final PdfSignaturePage signPage,
       final Integer insertPageAt, final Integer existingSignaturePageNumber) throws SignServiceIntegrationException {
@@ -345,8 +340,9 @@ public class DefaultPdfSignaturePagePreparator implements PdfSignaturePagePrepar
 
     if (existingSignaturePageNumber != null) {
       if (existingSignaturePageNumber > noTotalPages) {
-        final String msg = String.format("Invalid value for existingSignaturePageNumber (%d) - Document only has %d pages",
-          existingSignaturePageNumber, noTotalPages);
+        final String msg =
+            String.format("Invalid value for existingSignaturePageNumber (%d) - Document only has %d pages",
+                existingSignaturePageNumber, noTotalPages);
         log.error("{}", msg);
         throw new InputValidationException("signaturePagePreferences.existingSignaturePageNumber", msg);
       }
@@ -368,7 +364,8 @@ public class DefaultPdfSignaturePagePreparator implements PdfSignaturePagePrepar
       // First page of sign page document is located at document page:
       final int firstSignPageDocPage = insertPageAt == null || insertPageAt == 0 ? docNoPages + 1 : insertPageAt;
 
-      if (signPage.getImagePlacementConfiguration().getPage() == null || signPage.getImagePlacementConfiguration().getPage() == 1) {
+      if (signPage.getImagePlacementConfiguration().getPage() == null
+          || signPage.getImagePlacementConfiguration().getPage() == 1) {
         return firstSignPageDocPage;
       }
       else if (signPage.getImagePlacementConfiguration().getPage() == 0) {
@@ -388,34 +385,31 @@ public class DefaultPdfSignaturePagePreparator implements PdfSignaturePagePrepar
    * Calculates the placement (x and y positions) of the signature image based on the current signature count and the
    * placement configuration.
    *
-   * @param visiblePdfSignatureRequirement
-   *          the requirement object to update
-   * @param signaturePage
-   *          the signature page containing the placement configuration
-   * @param signatureCount
-   *          the signature count
+   * @param visiblePdfSignatureRequirement the requirement object to update
+   * @param signaturePage the signature page containing the placement configuration
+   * @param signatureCount the signature count
    */
   private void calculateImagePlacement(
-      final VisiblePdfSignatureRequirement visiblePdfSignatureRequirement, final PdfSignaturePage signaturePage, final int signatureCount) {
+      final VisiblePdfSignatureRequirement visiblePdfSignatureRequirement, final PdfSignaturePage signaturePage,
+      final int signatureCount) {
 
     // Note: we don't have to assert that values are set and such. The validators have already checked this.
     //
     final int pageColumns = Optional.ofNullable(signaturePage.getColumns()).map(Integer::intValue).orElse(1);
 
     visiblePdfSignatureRequirement.setXPosition(
-      signaturePage.getImagePlacementConfiguration().getXPosition()
-          + signatureCount % pageColumns * signaturePage.getImagePlacementConfiguration().getXIncrement());
+        signaturePage.getImagePlacementConfiguration().getXPosition()
+            + signatureCount % pageColumns * signaturePage.getImagePlacementConfiguration().getXIncrement());
 
     visiblePdfSignatureRequirement.setYPosition(
-      signaturePage.getImagePlacementConfiguration().getYPosition()
-          + signatureCount / pageColumns * signaturePage.getImagePlacementConfiguration().getYIncrement());
+        signaturePage.getImagePlacementConfiguration().getYPosition()
+            + signatureCount / pageColumns * signaturePage.getImagePlacementConfiguration().getYIncrement());
   }
 
   /**
    * Assigns the document cached used to cache PDF documents (when returning references).
    *
-   * @param documentCache
-   *          the instance to assign
+   * @param documentCache the instance to assign
    */
   public void setDocumentCache(final DocumentCache documentCache) {
     this.documentCache = documentCache;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022 IDsec Solutions AB
+ * Copyright 2019-2023 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  */
 package se.idsec.signservice.integration.process.impl;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import se.idsec.signservice.integration.SignRequestInput;
 import se.idsec.signservice.integration.authentication.impl.AuthnRequirementsValidator;
@@ -31,13 +31,15 @@ import se.idsec.signservice.integration.signmessage.impl.SignMessageParametersVa
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
-public class SignRequestInputValidator extends AbstractInputValidator<SignRequestInput, IntegrationServiceConfiguration> {
+public class SignRequestInputValidator
+    extends AbstractInputValidator<SignRequestInput, IntegrationServiceConfiguration> {
 
   /** Validator for AuthnRequirements. */
   private final AuthnRequirementsValidator authnRequirementsValidator = new AuthnRequirementsValidator();
 
   /** Validator for SigningCertificateRequirements. */
-  private final SigningCertificateRequirementsValidator signingCertificateRequirementsValidator = new SigningCertificateRequirementsValidator();
+  private final SigningCertificateRequirementsValidator signingCertificateRequirementsValidator =
+      new SigningCertificateRequirementsValidator();
 
   /** Validator for SignMessageParametersValidator. */
   private final SignMessageParametersValidator signMessageParametersValidator = new SignMessageParametersValidator();
@@ -55,7 +57,8 @@ public class SignRequestInputValidator extends AbstractInputValidator<SignReques
 
     // SignRequesterID
     if (StringUtils.isBlank(object.getSignRequesterID()) && StringUtils.isBlank(hint.getDefaultSignRequesterID())) {
-      result.rejectValue("signRequesterID", "No signRequesterID given and configuration does not contain a default value");
+      result.rejectValue("signRequesterID",
+          "No signRequesterID given and configuration does not contain a default value");
     }
 
     // ReturnUrl
@@ -65,15 +68,15 @@ public class SignRequestInputValidator extends AbstractInputValidator<SignReques
 
     // AuthnRequirements
     result.setFieldErrors(this.authnRequirementsValidator.validate(
-      object.getAuthnRequirements(), "authnRequirements", hint));
+        object.getAuthnRequirements(), "authnRequirements", hint));
 
     // SigningCertificateRequirements
     result.setFieldErrors(this.signingCertificateRequirementsValidator.validate(
-      object.getCertificateRequirements(), "certificateRequirements", hint));
+        object.getCertificateRequirements(), "certificateRequirements", hint));
 
     // SignMessageParametersValidator
     result.setFieldErrors(this.signMessageParametersValidator.validate(
-      object.getSignMessageParameters(), "signMessageParameters", null));
+        object.getSignMessageParameters(), "signMessageParameters", null));
 
     // TbsDocuments
     if (object.getTbsDocuments() == null || object.getTbsDocuments().isEmpty()) {

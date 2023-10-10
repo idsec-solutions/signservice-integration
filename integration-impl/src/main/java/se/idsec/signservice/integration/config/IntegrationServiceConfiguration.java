@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022 IDsec Solutions AB
+ * Copyright 2019-2023 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -73,8 +73,7 @@ public interface IntegrationServiceConfiguration extends IntegrationServiceDefau
    * If {@link #getParentPolicy()} is set, this method is used to merge the parent policy configuration into this
    * object. After the merge has been performed the parent policy is unset.
    *
-   * @param parent
-   *          the policy to merge from
+   * @param parent the policy to merge from
    */
   void mergeConfiguration(final IntegrationServiceConfiguration parent);
 
