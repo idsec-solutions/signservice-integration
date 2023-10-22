@@ -369,9 +369,9 @@ public class XmlSignedDocumentProcessor extends AbstractSignedDocumentProcessor<
               : se.idsec.signservice.security.sign.xml.XMLSignatureLocation.ChildPosition.LAST;
 
       final se.idsec.signservice.security.sign.xml.XMLSignatureLocation sigLoc =
-          StringUtils.isNotBlank(parameters.getXmlSignatureLocation().getXPath())
+          StringUtils.isNotBlank(parameters.getXmlSignatureLocation().getxPath())
               ? new se.idsec.signservice.security.sign.xml.XMLSignatureLocation(
-                  parameters.getXmlSignatureLocation().getXPath(), _child)
+                  parameters.getXmlSignatureLocation().getxPath(), _child)
               : new se.idsec.signservice.security.sign.xml.XMLSignatureLocation(_child);
 
       return sigLoc;
