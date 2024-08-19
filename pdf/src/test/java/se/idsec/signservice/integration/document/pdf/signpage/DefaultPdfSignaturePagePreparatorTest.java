@@ -360,6 +360,22 @@ public class DefaultPdfSignaturePagePreparatorTest {
     Assertions.assertEquals("stateful-policy", result.getPolicy());
   }
 
+  @Test
+  void testPdfWithFormAndEncryptionDictionary() throws Exception {
+    final DefaultPdfSignaturePagePreparator preparator = new DefaultPdfSignaturePagePreparator();
+    final PdfSignaturePagePreferences prefs = getDefaultPrefs();
+    final PreparedPdfDocument result = preparator.preparePdfSignaturePage(
+      loadContents("pdf/open-form-with-encryption-dict.pdf"), prefs, this.configStateless);
+
+    Assertions.assertNotNull(result.getUpdatedPdfDocument());
+
+    final PDDocument doc = PDDocumentUtils.load(Base64.getDecoder().decode(result.getUpdatedPdfDocument()));
+
+    Assertions.assertNull(doc.getDocumentCatalog().getAcroForm());
+    Assertions.assertNull(doc.getEncryption());
+    Assertions.assertEquals(2, doc.getPages().getCount());
+  }
+
   private static PdfSignaturePagePreferences getDefaultPrefs() {
     return PdfSignaturePagePreferences.builder()
         .signaturePageReference("default-sign-page")

@@ -25,6 +25,7 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.pdfbox.pdmodel.interactive.form.PDAcroForm;
 import se.idsec.signservice.integration.ExtendedSignServiceIntegrationService;
 import se.idsec.signservice.integration.SignServiceIntegrationService;
 import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
@@ -133,6 +134,8 @@ public class DefaultPdfSignaturePagePreparator implements PdfSignaturePagePrepar
       int signPagePageNumber;
 
       if (signatureCount == 0) {
+        log.debug("Checking unsigned document for encryption settings and open AcroForms");
+        lockFormsAndUpdateSecurityPolicy(document);
         log.debug("Adding PDF signature page to document ...");
         final Pair<PDDocument, Integer> updateResult = this.addSignaturePage(
             document, preferences.getSignaturePage(), preferences.getInsertPageAt());
@@ -212,6 +215,55 @@ public class DefaultPdfSignaturePagePreparator implements PdfSignaturePagePrepar
     }
     finally {
       PDDocumentUtils.close(document);
+    }
+  }
+
+  /**
+   * Locks the AcroForms and updates the security policy of the given PDDocument.
+   * <p>
+   *   Acrobat reader will not recognize signatures on documents with AcroForms in the main
+   *   document, such as when a document contains an active form for data entry.
+   *   The act of signing is an act of locking the document.
+   *   Any present forms must be locked (flattened), and the empty AcroForm must be removed.
+   * <p>
+   *   Some forms also have an Encryption Dictionary.
+   *   This will prevent the document from being updated and saved correctly.
+   *   To manage this, the security policy needs to be updated.
+   * <p>
+   *   This function tests the conditions of AcroForms and Encryption dictionary and makes
+   *   the necessary updates to lock the content and prepare it for signing.
+   *
+   * @param document The PDDocument to be processed.
+   * @throws DocumentProcessingException if the document update process fails.
+   */
+  private void lockFormsAndUpdateSecurityPolicy(PDDocument document) throws DocumentProcessingException {
+    try {
+      PDAcroForm acroForm = document.getDocumentCatalog().getAcroForm();
+      if (acroForm == null) {
+        log.debug("No AcroForm present");
+        return;
+      }
+      log.debug("The document contains an AcroForm with {} fields", acroForm.getFields().size());
+      if (!acroForm.getFields().isEmpty()) {
+        log.debug("Flattening non-empty AcroForm");
+        // After this process, the AcroForm content should be empty and its content moved to the document in locked form.
+        acroForm.flatten();
+      }
+      // Check that AcroForm is empty and remove it.
+      if (acroForm.getFields().isEmpty()) {
+        log.debug("AcroForm is empty. Removing it from document");
+        document.getDocumentCatalog().setAcroForm(null);
+      } else {
+        // Something went wrong. Abort.
+        throw new IOException("Failed to flatten AcroForm");
+      }
+      if (document.getEncryption() != null) {
+        log.debug("The document has an encryption dictionary. Removing security properties to allow the updated document to be saved");
+        document.setAllSecurityToBeRemoved(true);
+      }
+    }
+    catch (IOException e) {
+      throw new DocumentProcessingException(new ErrorCode.Code("pdf"), e.getMessage());
     }
   }
 
