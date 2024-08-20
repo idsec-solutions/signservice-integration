@@ -28,7 +28,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.pdfbox.pdmodel.interactive.form.PDAcroForm;
 import se.idsec.signservice.integration.ExtendedSignServiceIntegrationService;
 import se.idsec.signservice.integration.SignServiceIntegrationService;
-import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
 import se.idsec.signservice.integration.config.IntegrationServiceDefaultConfiguration;
 import se.idsec.signservice.integration.core.DocumentCache;
 import se.idsec.signservice.integration.core.error.ErrorCode;
@@ -270,7 +269,7 @@ public class DefaultPdfSignaturePagePreparator implements PdfSignaturePagePrepar
 
   /**
    * Validates the input supplied to
-   * {@link #preparePdfSignaturePage(byte[], PdfSignaturePagePreferences, IntegrationServiceConfiguration)}.
+   * {@link #preparePdfSignaturePage(byte[], PdfSignaturePagePreferences, IntegrationServiceDefaultConfiguration)}.
    *
    * @param pdfDocument the PDF document
    * @param signaturePagePreferences the signature page preferences
