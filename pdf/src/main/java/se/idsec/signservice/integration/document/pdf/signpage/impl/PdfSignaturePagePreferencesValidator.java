@@ -16,6 +16,7 @@
 package se.idsec.signservice.integration.document.pdf.signpage.impl;
 
 import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
+import se.idsec.signservice.integration.config.IntegrationServiceDefaultConfiguration;
 import se.idsec.signservice.integration.core.validation.AbstractInputValidator;
 import se.idsec.signservice.integration.core.validation.ValidationResult;
 import se.idsec.signservice.integration.document.impl.PdfSignaturePageValidator;
@@ -31,7 +32,7 @@ import se.idsec.signservice.integration.document.pdf.PdfSignaturePagePreferences
  * @author Stefan Santesson (stefan@idsec.se)
  */
 public class PdfSignaturePagePreferencesValidator
-    extends AbstractInputValidator<PdfSignaturePagePreferences, IntegrationServiceConfiguration> {
+    extends AbstractInputValidator<PdfSignaturePagePreferences, IntegrationServiceDefaultConfiguration> {
 
   /** Validator for sign pages. */
   private PdfSignaturePageValidator pdfSignaturePageValidator = new ExtendedPdfSignaturePageValidator();
@@ -43,7 +44,7 @@ public class PdfSignaturePagePreferencesValidator
   /** {@inheritDoc} */
   @Override
   public ValidationResult validate(
-      final PdfSignaturePagePreferences object, final String objectName, final IntegrationServiceConfiguration hint) {
+      final PdfSignaturePagePreferences object, final String objectName, final IntegrationServiceDefaultConfiguration hint) {
 
     final ValidationResult result = new ValidationResult(objectName);
     if (object == null) {

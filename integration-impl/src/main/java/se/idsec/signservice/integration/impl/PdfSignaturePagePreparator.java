@@ -17,6 +17,7 @@ package se.idsec.signservice.integration.impl;
 
 import se.idsec.signservice.integration.ExtendedSignServiceIntegrationService;
 import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
+import se.idsec.signservice.integration.config.IntegrationServiceDefaultConfiguration;
 import se.idsec.signservice.integration.core.error.InputValidationException;
 import se.idsec.signservice.integration.core.error.SignServiceIntegrationException;
 import se.idsec.signservice.integration.document.pdf.PdfSignaturePageFullException;
@@ -54,7 +55,7 @@ public interface PdfSignaturePagePreparator {
    */
   PreparedPdfDocument preparePdfSignaturePage(final byte[] pdfDocument,
       final PdfSignaturePagePreferences signaturePagePreferences,
-      final IntegrationServiceConfiguration policyConfiguration)
+      final IntegrationServiceDefaultConfiguration policyConfiguration)
       throws InputValidationException, PdfSignaturePageFullException, SignServiceIntegrationException;
 
 }

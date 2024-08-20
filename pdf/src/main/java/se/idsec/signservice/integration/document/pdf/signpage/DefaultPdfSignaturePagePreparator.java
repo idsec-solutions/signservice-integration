@@ -29,6 +29,7 @@ import org.apache.pdfbox.pdmodel.interactive.form.PDAcroForm;
 import se.idsec.signservice.integration.ExtendedSignServiceIntegrationService;
 import se.idsec.signservice.integration.SignServiceIntegrationService;
 import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
+import se.idsec.signservice.integration.config.IntegrationServiceDefaultConfiguration;
 import se.idsec.signservice.integration.core.DocumentCache;
 import se.idsec.signservice.integration.core.error.ErrorCode;
 import se.idsec.signservice.integration.core.error.InputValidationException;
@@ -82,7 +83,7 @@ public class DefaultPdfSignaturePagePreparator implements PdfSignaturePagePrepar
   @Override
   public PreparedPdfDocument preparePdfSignaturePage(final byte[] pdfDocument,
       final PdfSignaturePagePreferences signaturePagePreferences,
-      final IntegrationServiceConfiguration policyConfiguration)
+      final IntegrationServiceDefaultConfiguration policyConfiguration)
       throws InputValidationException, PdfSignaturePageFullException, SignServiceIntegrationException {
 
     // We might update the preferences, so make a copy ...
@@ -278,7 +279,7 @@ public class DefaultPdfSignaturePagePreparator implements PdfSignaturePagePrepar
    */
   private void validateInput(final byte[] pdfDocument,
       final PdfSignaturePagePreferences signaturePagePreferences,
-      final IntegrationServiceConfiguration policyConfiguration)
+      final IntegrationServiceDefaultConfiguration policyConfiguration)
       throws InputValidationException {
 
     if (pdfDocument == null) {
