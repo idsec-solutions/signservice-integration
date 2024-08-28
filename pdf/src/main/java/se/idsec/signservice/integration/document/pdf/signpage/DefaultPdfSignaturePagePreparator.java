@@ -15,7 +15,8 @@
  */
 package se.idsec.signservice.integration.document.pdf.signpage;
 
-import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -25,7 +26,6 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.pdfbox.pdmodel.interactive.form.PDAcroForm;
 import se.idsec.signservice.integration.ExtendedSignServiceIntegrationService;
 import se.idsec.signservice.integration.SignServiceIntegrationService;
 import se.idsec.signservice.integration.config.IntegrationServiceDefaultConfiguration;
@@ -35,12 +35,7 @@ import se.idsec.signservice.integration.core.error.InputValidationException;
 import se.idsec.signservice.integration.core.error.SignServiceIntegrationException;
 import se.idsec.signservice.integration.document.DocumentEncoder;
 import se.idsec.signservice.integration.document.DocumentProcessingException;
-import se.idsec.signservice.integration.document.pdf.PdfDocumentEncoderDecoder;
-import se.idsec.signservice.integration.document.pdf.PdfSignaturePage;
-import se.idsec.signservice.integration.document.pdf.PdfSignaturePageFullException;
-import se.idsec.signservice.integration.document.pdf.PdfSignaturePagePreferences;
-import se.idsec.signservice.integration.document.pdf.PreparedPdfDocument;
-import se.idsec.signservice.integration.document.pdf.VisiblePdfSignatureRequirement;
+import se.idsec.signservice.integration.document.pdf.*;
 import se.idsec.signservice.integration.document.pdf.pdfa.BasicMetadataPDFAConformanceChecker;
 import se.idsec.signservice.integration.document.pdf.pdfa.PDFAConformanceChecker;
 import se.idsec.signservice.integration.document.pdf.signpage.impl.PdfSignaturePagePreferencesValidator;
@@ -74,9 +69,22 @@ public class DefaultPdfSignaturePagePreparator implements PdfSignaturePagePrepar
   @Getter
   private boolean enforcePdfaConsistency = false;
 
+  /** Defines if present AcroForms in unsigned documents should be rendered (flattened) and removed */
+  @Setter
+  @Getter
+  private boolean flattenAcroFroms = false;
+
+  /** Defines if documents with an encryption dictionary should have it removed to allow saving the document with sign page */
+  @Setter
+  @Getter
+  private boolean removeEncryptionDictionary = false;
+
   /** The PDF/A conformance checker used to check PDF/A consistency */
   @Setter
   private PDFAConformanceChecker pdfaChecker = new BasicMetadataPDFAConformanceChecker();
+
+  @Setter
+  private TbsPdfDocumentIssueHandler issueHandler = new TbsPdfDocumentIssueHandler();
 
   /** {@inheritDoc} */
   @Override
@@ -132,10 +140,9 @@ public class DefaultPdfSignaturePagePreparator implements PdfSignaturePagePrepar
 
       // The page number (1-based) where the signature page is inserted.
       int signPagePageNumber;
-
       if (signatureCount == 0) {
         log.debug("Checking unsigned document for encryption settings and open AcroForms");
-        lockFormsAndUpdateSecurityPolicy(document);
+        fixDocumentIssues(document);
         log.debug("Adding PDF signature page to document ...");
         final Pair<PDDocument, Integer> updateResult = this.addSignaturePage(
             document, preferences.getSignaturePage(), preferences.getInsertPageAt());
@@ -219,52 +226,31 @@ public class DefaultPdfSignaturePagePreparator implements PdfSignaturePagePrepar
   }
 
   /**
-   * Locks the AcroForms and updates the security policy of the given PDDocument.
-   * <p>
-   *   Acrobat reader will not recognize signatures on documents with AcroForms in the main
-   *   document, such as when a document contains an active form for data entry.
-   *   The act of signing is an act of locking the document.
-   *   Any present forms must be locked (flattened), and the empty AcroForm must be removed.
-   * <p>
-   *   Some forms also have an Encryption Dictionary.
-   *   This will prevent the document from being updated and saved correctly.
-   *   To manage this, the security policy needs to be updated.
-   * <p>
-   *   This function tests the conditions of AcroForms and Encryption dictionary and makes
-   *   the necessary updates to lock the content and prepare it for signing.
+   * Fixes document issues in a given PDDocument.
    *
-   * @param document The PDDocument to be processed.
-   * @throws DocumentProcessingException if the document update process fails.
+   * @param document the PDDocument to fix issues for.
+   * @throws DocumentProcessingException if an error occurs during document processing.
    */
-  private void lockFormsAndUpdateSecurityPolicy(PDDocument document) throws DocumentProcessingException {
-    try {
-      PDAcroForm acroForm = document.getDocumentCatalog().getAcroForm();
-      if (acroForm == null) {
-        log.debug("No AcroForm present");
-        return;
-      }
-      log.debug("The document contains an AcroForm with {} fields", acroForm.getFields().size());
-      if (!acroForm.getFields().isEmpty()) {
-        log.debug("Flattening non-empty AcroForm");
-        // After this process, the AcroForm content should be empty and its content moved to the document in locked form.
-        acroForm.flatten();
-      }
-      // Check that AcroForm is empty and remove it.
-      if (acroForm.getFields().isEmpty()) {
-        log.debug("AcroForm is empty. Removing it from document");
-        document.getDocumentCatalog().setAcroForm(null);
-      } else {
-        // Something went wrong. Abort.
-        throw new IOException("Failed to flatten AcroForm");
-      }
-      if (document.getEncryption() != null) {
-        log.debug("The document has an encryption dictionary. Removing security properties to allow the updated document to be saved");
-        document.setAllSecurityToBeRemoved(true);
-      }
+  private void fixDocumentIssues(PDDocument document) throws DocumentProcessingException {
+    List<PdfDocumentIssue> pdfDocumentIssues = issueHandler.identifyFixableIssues(document);
+    if (pdfDocumentIssues.isEmpty()) {
+      log.debug("No identified issues to fix in PDF document");
+      return;
     }
-    catch (IOException e) {
-      throw new DocumentProcessingException(new ErrorCode.Code("pdf"), e.getMessage());
+    log.debug("Identified issues: {} - Attempting to fix them", pdfDocumentIssues);
+    List<PdfDocumentIssue> issuesToFix = new ArrayList<>();
+    if (flattenAcroFroms) {
+      issuesToFix.add(PdfDocumentIssue.ACROFORM_IN_UNSIGNED_PDF);
+    } else {
+      log.debug("Policy prohibits AcroForm manipulation. {} is not fixed if present", PdfDocumentIssue.ACROFORM_IN_UNSIGNED_PDF);
     }
+    if (removeEncryptionDictionary) {
+      issuesToFix.add(PdfDocumentIssue.ENCRYPTION_DICTIONARY);
+    } else {
+      log.debug("Policy prohibits removal of encryption dictionary. {} is not fixed if present", PdfDocumentIssue.ENCRYPTION_DICTIONARY);
+    }
+    // This will fix the issues listed in 'issuesToFix' if they exist.
+    issueHandler.fixIssues(document, issuesToFix);
   }
 
   /**

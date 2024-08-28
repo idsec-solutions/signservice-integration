@@ -20,6 +20,7 @@ import java.util.Base64;
 
 import org.apache.pdfbox.io.IOUtils;
 import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.encryption.SecurityHandlerFactory;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ClassPathResource;
@@ -363,6 +364,8 @@ public class DefaultPdfSignaturePagePreparatorTest {
   @Test
   void testPdfWithFormAndEncryptionDictionary() throws Exception {
     final DefaultPdfSignaturePagePreparator preparator = new DefaultPdfSignaturePagePreparator();
+    preparator.setFlattenAcroFroms(true);
+    preparator.setRemoveEncryptionDictionary(true);
     final PdfSignaturePagePreferences prefs = getDefaultPrefs();
     final PreparedPdfDocument result = preparator.preparePdfSignaturePage(
       loadContents("pdf/open-form-with-encryption-dict.pdf"), prefs, this.configStateless);
