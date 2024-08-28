@@ -92,9 +92,10 @@ public class PDDocumentUtils {
    * @throws DocumentProcessingException for processing errors
    */
   public static byte[] toBytes(final PDDocument document) throws DocumentProcessingException {
-    try {
+    try (
       final ByteArrayOutputStream bos = new ByteArrayOutputStream();
       final BufferedOutputStream os = new BufferedOutputStream(bos);
+    ) {
       document.save(os, CompressParameters.NO_COMPRESSION);
       os.flush();
       return bos.toByteArray();
@@ -108,14 +109,14 @@ public class PDDocumentUtils {
    * Inserts the {@code insertDocument} in {@code document} at position {@code page} (1-based). This means that the
    * given page number is the page number for the first page of the {@code insertDocument} after insertion.
    *
-   * @param document the document to be updated (will be closed)
+   * @param document       the document to be updated (will be closed)
    * @param insertDocument the document to insert
-   * @param page the page (1-based) number where to insert, 0 means at the end of the file
+   * @param page           the page (1-based) number where to insert, 0 means at the end of the file
    * @return the updated document
    * @throws DocumentProcessingException for errors
    */
   public static PDDocument insertDocument(final PDDocument document, final PDDocument insertDocument, final int page)
-      throws DocumentProcessingException {
+    throws DocumentProcessingException {
     try {
       final int documentNumberOfPages = document.getNumberOfPages();
       final int pagesToAdd = insertDocument.getNumberOfPages();
@@ -147,11 +148,11 @@ public class PDDocumentUtils {
     }
     catch (IndexOutOfBoundsException | IllegalStateException | IllegalArgumentException e) {
       throw new DocumentProcessingException(new ErrorCode.Code("pdf"),
-          String.format("Failed to insert sign page at page %d of document (no such page)", page), e);
+        String.format("Failed to insert sign page at page %d of document (no such page)", page), e);
     }
     catch (final IOException e) {
       throw new DocumentProcessingException(new ErrorCode.Code("pdf"),
-          String.format("Failed to insert sign page into document"), e);
+        String.format("Failed to insert sign page into document"), e);
     }
     finally {
       PDDocumentUtils.close(document);
