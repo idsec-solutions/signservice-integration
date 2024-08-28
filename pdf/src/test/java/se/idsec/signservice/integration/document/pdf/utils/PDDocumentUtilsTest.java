@@ -17,6 +17,7 @@ package se.idsec.signservice.integration.document.pdf.utils;
 
 import java.io.IOException;
 
+import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.junit.jupiter.api.Assertions;
@@ -114,7 +115,7 @@ public class PDDocumentUtilsTest {
   }
 
   private static PDDocument load(final String resource) throws IOException {
-    return PDDocument.load((new ClassPathResource(resource)).getInputStream());
+    return Loader.loadPDF((new ClassPathResource(resource)).getFile());
   }
 
   private static String getContents(final PDDocument doc, final int page) throws IOException {

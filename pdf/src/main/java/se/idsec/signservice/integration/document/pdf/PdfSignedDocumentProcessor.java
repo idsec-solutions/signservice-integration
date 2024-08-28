@@ -24,6 +24,7 @@ import java.util.Base64;
 import java.util.List;
 import java.util.Objects;
 
+import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.cms.CMSException;
@@ -148,7 +149,7 @@ public class PdfSignedDocumentProcessor extends AbstractSignedDocumentProcessor<
     //
     PDDocument pdfDocument = null;
     try {
-      pdfDocument = PDDocument.load(document);
+      pdfDocument = Loader.loadPDF(document);
 
       final PDFBoxSignatureInterface replaceSignatureInterface = new ReplacingSignatureInterface(
         cmsSignedData,

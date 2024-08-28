@@ -326,7 +326,7 @@ public class DefaultPdfSignaturePagePreparator implements PdfSignaturePagePrepar
           .collect(Collectors.counting())
           .intValue();
     }
-    catch (final IOException e) {
+    catch (final Exception e) {
       throw new DocumentProcessingException(new ErrorCode.Code("format-error"),
           "Failed to list dictionaries of PDF document", e);
     }

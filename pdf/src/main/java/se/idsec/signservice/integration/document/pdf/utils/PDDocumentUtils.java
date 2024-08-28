@@ -17,16 +17,21 @@ package se.idsec.signservice.integration.document.pdf.utils;
 
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.pdfbox.Loader;
+import org.apache.pdfbox.pdfwriter.compress.CompressParameters;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageTree;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.pdfbox.text.PDFTextStripper;
 import se.idsec.signservice.integration.core.error.ErrorCode;
 import se.idsec.signservice.integration.document.DocumentProcessingException;
 import se.idsec.signservice.integration.document.pdf.pdfa.BasicMetadataPDFAConformanceChecker;
@@ -55,7 +60,7 @@ public class PDDocumentUtils {
    */
   public static PDDocument load(final byte[] contents) throws DocumentProcessingException {
     try {
-      return PDDocument.load(contents);
+      return Loader.loadPDF(contents);
     }
     catch (final IOException e) {
       log.error("Failed to load PDF document", e);
@@ -90,7 +95,8 @@ public class PDDocumentUtils {
     try {
       final ByteArrayOutputStream bos = new ByteArrayOutputStream();
       final BufferedOutputStream os = new BufferedOutputStream(bos);
-      document.save(os);
+      document.save(os, CompressParameters.NO_COMPRESSION);
+      os.flush();
       return bos.toByteArray();
     }
     catch (final IOException e) {

@@ -25,6 +25,7 @@ import java.util.Collections;
 import java.util.Objects;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -72,13 +73,13 @@ public class BasicMetadataPDFAConformanceCheckerTest {
   @Test
   public void checkPDFADeclarationFromPdf() throws Exception {
 
-    try (PDDocument document = PDDocument.load(pdfFile)) {
+    try (PDDocument document = Loader.loadPDF(pdfFile)) {
       PDFAStatus pdfaStatus = pdfaConformanceChecker.checkPDFAConformance(
           document.getDocumentCatalog().getMetadata());
       assertFalse(pdfaStatus.isValid());
     }
 
-    try (PDDocument document = PDDocument.load(pdfaFile)) {
+    try (PDDocument document = Loader.loadPDF(pdfaFile)) {
       PDFAStatus pdfaStatus = pdfaConformanceChecker.checkPDFAConformance(
           document.getDocumentCatalog().getMetadata());
       assertTrue(pdfaStatus.isValid());
