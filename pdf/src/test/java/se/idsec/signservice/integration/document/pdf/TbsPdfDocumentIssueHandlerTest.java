@@ -187,7 +187,6 @@ class TbsPdfDocumentIssueHandlerTest {
       preparator.preparePdfSignaturePage(PDDocumentUtils.toBytes(pdfDoc), prefs, this.configStateless);
     });
     log.info("Exception: {}", exception.toString());
-
   }
 
 }
