@@ -86,11 +86,14 @@ class TbsPdfDocumentIssueHandlerTest {
 
     Assertions.assertNotNull(result.getUpdatedPdfDocument());
 
-    final PDDocument doc = PDDocumentUtils.load(Base64.getDecoder().decode(result.getUpdatedPdfDocument()));
+    try (
+      final PDDocument doc = PDDocumentUtils.load(Base64.getDecoder().decode(result.getUpdatedPdfDocument()));
+    ) {
+      Assertions.assertNull(doc.getDocumentCatalog().getAcroForm());
+      Assertions.assertNull(doc.getEncryption());
+      Assertions.assertEquals(2, doc.getPages().getCount());
+    }
 
-    Assertions.assertNull(doc.getDocumentCatalog().getAcroForm());
-    Assertions.assertNull(doc.getEncryption());
-    Assertions.assertEquals(2, doc.getPages().getCount());
   }
 
   @Test
@@ -110,11 +113,13 @@ class TbsPdfDocumentIssueHandlerTest {
 
     Assertions.assertNotNull(result.getUpdatedPdfDocument());
 
-    final PDDocument doc = PDDocumentUtils.load(Base64.getDecoder().decode(result.getUpdatedPdfDocument()));
-
-    Assertions.assertNull(doc.getDocumentCatalog().getAcroForm());
-    Assertions.assertNull(doc.getEncryption());
-    Assertions.assertEquals(2, doc.getPages().getCount());
+    try (
+      final PDDocument doc = PDDocumentUtils.load(Base64.getDecoder().decode(result.getUpdatedPdfDocument()));
+    ) {
+      Assertions.assertNull(doc.getDocumentCatalog().getAcroForm());
+      Assertions.assertNull(doc.getEncryption());
+      Assertions.assertEquals(2, doc.getPages().getCount());
+    }
   }
 
   @Test
@@ -133,11 +138,13 @@ class TbsPdfDocumentIssueHandlerTest {
 
     Assertions.assertNotNull(result.getUpdatedPdfDocument());
 
-    final PDDocument doc = PDDocumentUtils.load(Base64.getDecoder().decode(result.getUpdatedPdfDocument()));
-
-    Assertions.assertNull(doc.getDocumentCatalog().getAcroForm());
-    Assertions.assertNull(doc.getEncryption());
-    Assertions.assertEquals(2, doc.getPages().getCount());
+    try (
+      final PDDocument doc = PDDocumentUtils.load(Base64.getDecoder().decode(result.getUpdatedPdfDocument()));
+    ) {
+      Assertions.assertNull(doc.getDocumentCatalog().getAcroForm());
+      Assertions.assertNull(doc.getEncryption());
+      Assertions.assertEquals(2, doc.getPages().getCount());
+    }
   }
 
   @Test
@@ -153,9 +160,14 @@ class TbsPdfDocumentIssueHandlerTest {
     final PdfSignaturePagePreferences prefs = DefaultPdfSignaturePagePreparatorTest.getDefaultPrefs();
     final PreparedPdfDocument result = preparator.preparePdfSignaturePage(notCompletelyFixed, prefs, this.configStateless);
 
-    final PDDocument doc = PDDocumentUtils.load(Base64.getDecoder().decode(result.getUpdatedPdfDocument()));
+    try (
+      final PDDocument doc = PDDocumentUtils.load(Base64.getDecoder().decode(result.getUpdatedPdfDocument()));
+    ) {
+      assertEquals(1, doc.getDocumentCatalog().getAcroForm().getFields().size());
+      Assertions.assertNull(doc.getEncryption());
+      Assertions.assertEquals(2, doc.getPages().getCount());
+    }
 
-    assertEquals(1, doc.getDocumentCatalog().getAcroForm().getFields().size());
   }
 
   @Test
