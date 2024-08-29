@@ -20,7 +20,6 @@ import java.util.Base64;
 
 import org.apache.pdfbox.io.IOUtils;
 import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.encryption.SecurityHandlerFactory;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ClassPathResource;
@@ -379,7 +378,7 @@ public class DefaultPdfSignaturePagePreparatorTest {
     Assertions.assertEquals(2, doc.getPages().getCount());
   }
 
-  private static PdfSignaturePagePreferences getDefaultPrefs() {
+  public static PdfSignaturePagePreferences getDefaultPrefs() {
     return PdfSignaturePagePreferences.builder()
         .signaturePageReference("default-sign-page")
         .visiblePdfSignatureUserInformation(VisiblePdfSignatureUserInformation.toBuilder()
@@ -393,7 +392,7 @@ public class DefaultPdfSignaturePagePreparatorTest {
         .build();
   }
 
-  private static byte[] loadContents(final String resource) throws IOException {
+  public static byte[] loadContents(final String resource) throws IOException {
     return IOUtils.toByteArray((new ClassPathResource(resource)).getInputStream());
   }
 
