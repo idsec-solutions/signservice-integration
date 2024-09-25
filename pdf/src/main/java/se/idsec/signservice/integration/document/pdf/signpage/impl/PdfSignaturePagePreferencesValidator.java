@@ -15,7 +15,8 @@
  */
 package se.idsec.signservice.integration.document.pdf.signpage.impl;
 
-import se.idsec.signservice.integration.config.IntegrationServiceDefaultConfiguration;
+import jakarta.annotation.Nonnull;
+import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
 import se.idsec.signservice.integration.core.validation.AbstractInputValidator;
 import se.idsec.signservice.integration.core.validation.ValidationResult;
 import se.idsec.signservice.integration.document.impl.PdfSignaturePageValidator;
@@ -31,19 +32,20 @@ import se.idsec.signservice.integration.document.pdf.PdfSignaturePagePreferences
  * @author Stefan Santesson (stefan@idsec.se)
  */
 public class PdfSignaturePagePreferencesValidator
-    extends AbstractInputValidator<PdfSignaturePagePreferences, IntegrationServiceDefaultConfiguration> {
+    extends AbstractInputValidator<PdfSignaturePagePreferences, IntegrationServiceConfiguration> {
 
   /** Validator for sign pages. */
-  private PdfSignaturePageValidator pdfSignaturePageValidator = new ExtendedPdfSignaturePageValidator();
+  private final PdfSignaturePageValidator pdfSignaturePageValidator = new ExtendedPdfSignaturePageValidator();
 
   /** Validator for VisiblePdfSignatureUserInformation objects. */
-  private VisiblePdfSignatureUserInformationValidator visiblePdfSignatureUserInformationValidator =
+  private final VisiblePdfSignatureUserInformationValidator visiblePdfSignatureUserInformationValidator =
       new VisiblePdfSignatureUserInformationValidator();
 
   /** {@inheritDoc} */
   @Override
   public ValidationResult validate(
-      final PdfSignaturePagePreferences object, final String objectName, final IntegrationServiceDefaultConfiguration hint) {
+      final PdfSignaturePagePreferences object, @Nonnull final String objectName,
+      final IntegrationServiceConfiguration hint) {
 
     final ValidationResult result = new ValidationResult(objectName);
     if (object == null) {
@@ -54,7 +56,7 @@ public class PdfSignaturePagePreferencesValidator
     if (object.getSignaturePageReference() == null && object.getSignaturePage() == null) {
       // OK, see if we have one in the configuration.
       if (hint.getPdfSignaturePages() != null && !hint.getPdfSignaturePages().isEmpty()) {
-        page = hint.getPdfSignaturePages().get(0);
+        page = hint.getPdfSignaturePages().getFirst();
       }
       if (page == null) {
         result.reject("No signaturePageReference or signaturePage given, and no default page found in config.");

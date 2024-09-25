@@ -13,17 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package se.idsec.signservice.integration.document.pdf.signpage;
-
-import java.io.IOException;
-import java.util.Base64;
+package se.idsec.signservice.integration.document.pdf;
 
 import org.apache.pdfbox.io.IOUtils;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ClassPathResource;
-
 import se.idsec.signservice.integration.SignServiceIntegrationService;
 import se.idsec.signservice.integration.authentication.SignerIdentityAttribute;
 import se.idsec.signservice.integration.config.impl.DefaultIntegrationServiceConfiguration;
@@ -33,16 +29,12 @@ import se.idsec.signservice.integration.core.error.InputValidationException;
 import se.idsec.signservice.integration.core.error.NoAccessException;
 import se.idsec.signservice.integration.core.impl.InMemoryDocumentCache;
 import se.idsec.signservice.integration.document.DocumentProcessingException;
-import se.idsec.signservice.integration.document.pdf.PdfSignatureImageTemplate;
-import se.idsec.signservice.integration.document.pdf.PdfSignaturePage;
 import se.idsec.signservice.integration.document.pdf.PdfSignaturePage.PdfSignatureImagePlacementConfiguration;
-import se.idsec.signservice.integration.document.pdf.PdfSignaturePageFullException;
-import se.idsec.signservice.integration.document.pdf.PdfSignaturePagePreferences;
-import se.idsec.signservice.integration.document.pdf.PreparedPdfDocument;
-import se.idsec.signservice.integration.document.pdf.VisiblePdfSignatureRequirement;
-import se.idsec.signservice.integration.document.pdf.VisiblePdfSignatureUserInformation;
 import se.idsec.signservice.integration.document.pdf.VisiblePdfSignatureUserInformation.SignerName;
 import se.idsec.signservice.integration.document.pdf.utils.PDDocumentUtils;
+
+import java.io.IOException;
+import java.util.Base64;
 
 /**
  * Test cases for DefaultPdfSignaturePagePreparator.
@@ -52,8 +44,8 @@ import se.idsec.signservice.integration.document.pdf.utils.PDDocumentUtils;
  */
 public class DefaultPdfSignaturePagePreparatorTest {
 
-  private DefaultIntegrationServiceConfiguration configStateless;
-  private DefaultIntegrationServiceConfiguration configStateful;
+  private final DefaultIntegrationServiceConfiguration configStateless;
+  private final DefaultIntegrationServiceConfiguration configStateful;
 
   private static final int xPosition = 37;
   private static final int xIncrement = 268;
@@ -109,18 +101,10 @@ public class DefaultPdfSignaturePagePreparatorTest {
     final DefaultPdfSignaturePagePreparator preparator = new DefaultPdfSignaturePagePreparator();
 
     try {
-      preparator.preparePdfSignaturePage(loadContents("pdf/sample-8-signatures.pdf"), null, this.configStateless);
-      Assertions.fail("Expected InputValidationException");
-    }
-    catch (InputValidationException e) {
-      Assertions.assertEquals("signaturePagePreferences", e.getObjectName());
-    }
-
-    try {
       preparator.preparePdfSignaturePage(null, getDefaultPrefs(), this.configStateless);
       Assertions.fail("Expected InputValidationException");
     }
-    catch (InputValidationException e) {
+    catch (final InputValidationException e) {
       Assertions.assertEquals("pdfDocument", e.getObjectName());
     }
 
@@ -128,7 +112,7 @@ public class DefaultPdfSignaturePagePreparatorTest {
       preparator.preparePdfSignaturePage(loadContents("pdf/sample-8-signatures.pdf"), getDefaultPrefs(), null);
       Assertions.fail("Expected InputValidationException");
     }
-    catch (InputValidationException e) {
+    catch (final InputValidationException e) {
       Assertions.assertEquals("policy", e.getObjectName());
     }
   }
@@ -140,21 +124,21 @@ public class DefaultPdfSignaturePagePreparatorTest {
       preparator.preparePdfSignaturePage("ABCDEF".getBytes(), getDefaultPrefs(), this.configStateless);
       Assertions.fail("Expected InputValidationException");
     }
-    catch (InputValidationException e) {
+    catch (final InputValidationException e) {
       Assertions.assertEquals("pdfDocument", e.getObjectName());
-      Assertions.assertTrue(DocumentProcessingException.class.isInstance(e.getCause()));
+      Assertions.assertTrue(e.getCause() instanceof DocumentProcessingException);
     }
   }
 
   @Test
   public void testPdfEncrypted() throws Exception {
     final DefaultPdfSignaturePagePreparator preparator = new DefaultPdfSignaturePagePreparator();
-    PdfSignaturePagePreferences prefs = getDefaultPrefs();
+    final PdfSignaturePagePreferences prefs = getDefaultPrefs();
 
     try {
       preparator.preparePdfSignaturePage(loadContents("pdf/sample-encrypted.pdf"), prefs, this.configStateless);
     }
-    catch (InputValidationException e) {
+    catch (final InputValidationException e) {
       Assertions.assertEquals("pdfDocument", e.getObjectName());
     }
   }
@@ -162,7 +146,7 @@ public class DefaultPdfSignaturePagePreparatorTest {
   @Test
   public void testSignPageFull() throws Exception {
     final DefaultPdfSignaturePagePreparator preparator = new DefaultPdfSignaturePagePreparator();
-    PdfSignaturePagePreferences prefs = getDefaultPrefs();
+    final PdfSignaturePagePreferences prefs = getDefaultPrefs();
     final PreparedPdfDocument result = preparator.preparePdfSignaturePage(
         loadContents("pdf/sample-8-signatures.pdf"), prefs, this.configStateless);
 
@@ -179,7 +163,7 @@ public class DefaultPdfSignaturePagePreparatorTest {
       preparator.preparePdfSignaturePage(loadContents("pdf/sample-8-signatures.pdf"), prefs, this.configStateless);
       Assertions.fail("Expected PdfSignaturePageFullException");
     }
-    catch (PdfSignaturePageFullException e) {
+    catch (final PdfSignaturePageFullException ignored) {
     }
   }
 
@@ -207,8 +191,8 @@ public class DefaultPdfSignaturePagePreparatorTest {
     Assertions.assertEquals(prefs.getVisiblePdfSignatureUserInformation().getSignerName().getSignerAttributes().size(),
         reqs.getSignerName().getSignerAttributes().size());
     Assertions.assertEquals(
-        prefs.getVisiblePdfSignatureUserInformation().getSignerName().getSignerAttributes().get(0).getName(),
-        reqs.getSignerName().getSignerAttributes().get(0).getName());
+        prefs.getVisiblePdfSignatureUserInformation().getSignerName().getSignerAttributes().getFirst().getName(),
+        reqs.getSignerName().getSignerAttributes().getFirst().getName());
     Assertions.assertEquals(prefs.getVisiblePdfSignatureUserInformation().getSignerName().getFormatting(),
         reqs.getSignerName()
             .getFormatting());
@@ -246,8 +230,8 @@ public class DefaultPdfSignaturePagePreparatorTest {
     Assertions.assertEquals(prefs.getVisiblePdfSignatureUserInformation().getSignerName().getSignerAttributes().size(),
         reqs.getSignerName().getSignerAttributes().size());
     Assertions.assertEquals(
-        prefs.getVisiblePdfSignatureUserInformation().getSignerName().getSignerAttributes().get(0).getName(),
-        reqs.getSignerName().getSignerAttributes().get(0).getName());
+        prefs.getVisiblePdfSignatureUserInformation().getSignerName().getSignerAttributes().getFirst().getName(),
+        reqs.getSignerName().getSignerAttributes().getFirst().getName());
     Assertions.assertEquals(prefs.getVisiblePdfSignatureUserInformation().getSignerName().getFormatting(),
         reqs.getSignerName()
             .getFormatting());
@@ -273,8 +257,8 @@ public class DefaultPdfSignaturePagePreparatorTest {
     Assertions.assertEquals(prefs.getVisiblePdfSignatureUserInformation().getSignerName().getSignerAttributes().size(),
         reqs.getSignerName().getSignerAttributes().size());
     Assertions.assertEquals(
-        prefs.getVisiblePdfSignatureUserInformation().getSignerName().getSignerAttributes().get(0).getName(),
-        reqs.getSignerName().getSignerAttributes().get(0).getName());
+        prefs.getVisiblePdfSignatureUserInformation().getSignerName().getSignerAttributes().getFirst().getName(),
+        reqs.getSignerName().getSignerAttributes().getFirst().getName());
     Assertions.assertEquals(prefs.getVisiblePdfSignatureUserInformation().getSignerName().getFormatting(),
         reqs.getSignerName()
             .getFormatting());
@@ -336,7 +320,7 @@ public class DefaultPdfSignaturePagePreparatorTest {
     prefs.setReturnDocumentReference(null);
     prefs.addExtensionValue(SignServiceIntegrationService.OWNER_ID_EXTENSION_KEY, "userid");
     final byte[] uploadedDocument = loadContents("pdf/sample-1-signature.pdf");
-    PreparedPdfDocument result = preparator.preparePdfSignaturePage(
+    final PreparedPdfDocument result = preparator.preparePdfSignaturePage(
         uploadedDocument, prefs, this.configStateful);
 
     Assertions.assertNull(result.getUpdatedPdfDocument());
@@ -345,13 +329,13 @@ public class DefaultPdfSignaturePagePreparatorTest {
       docCache.get(result.getUpdatedPdfDocumentReference(), null);
       Assertions.fail("Expected NoAccessException");
     }
-    catch (NoAccessException e) {
+    catch (final NoAccessException ignored) {
     }
     try {
       docCache.get(result.getUpdatedPdfDocumentReference(), "otheruser");
       Assertions.fail("Expected NoAccessException");
     }
-    catch (NoAccessException e) {
+    catch (final NoAccessException ignored) {
     }
     final String cachedDocument = docCache.get(result.getUpdatedPdfDocumentReference(), "userid");
     final byte[] cachedDocumentBytes = Base64.getDecoder().decode(cachedDocument);
@@ -363,19 +347,91 @@ public class DefaultPdfSignaturePagePreparatorTest {
   @Test
   void testPdfWithFormAndEncryptionDictionary() throws Exception {
     final DefaultPdfSignaturePagePreparator preparator = new DefaultPdfSignaturePagePreparator();
-    preparator.setFlattenAcroFroms(true);
-    preparator.setRemoveEncryptionDictionary(true);
-    final PdfSignaturePagePreferences prefs = getDefaultPrefs();
+
+    final DefaultIntegrationServiceConfiguration config = this.configStateful.toBuilder()
+        .pdfPrepareSettings(PdfPrepareSettings.builder()
+            .allowFlattenAcroForms(true)
+            .allowRemoveEncryptionDictionary(true)
+            .build())
+        .build();
+
     final PreparedPdfDocument result = preparator.preparePdfSignaturePage(
-      loadContents("pdf/open-form-with-encryption-dict.pdf"), prefs, this.configStateless);
+        loadContents("pdf/open-form-with-encryption-dict.pdf"), getDefaultPrefs(), config);
 
     Assertions.assertNotNull(result.getUpdatedPdfDocument());
+    Assertions.assertTrue(
+        result.getPrepareReport().getActions().contains(PdfPrepareReport.PrepareActions.REMOVED_ENCRYPTION_DICTIONARY));
+    Assertions.assertTrue(
+        result.getPrepareReport().getActions().contains(PdfPrepareReport.PrepareActions.FLATTENED_ACROFORM));
 
-    final PDDocument doc = PDDocumentUtils.load(Base64.getDecoder().decode(result.getUpdatedPdfDocument()));
+    try (final PDDocument doc = PDDocumentUtils.load(Base64.getDecoder().decode(result.getUpdatedPdfDocument()))) {
+      Assertions.assertNull(doc.getDocumentCatalog().getAcroForm());
+      Assertions.assertNull(doc.getEncryption());
+      Assertions.assertEquals(2, doc.getPages().getCount());
+    }
+  }
 
-    Assertions.assertNull(doc.getDocumentCatalog().getAcroForm());
-    Assertions.assertNull(doc.getEncryption());
-    Assertions.assertEquals(2, doc.getPages().getCount());
+  void testPdfWithFormAndEncryptionDictionaryNoFix() {
+    final DefaultPdfSignaturePagePreparator preparator = new DefaultPdfSignaturePagePreparator();
+
+    final DefaultIntegrationServiceConfiguration config = DefaultIntegrationServiceConfiguration.builder()
+        .policy("test")
+        .pdfPrepareSettings(PdfPrepareSettings.builder()
+            .allowFlattenAcroForms(false)
+            .allowRemoveEncryptionDictionary(true)
+            .build())
+        .build();
+
+    Assertions.assertThrows(PdfContainsAcroformException.class, () ->
+        preparator.preparePdfSignaturePage(loadContents("pdf/open-form-with-encryption-dict.pdf"), null, config));
+
+    final DefaultIntegrationServiceConfiguration config2 = DefaultIntegrationServiceConfiguration.builder()
+        .policy("test")
+        .pdfPrepareSettings(PdfPrepareSettings.builder()
+            .allowFlattenAcroForms(true)
+            .allowRemoveEncryptionDictionary(false)
+            .build())
+        .build();
+
+    Assertions.assertThrows(PdfContainsEncryptionDictionaryException.class, () ->
+        preparator.preparePdfSignaturePage(loadContents("pdf/open-form-with-encryption-dict.pdf"), null, config2));
+
+  }
+
+  @Test
+  void testPdfAInconsistency() throws Exception {
+    final DefaultPdfSignaturePagePreparator preparator = new DefaultPdfSignaturePagePreparator();
+
+    final DefaultIntegrationServiceConfiguration config = this.configStateful.toBuilder()
+        .pdfPrepareSettings(PdfPrepareSettings.builder()
+            .enforcePdfaConsistency(true)
+            .build())
+        .build();
+
+    Assertions.assertThrows(PdfAConsistencyCheckException.class, () -> preparator.preparePdfSignaturePage(
+        loadContents("pdfa/Test_pdfa.pdf"), getDefaultPrefs(), config));
+  }
+
+  @Test
+  void testPdfAInconsistencyWarning() throws Exception {
+    final DefaultPdfSignaturePagePreparator preparator = new DefaultPdfSignaturePagePreparator();
+
+    final DefaultIntegrationServiceConfiguration config = this.configStateful.toBuilder()
+        .pdfPrepareSettings(PdfPrepareSettings.builder()
+            .enforcePdfaConsistency(false)
+            .build())
+        .build();
+
+    final PreparedPdfDocument result = preparator.preparePdfSignaturePage(
+        loadContents("pdfa/Test_pdfa.pdf"), getDefaultPrefs(), config);
+
+    Assertions.assertNotNull(result.getUpdatedPdfDocument());
+    Assertions.assertTrue(
+        result.getPrepareReport().getWarnings().contains(PdfPrepareReport.PrepareWarnings.PDFA_INCONSISTENCY));
+
+    try (final PDDocument doc = PDDocumentUtils.load(Base64.getDecoder().decode(result.getUpdatedPdfDocument()))) {
+      Assertions.assertEquals(2, doc.getPages().getCount());
+    }
   }
 
   public static PdfSignaturePagePreferences getDefaultPrefs() {

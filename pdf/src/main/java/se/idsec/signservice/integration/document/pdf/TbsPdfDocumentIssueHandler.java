@@ -1,24 +1,33 @@
+/*
+ * Copyright 2019-2024 IDsec Solutions AB
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package se.idsec.signservice.integration.document.pdf;
 
+import jakarta.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.interactive.form.PDAcroForm;
-import org.springframework.util.CollectionUtils;
 import se.idsec.signservice.integration.core.error.ErrorCode;
 import se.idsec.signservice.integration.document.DocumentProcessingException;
-import se.idsec.signservice.integration.document.pdf.utils.PDDocumentUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Process documents to be signed for issues that would prevent the document from being signed successfully.
- * <p>
- * This offers one function to identify issues and another to selectively fix identified issues.
- * This allows a service to first identify issues and then decide whether to fix them or to reject the signing process.
- * This option to reject instead of fixing can be important as fixing these issues inherently means applying changes to
- * the document to be signed.
+ * Processes documents to be signed for issues that would prevent the document from being signed successfully.
  *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
@@ -27,104 +36,71 @@ import java.util.List;
 public class TbsPdfDocumentIssueHandler {
 
   /**
-   * Creates a new instance of TbsPdfDocumentIssueHandler.
+   * Default constructor.
    */
   public TbsPdfDocumentIssueHandler() {
   }
 
   /**
-   * Identifies the fixable issues in a given PDF document.
+   * Checks the supplied document for the presence of Acroforms and encryption dictionaries. If the supplied
+   * {@code settings} parameter indicated that these issues should be fixed, the method will perform the fixes and
+   * indicate what has been fixed in the result. If no issues needed fixing, an empty list of actions will be returned.
+   * <p>
+   * If fixing of detected issues is not configured, a corresponding exception will be thrown.
+   * </p>
    *
-   * @param pdfDocument the bytes of the PDF document to identify issues in
-   * @return a list of fixable issues found in the PDF document
+   * @param document the document to fix
+   * @param settings settings for preparation of PDF documents
+   * @return a (potentially empty) list of actions that were fixed
+   * @throws DocumentProcessingException if the document can not be loaded or if fixing of issues fails
+   * @throws PdfContainsAcroformException if fixing of Acroforms is not configured and an Acroform is detected
+   * @throws PdfContainsEncryptionDictionaryException if fixing of encryption dictionaries is not configured and an
+   *     encryption dictionary is detected
    */
-  public List<PdfDocumentIssue> identifyFixableIssues(byte[] pdfDocument) throws DocumentProcessingException {
-    PDDocument pdDocument = PDDocumentUtils.load(pdfDocument);
-    try {
-      return identifyFixableIssues(pdDocument);
-    } finally {
-      PDDocumentUtils.close(pdDocument);
-    }
-  }
+  @Nonnull
+  public List<PdfPrepareReport.PrepareActions> fixIssues(
+      @Nonnull final PDDocument document, @Nonnull final PdfPrepareSettings settings)
+      throws DocumentProcessingException, PdfContainsAcroformException, PdfContainsEncryptionDictionaryException {
 
-  /**
-   * Identifies the fixable issues in a given PDF document.
-   *
-   * @param pdfDocument the PDF document to identify issues in
-   * @return a list of fixable issues found in the PDF document
-   */
-  public List<PdfDocumentIssue> identifyFixableIssues(PDDocument pdfDocument) {
-    List<PdfDocumentIssue> pdfDocumentIssues = new ArrayList<>();
-    boolean unsigned = CollectionUtils.isEmpty(pdfDocument.getSignatureDictionaries());
-    if (!unsigned) {
-      // We cant fix any issues in a signed document. That would break the signature.
-      return List.of();
-    }
-    if (pdfDocument.getEncryption() != null) {
-      pdfDocumentIssues.add(PdfDocumentIssue.ENCRYPTION_DICTIONARY);
-    }
-    if (pdfDocument.getDocumentCatalog().getAcroForm() != null) {
-      pdfDocumentIssues.add(PdfDocumentIssue.ACROFORM_IN_UNSIGNED_PDF);
-    }
-    return pdfDocumentIssues;
-  }
+    final List<PdfPrepareReport.PrepareActions> result = new ArrayList<>();
 
-  /**
-   * Fixes the issues in a PDF document and returns the fixed document as a byte array.
-   *
-   * @param pdfDocument the original PDF document as a byte array
-   * @param issues a list issues to be fixed if present
-   * @return the fixed PDF document as a byte array
-   * @throws DocumentProcessingException If an error occurs while processing the document.
-   */
-  public byte[] fixIssues(byte[] pdfDocument, List<PdfDocumentIssue> issues) throws DocumentProcessingException {
-    if (CollectionUtils.isEmpty(issues)) {
-      // Nothing to do. Return the input bytes.
-      return pdfDocument;
-    }
-    PDDocument pdDocument = PDDocumentUtils.load(pdfDocument);
-    try {
-      fixIssues(pdDocument, issues);
-      return PDDocumentUtils.toBytes(pdDocument);
-    } finally {
-      PDDocumentUtils.close(pdDocument);
-    }
-  }
-
-  /**
-   * Fixes identified issues in a PDF document.
-   *
-   * @param pdfDocument the PDF document to be fixed
-   * @param issues a list issues to be fixed if present
-   * @throws DocumentProcessingException if an error occurs during the document processing
-   */
-  public void fixIssues(PDDocument pdfDocument, List<PdfDocumentIssue> issues) throws DocumentProcessingException {
-    List<PdfDocumentIssue> identifiedIssues = identifyFixableIssues(pdfDocument);
-    for (PdfDocumentIssue issue : issues) {
-      switch (issue) {
-      case ENCRYPTION_DICTIONARY -> {
-        // Only fix if the problem that actually exists
-        if (identifiedIssues.contains(PdfDocumentIssue.ENCRYPTION_DICTIONARY)) {
-          pdfDocument.setAllSecurityToBeRemoved(true);
-          log.debug("Removing protection policy and encryption dictionary");
-        }
+    if (document.getEncryption() != null) {
+      final String msg = "Document contains encryption dictionary";
+      if (!settings.isAllowRemoveEncryptionDictionary()) {
+        throw new PdfContainsEncryptionDictionaryException("%s - not configured to remove".formatted(msg));
       }
-      case ACROFORM_IN_UNSIGNED_PDF -> {
-        // Only fix if the problem that actually exists
-        if (identifiedIssues.contains(PdfDocumentIssue.ACROFORM_IN_UNSIGNED_PDF)) {
-          PDAcroForm acroForm = pdfDocument.getDocumentCatalog().getAcroForm();
-          try {
-            acroForm.flatten();
-          }
-          catch (IOException e) {
-            throw new DocumentProcessingException(new ErrorCode.Code("document-issues") ,"Failed to flatten AcroForm", e);
-          }
-          pdfDocument.getDocumentCatalog().setAcroForm(null);
-          log.debug("Flattened and removed AcroForm");
-        }
+      log.info("{} - Removing protection policy and encryption dictionary", msg);
+      document.setAllSecurityToBeRemoved(true);
+
+      result.add(PdfPrepareReport.PrepareActions.REMOVED_ENCRYPTION_DICTIONARY);
+    }
+
+    if (document.getSignatureDictionaries().isEmpty() && document.getDocumentCatalog().getAcroForm() != null) {
+      final String msg = "Document contains AcroForm";
+
+      if (!settings.isAllowFlattenAcroForms()) {
+        throw new PdfContainsAcroformException("%s - not configured to flatten".formatted(msg));
       }
+      log.info("{} - Flattening ...", msg);
+      try {
+        final PDAcroForm acroForm = document.getDocumentCatalog().getAcroForm();
+        acroForm.flatten();
+        document.getDocumentCatalog().setAcroForm(null);
+        log.info("Flattened and removed AcroForm");
+
+        result.add(PdfPrepareReport.PrepareActions.FLATTENED_ACROFORM);
+      }
+      catch (final IOException e) {
+        throw new DocumentProcessingException(new ErrorCode.Code("pdf-flatten-acroform-failed"),
+            "Failed to flatten AcroForm", e);
       }
     }
+
+    if (result.isEmpty()) {
+      log.debug("No issues found in PDF document that needed action");
+    }
+
+    return result;
   }
 
 }

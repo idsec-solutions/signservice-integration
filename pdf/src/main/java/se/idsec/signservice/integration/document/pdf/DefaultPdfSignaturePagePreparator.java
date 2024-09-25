@@ -13,35 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package se.idsec.signservice.integration.document.pdf.signpage;
+package se.idsec.signservice.integration.document.pdf;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.stream.Collectors;
-
-import org.apache.pdfbox.pdmodel.PDDocument;
-
-import lombok.Getter;
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.pdfbox.pdmodel.PDDocument;
 import se.idsec.signservice.integration.ExtendedSignServiceIntegrationService;
 import se.idsec.signservice.integration.SignServiceIntegrationService;
-import se.idsec.signservice.integration.config.IntegrationServiceDefaultConfiguration;
+import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
 import se.idsec.signservice.integration.core.DocumentCache;
 import se.idsec.signservice.integration.core.error.ErrorCode;
 import se.idsec.signservice.integration.core.error.InputValidationException;
 import se.idsec.signservice.integration.core.error.SignServiceIntegrationException;
 import se.idsec.signservice.integration.document.DocumentEncoder;
 import se.idsec.signservice.integration.document.DocumentProcessingException;
-import se.idsec.signservice.integration.document.pdf.*;
 import se.idsec.signservice.integration.document.pdf.pdfa.BasicMetadataPDFAConformanceChecker;
 import se.idsec.signservice.integration.document.pdf.pdfa.PDFAConformanceChecker;
 import se.idsec.signservice.integration.document.pdf.signpage.impl.PdfSignaturePagePreferencesValidator;
 import se.idsec.signservice.integration.document.pdf.utils.PDDocumentUtils;
 import se.idsec.signservice.integration.impl.PdfSignaturePagePreparator;
-import se.idsec.signservice.utils.Pair;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Implementation of the
@@ -64,21 +60,6 @@ public class DefaultPdfSignaturePagePreparator implements PdfSignaturePagePrepar
   /** Encoder for PDF documents. */
   private static final DocumentEncoder<byte[]> encoder = new PdfDocumentEncoderDecoder();
 
-  /** Defines if PDF/A consistency check is done when adding a sign page to a document to be signed */
-  @Setter
-  @Getter
-  private boolean enforcePdfaConsistency = false;
-
-  /** Defines if present AcroForms in unsigned documents should be rendered (flattened) and removed */
-  @Setter
-  @Getter
-  private boolean flattenAcroFroms = false;
-
-  /** Defines if documents with an encryption dictionary should have it removed to allow saving the document with sign page */
-  @Setter
-  @Getter
-  private boolean removeEncryptionDictionary = false;
-
   /** The PDF/A conformance checker used to check PDF/A consistency */
   @Setter
   private PDFAConformanceChecker pdfaChecker = new BasicMetadataPDFAConformanceChecker();
@@ -88,10 +69,9 @@ public class DefaultPdfSignaturePagePreparator implements PdfSignaturePagePrepar
 
   /** {@inheritDoc} */
   @Override
-  public PreparedPdfDocument preparePdfSignaturePage(final byte[] pdfDocument,
-      final PdfSignaturePagePreferences signaturePagePreferences,
-      final IntegrationServiceDefaultConfiguration policyConfiguration)
-      throws InputValidationException, PdfSignaturePageFullException, SignServiceIntegrationException {
+  public PreparedPdfDocument preparePdfSignaturePage(@Nonnull final byte[] pdfDocument,
+      @Nullable final PdfSignaturePagePreferences signaturePagePreferences,
+      @Nonnull final IntegrationServiceConfiguration policyConfiguration) throws SignServiceIntegrationException {
 
     // We might update the preferences, so make a copy ...
     //
@@ -103,11 +83,16 @@ public class DefaultPdfSignaturePagePreparator implements PdfSignaturePagePrepar
     //
     this.validateInput(pdfDocument, preferences, policyConfiguration);
 
+    // Initialize the result object ...
+    //
+    final PreparedPdfDocument result = PreparedPdfDocument.builder()
+        .policy(policyConfiguration.getPolicy())
+        .build();
+
     PDDocument document = null;
 
     try {
-      // Load the PDF document and check if it already has signatures (we assume that there is a PDF signature page and
-      // that each signature has a signature image).
+      // Load the PDF document ...
       //
       try {
         document = PDDocumentUtils.load(pdfDocument);
@@ -115,76 +100,29 @@ public class DefaultPdfSignaturePagePreparator implements PdfSignaturePagePrepar
       catch (final DocumentProcessingException e) {
         throw new InputValidationException("pdfDocument", String.format("Invalid pdfDocument - %s", e.getMessage()), e);
       }
-      final int signatureCount = this.getSignatureCount(document);
 
-      if (preferences.getSignaturePage().getMaxSignatureImages() <= signatureCount) {
-        final String msg =
-            String.format("PDF signature page already has '%d' sign images - exceeds maximum allowed number",
-                signatureCount);
-        log.info("{}", msg);
-        if (preferences.isFailWhenSignPageFull()) {
-          throw new PdfSignaturePageFullException(msg);
-        }
-        else {
-          return PreparedPdfDocument.builder()
-              .policy(policyConfiguration.getPolicy())
-              .visiblePdfSignatureRequirement(
-                  VisiblePdfSignatureRequirement.createNullVisiblePdfSignatureRequirement())
-              .build();
-        }
-      }
-
-      // OK, find out whether we should add a sign page (signatureCount == 0) or whether we
-      // should add the signature image to an already existing page.
+      // First check if there are any fixes that needs to be applied to the document ...
       //
+      final boolean fixesApplied = this.checkAndUpdateDocument(document, policyConfiguration, result);
 
-      // The page number (1-based) where the signature page is inserted.
-      int signPagePageNumber;
-      if (signatureCount == 0) {
-        log.debug("Checking unsigned document for encryption settings and open AcroForms");
-        fixDocumentIssues(document);
-        log.debug("Adding PDF signature page to document ...");
-        final Pair<PDDocument, Integer> updateResult = this.addSignaturePage(
-            document, preferences.getSignaturePage(), preferences.getInsertPageAt());
-        document = updateResult.getFirst();
-        signPagePageNumber = updateResult.getSecond();
-        log.debug("PDF signature page was inserted at page number {}", signPagePageNumber);
+      // Next, add a visible signature (and possibly also a new sign page) ...
+      //
+      final PDDocument updatedDocument =
+          this.processSignPageAndVisibleSignature(document, preferences, policyConfiguration, result);
+      final boolean signPageAdded;
+      if (updatedDocument != null) {
+        signPageAdded = true;
+        document = updatedDocument;
       }
       else {
-        log.debug("PDF document already contains signatures");
-        signPagePageNumber = this.getSignaturePagePosition(document, preferences.getSignaturePage(),
-            preferences.getInsertPageAt(), preferences.getExistingSignaturePageNumber());
-        log.debug("PDF signature page is located at page number {}", signPagePageNumber);
+        signPageAdded = false;
       }
 
-      // Start creating a visible signature requirement result object ...
+      // Check if document references should be used ...
       //
-      final VisiblePdfSignatureRequirement visiblePdfSignatureRequirement =
-          new VisiblePdfSignatureRequirement(preferences
-              .getVisiblePdfSignatureUserInformation());
-
-      visiblePdfSignatureRequirement.setTemplateImageRef(
-          preferences.getSignaturePage().getSignatureImageReference());
-      visiblePdfSignatureRequirement.setPage(signPagePageNumber);
-      visiblePdfSignatureRequirement.setScale(
-          preferences.getSignaturePage().getImagePlacementConfiguration().getScale() != null
-              ? preferences.getSignaturePage().getImagePlacementConfiguration().getScale()
-              : 0);
-
-      // OK, the next step is to calculate where the signature image should be inserted ...
-      //
-      this.calculateImagePlacement(visiblePdfSignatureRequirement, preferences.getSignaturePage(), signatureCount);
-
-      // Put together the prepared PDF document ...
-      //
-      final PreparedPdfDocument result = new PreparedPdfDocument();
-      result.setPolicy(policyConfiguration.getPolicy());
-      result.setVisiblePdfSignatureRequirement(visiblePdfSignatureRequirement);
-
       boolean returnReference = false;
       if (!policyConfiguration.isStateless()) {
-        if (preferences.getReturnDocumentReference() == null
-            || preferences.getReturnDocumentReference().booleanValue()) {
+        if (preferences.getReturnDocumentReference() == null || preferences.getReturnDocumentReference()) {
           if (this.documentCache != null) {
             returnReference = true;
           }
@@ -202,7 +140,7 @@ public class DefaultPdfSignaturePagePreparator implements PdfSignaturePagePrepar
         final String ownerId = preferences.getExtensionValue(SignServiceIntegrationService.OWNER_ID_EXTENSION_KEY);
         final String documentReference = UUID.randomUUID().toString();
 
-        if (signatureCount == 0) {
+        if (fixesApplied || signPageAdded) {
           this.documentCache.put(documentReference, encoder.encodeDocument(PDDocumentUtils.toBytes(document)), ownerId);
         }
         else {
@@ -213,7 +151,7 @@ public class DefaultPdfSignaturePagePreparator implements PdfSignaturePagePrepar
       else {
         // Return updated document ...
         //
-        if (signatureCount == 0) {
+        if (fixesApplied || signPageAdded) {
           result.setUpdatedPdfDocument(encoder.encodeDocument(PDDocumentUtils.toBytes(document)));
         }
       }
@@ -226,36 +164,131 @@ public class DefaultPdfSignaturePagePreparator implements PdfSignaturePagePrepar
   }
 
   /**
-   * Fixes document issues in a given PDDocument.
+   * Checks if the document needs updating and optionally fixes detected issues.
    *
-   * @param document the PDDocument to fix issues for.
-   * @throws DocumentProcessingException if an error occurs during document processing.
+   * @param document the document to check (and update)
+   * @param policyConfiguration the configuration
+   * @param result will be updated with the fixes made
+   * @return tells whether the document was updated
+   * @throws DocumentProcessingException if fixing of issues fails
+   * @throws PdfContainsAcroformException if fixing of Acroforms is not configured and an Acroform is detected
+   * @throws PdfContainsEncryptionDictionaryException if fixing of encryption dictionaries is not configured and an
+   *     encryption dictionary is detected
    */
-  private void fixDocumentIssues(PDDocument document) throws DocumentProcessingException {
-    List<PdfDocumentIssue> pdfDocumentIssues = issueHandler.identifyFixableIssues(document);
-    if (pdfDocumentIssues.isEmpty()) {
-      log.debug("No identified issues to fix in PDF document");
-      return;
+  private boolean checkAndUpdateDocument(@Nonnull final PDDocument document,
+      @Nonnull final IntegrationServiceConfiguration policyConfiguration, @Nonnull final PreparedPdfDocument result)
+      throws DocumentProcessingException, PdfContainsAcroformException, PdfContainsEncryptionDictionaryException {
+
+    final List<PdfPrepareReport.PrepareActions> prepareActions = this.issueHandler.fixIssues(document,
+        Optional.ofNullable(policyConfiguration.getPdfPrepareSettings()).orElse(PdfPrepareSettings.DEFAULT));
+    if (!prepareActions.isEmpty()) {
+      result.setPrepareReport(PdfPrepareReport.builder()
+          .actions(prepareActions)
+          .build());
+      return true;
     }
-    log.debug("Identified issues: {} - Attempting to fix them", pdfDocumentIssues);
-    List<PdfDocumentIssue> issuesToFix = new ArrayList<>();
-    if (flattenAcroFroms) {
-      issuesToFix.add(PdfDocumentIssue.ACROFORM_IN_UNSIGNED_PDF);
-    } else {
-      log.debug("Policy prohibits AcroForm manipulation. {} is not fixed if present", PdfDocumentIssue.ACROFORM_IN_UNSIGNED_PDF);
+    return false;
+  }
+
+  /**
+   * Method for adding sign pages and setting up requirements for visible signatures.
+   * <p>
+   * If a sign page is added by the method, the updated document will be returned.
+   * </p>
+   *
+   * @param document the document to add sign page to.
+   * @param signPagePreferences the sign page preferences
+   * @param configuration the configuration
+   * @param result the result object that will be updated to reflect the updates to the document
+   * @return the updated document, or {@code null} if no sign page was added
+   * @throws SignServiceIntegrationException for errors
+   */
+  private PDDocument processSignPageAndVisibleSignature(@Nonnull final PDDocument document,
+      @Nonnull final PdfSignaturePagePreferences signPagePreferences,
+      @Nonnull final IntegrationServiceConfiguration configuration,
+      @Nonnull final PreparedPdfDocument result) throws SignServiceIntegrationException {
+
+    // Check if the document already has signatures (we assume that there is a PDF signature page and that each
+    // signature has a signature image).
+    //
+    final int signatureCount = this.getSignatureCount(document);
+
+    if (signPagePreferences.getSignaturePage().getMaxSignatureImages() <= signatureCount) {
+      final String msg = String.format(
+          "PDF signature page already has '%d' sign images - exceeds maximum allowed number", signatureCount);
+      log.info("{}", msg);
+      if (signPagePreferences.isFailWhenSignPageFull()) {
+        throw new PdfSignaturePageFullException(msg);
+      }
+      else {
+        result.setVisiblePdfSignatureRequirement(
+            VisiblePdfSignatureRequirement.createNullVisiblePdfSignatureRequirement());
+        return null; // No sign page added ...
+      }
     }
-    if (removeEncryptionDictionary) {
-      issuesToFix.add(PdfDocumentIssue.ENCRYPTION_DICTIONARY);
-    } else {
-      log.debug("Policy prohibits removal of encryption dictionary. {} is not fixed if present", PdfDocumentIssue.ENCRYPTION_DICTIONARY);
+    PDDocument updatedDocument = null;
+
+    // OK, find out whether we should add a sign page (signatureCount == 0) or whether we
+    // should add the signature image to an already existing page.
+    //
+
+    // The page number (1-based) where the signature page is inserted.
+    //
+    final int signPagePageNumber;
+    if (signatureCount == 0) {
+      log.debug("Adding PDF signature page to document ...");
+      final boolean enforcePdfaConsistency = Optional.ofNullable(configuration.getPdfPrepareSettings())
+          .orElse(PdfPrepareSettings.DEFAULT)
+          .isEnforcePdfaConsistency();
+
+      final AddPageResult updateResult = this.addSignaturePage(document, signPagePreferences.getSignaturePage(),
+          signPagePreferences.getInsertPageAt(), enforcePdfaConsistency);
+      updatedDocument = updateResult.document;
+      signPagePageNumber = updateResult.position;
+      log.debug("PDF signature page was inserted at page number {}", signPagePageNumber);
+
+      if (updateResult.pdfAWarning) {
+        if (result.getPrepareReport() == null) {
+          result.setPrepareReport(new PdfPrepareReport());
+        }
+        result.getPrepareReport().setWarnings(List.of(PdfPrepareReport.PrepareWarnings.PDFA_INCONSISTENCY));
+      }
     }
-    // This will fix the issues listed in 'issuesToFix' if they exist.
-    issueHandler.fixIssues(document, issuesToFix);
+    else {
+      log.debug("PDF document already contains signatures");
+      signPagePageNumber = this.getSignaturePagePosition(document, signPagePreferences.getSignaturePage(),
+          signPagePreferences.getInsertPageAt(), signPagePreferences.getExistingSignaturePageNumber());
+      log.debug("PDF signature page is located at page number {}", signPagePageNumber);
+    }
+
+    // Start creating a visible signature requirement result object ...
+    //
+    final VisiblePdfSignatureRequirement visiblePdfSignatureRequirement =
+        new VisiblePdfSignatureRequirement(signPagePreferences.getVisiblePdfSignatureUserInformation());
+
+    visiblePdfSignatureRequirement.setTemplateImageRef(
+        signPagePreferences.getSignaturePage().getSignatureImageReference());
+    visiblePdfSignatureRequirement.setPage(signPagePageNumber);
+    visiblePdfSignatureRequirement.setScale(
+        signPagePreferences.getSignaturePage().getImagePlacementConfiguration().getScale() != null
+            ? signPagePreferences.getSignaturePage().getImagePlacementConfiguration().getScale()
+            : 0);
+
+    // OK, the next step is to calculate where the signature image should be inserted ...
+    //
+    this.calculateImagePlacement(
+        visiblePdfSignatureRequirement, signPagePreferences.getSignaturePage(), signatureCount);
+
+    // Update the result ...
+    //
+    result.setVisiblePdfSignatureRequirement(visiblePdfSignatureRequirement);
+
+    return updatedDocument;
   }
 
   /**
    * Validates the input supplied to
-   * {@link #preparePdfSignaturePage(byte[], PdfSignaturePagePreferences, IntegrationServiceDefaultConfiguration)}.
+   * {@link #preparePdfSignaturePage(byte[], PdfSignaturePagePreferences, IntegrationServiceConfiguration)}.
    *
    * @param pdfDocument the PDF document
    * @param signaturePagePreferences the signature page preferences
@@ -264,36 +297,35 @@ public class DefaultPdfSignaturePagePreparator implements PdfSignaturePagePrepar
    */
   private void validateInput(final byte[] pdfDocument,
       final PdfSignaturePagePreferences signaturePagePreferences,
-      final IntegrationServiceDefaultConfiguration policyConfiguration)
+      final IntegrationServiceConfiguration policyConfiguration)
       throws InputValidationException {
 
     if (pdfDocument == null) {
       throw new InputValidationException("pdfDocument", "Missing pdfDocument");
     }
-    if (signaturePagePreferences == null) {
-      throw new InputValidationException("signaturePagePreferences", "Missing signaturePagePreferences");
-    }
     if (policyConfiguration == null) {
       throw new InputValidationException("policy", "Can not find policy");
     }
-    this.pdfSignaturePagePreferencesValidator.validateObject(signaturePagePreferences, "signaturePagePreferences",
-        policyConfiguration);
+    if (signaturePagePreferences != null) {
+      this.pdfSignaturePagePreferencesValidator.validateObject(signaturePagePreferences, "signaturePagePreferences",
+          policyConfiguration);
 
-    // Update the preferences with settings from the config (if needed) ...
-    // Note: No checks need to be applied since the validator would have failed if there is something missing.
-    //
-    if (signaturePagePreferences.getSignaturePageReference() == null
-        && signaturePagePreferences.getSignaturePage() == null) {
-      signaturePagePreferences.setSignaturePage(policyConfiguration.getPdfSignaturePages().get(0));
-      log.debug("Using default PdfSignaturePage ({}) for policy '{}'",
-          signaturePagePreferences.getSignaturePage().getId(), policyConfiguration.getPolicy());
-    }
-    if (signaturePagePreferences.getSignaturePageReference() != null) {
-      signaturePagePreferences.setSignaturePage(policyConfiguration.getPdfSignaturePages()
-          .stream()
-          .filter(p -> signaturePagePreferences.getSignaturePageReference().equals(p.getId()))
-          .findFirst()
-          .orElse(null));
+      // Update the preferences with settings from the config (if needed) ...
+      // Note: No checks need to be applied since the validator would have failed if there is something missing.
+      //
+      if (signaturePagePreferences.getSignaturePageReference() == null
+          && signaturePagePreferences.getSignaturePage() == null) {
+        signaturePagePreferences.setSignaturePage(policyConfiguration.getPdfSignaturePages().getFirst());
+        log.debug("Using default PdfSignaturePage ({}) for policy '{}'",
+            signaturePagePreferences.getSignaturePage().getId(), policyConfiguration.getPolicy());
+      }
+      if (signaturePagePreferences.getSignaturePageReference() != null) {
+        signaturePagePreferences.setSignaturePage(policyConfiguration.getPdfSignaturePages()
+            .stream()
+            .filter(p -> signaturePagePreferences.getSignaturePageReference().equals(p.getId()))
+            .findFirst()
+            .orElse(null));
+      }
     }
   }
 
@@ -306,10 +338,10 @@ public class DefaultPdfSignaturePagePreparator implements PdfSignaturePagePrepar
    */
   private int getSignatureCount(final PDDocument document) throws SignServiceIntegrationException {
     try {
-      return document.getSignatureDictionaries()
+      return ((Long) document.getSignatureDictionaries()
           .stream()
           .filter(s -> !"ETSI.RFC3161".equalsIgnoreCase(s.getSubFilter()))
-          .collect(Collectors.counting())
+          .count())
           .intValue();
     }
     catch (final Exception e) {
@@ -319,39 +351,58 @@ public class DefaultPdfSignaturePagePreparator implements PdfSignaturePagePrepar
   }
 
   /**
+   * Result record for {@code addSignaturePage}.
+   *
+   * @param document the updated document
+   * @param position the 1-based page number where the sign page is located in the updated document
+   * @param pdfAWarning whether PDF/A inconsistency was detected
+   */
+  private record AddPageResult(PDDocument document, Integer position, boolean pdfAWarning) {
+  }
+
+  /**
    * Adds a signature page document according to the {@code insertPageAt} parameter.
    *
    * @param document the document to update
    * @param signPage the sign page to add
    * @param insertPageAt the (one-based) directive where the sign page should be inserted
-   * @return a Pair of the updated document and the (one-based) page number where the sign page is located in the
-   *           updated document
+   * @param enforcePdfaConsistency whether to enforce PDF/A consistency between the document and the sign page
+   * @return an AddPageResult
    * @throws SignServiceIntegrationException for processing errors
+   * @throws PdfAConsistencyCheckException for PDF/A consistency errors
    */
-  private Pair<PDDocument, Integer> addSignaturePage(final PDDocument document, final PdfSignaturePage signPage,
-      final Integer insertPageAt)
-      throws SignServiceIntegrationException {
+  private AddPageResult addSignaturePage(@Nonnull final PDDocument document,
+      @Nonnull final PdfSignaturePage signPage, @Nonnull final Integer insertPageAt,
+      final boolean enforcePdfaConsistency)
+      throws SignServiceIntegrationException, PdfAConsistencyCheckException {
 
     final PDDocument signPageDocument = PDDocumentUtils.load(signPage.getContents());
     try {
       final int noPages = document.getNumberOfPages();
       final int newPagePos = insertPageAt == null || insertPageAt == 0 ? noPages + 1 : insertPageAt;
 
+      boolean pdfAWarning = false;
       if (enforcePdfaConsistency) {
-        pdfaChecker.checkPDFAConsistency(document, signPageDocument);
+        this.pdfaChecker.assertPDFAConsistency(document, signPageDocument);
+      }
+      else {
+        if (!this.pdfaChecker.isPDFAConsistent(document, signPageDocument)) {
+          pdfAWarning = true;
+        }
       }
 
       final PDDocument updatedDocument = PDDocumentUtils.insertDocument(document, signPageDocument, newPagePos);
 
       if (signPage.getImagePlacementConfiguration().getPage() == null
           || signPage.getImagePlacementConfiguration().getPage() == 1) {
-        return new Pair<>(updatedDocument, newPagePos);
+        return new AddPageResult(updatedDocument, newPagePos, pdfAWarning);
       }
       else if (signPage.getImagePlacementConfiguration().getPage() == 0) {
-        return new Pair<>(updatedDocument, newPagePos + signPageDocument.getNumberOfPages() - 1);
+        return new AddPageResult(updatedDocument, newPagePos + signPageDocument.getNumberOfPages() - 1, pdfAWarning);
       }
       else {
-        return new Pair<>(updatedDocument, newPagePos + signPage.getImagePlacementConfiguration().getPage() - 1);
+        return new AddPageResult(updatedDocument, newPagePos + signPage.getImagePlacementConfiguration().getPage() - 1,
+            pdfAWarning);
       }
     }
     finally {
@@ -433,7 +484,7 @@ public class DefaultPdfSignaturePagePreparator implements PdfSignaturePagePrepar
 
     // Note: we don't have to assert that values are set and such. The validators have already checked this.
     //
-    final int pageColumns = Optional.ofNullable(signaturePage.getColumns()).map(Integer::intValue).orElse(1);
+    final int pageColumns = Optional.ofNullable(signaturePage.getColumns()).orElse(1);
 
     visiblePdfSignatureRequirement.setXPosition(
         signaturePage.getImagePlacementConfiguration().getXPosition()

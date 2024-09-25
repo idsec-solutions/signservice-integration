@@ -15,6 +15,17 @@
  */
 package se.idsec.signservice.integration.document.pdf.pdfa;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.common.PDMetadata;
+import se.idsec.signservice.integration.document.pdf.PdfAConsistencyCheckException;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -22,30 +33,16 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.common.PDMetadata;
-
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.extern.slf4j.Slf4j;
-import se.idsec.signservice.integration.core.error.ErrorCode;
-import se.idsec.signservice.integration.document.DocumentProcessingException;
-
 /**
- * Basic PDF/A conformance checker based on PDF metadata declaration inspection
- *
+ * Basic PDF/A conformance checker based on PDF metadata declaration inspection.
+ * <p>
  * This conformance checker only checks if the PDF document metadata claims that the document conforms to the PDF/A
  * standard. This checker does not validate if the present document actually is compliant with PDF/A.
- *
+ * </p>
  * <p>
  * For rules on how to detect PDF/A compliance declaration in metadata, see:
  * https://www.pdfa.org/wp-content/uploads/2011/08/tn0001_pdfa-1_and_namespaces_2008-03-182.pdf
  * </p>
- *
  * <p>
  * Note that this conformance checker does not support the earlier, but false PDF/A declaration namespaces such as
  * ("http://www.aiim.org/pdfa/ns/id.html" and "http://www.aiim.org/pdfa/ns/id"). However, it is possible to set the
@@ -93,25 +90,30 @@ public class BasicMetadataPDFAConformanceChecker implements PDFAConformanceCheck
           .valid(false)
           .build();
     }
-    return checkPDFADeclaration(metadata.getCOSObject().toTextString());
+    return this.checkPDFADeclaration(metadata.getCOSObject().toTextString());
   }
 
-  /**
-   * Check PDF/A consistency between the main document to be signed and a sign page added to the main document
-   *
-   * @param tbsDoc the pdf document to be signed
-   * @param signPage the sign page added to the document to be signed
-   * @throws DocumentProcessingException if the main document is PDF/A and the added sign page is not
-   */
+  /** {@inheritDoc} */
   @Override
-  public void checkPDFAConsistency(final PDDocument tbsDoc, final PDDocument signPage)
-      throws DocumentProcessingException {
-    final PDFAStatus tbsDocPdfaStatus = checkPDFAConformance(
-        tbsDoc.getDocumentCatalog().getMetadata());
-    final PDFAStatus signPagePdfaStatus = checkPDFAConformance(
-        signPage.getDocumentCatalog().getMetadata());
+  public boolean isPDFAConsistent(final PDDocument tbsDoc, final PDDocument signPage) {
+    final PDFAStatus tbsDocPdfaStatus = this.checkPDFAConformance(tbsDoc.getDocumentCatalog().getMetadata());
+    final PDFAStatus signPagePdfaStatus = this.checkPDFAConformance(signPage.getDocumentCatalog().getMetadata());
     if (tbsDocPdfaStatus.isValid() && !signPagePdfaStatus.isValid()) {
-      throw new DocumentProcessingException(new ErrorCode.Code("pdf"), "The document to be sign is PDF/A but the added "
+      log.info("The document to be sign is PDF/A but the added "
+          + "sign page is not PDF/A. This will break PDF/A conformance of the document to be signed");
+      return false;
+    }
+    else {
+      return true;
+    }
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public void assertPDFAConsistency(final PDDocument tbsDoc, final PDDocument signPage)
+      throws PdfAConsistencyCheckException {
+    if (!this.isPDFAConsistent(tbsDoc, signPage)) {
+      throw new PdfAConsistencyCheckException("The document to be sign is PDF/A but the added "
           + "sign page is not PDF/A. This will break PDF/A conformance of the document to be signed");
     }
   }
@@ -131,20 +133,21 @@ public class BasicMetadataPDFAConformanceChecker implements PDFAConformanceCheck
 
     try {
       // Get elementNames
-      final String descElmName = getFullElementName(DESCRITPION_NS, DESCRIPTION_ELEMENT_NAME, metadataStr);
-      final String pdfaPartElmName = getFullElementName(pdfaIdNs, PART_ELEMENT_NAME, metadataStr);
-      final String pdfaConformanceElmName = getFullElementName(pdfaIdNs, CONFORMANCE_ELEMENT_NAME, metadataStr);
+      final String descElmName = this.getFullElementName(DESCRITPION_NS, DESCRIPTION_ELEMENT_NAME, metadataStr);
+      final String pdfaPartElmName = this.getFullElementName(this.pdfaIdNs, PART_ELEMENT_NAME, metadataStr);
+      final String pdfaConformanceElmName =
+          this.getFullElementName(this.pdfaIdNs, CONFORMANCE_ELEMENT_NAME, metadataStr);
 
       // Get the description content
-      final ElementData descritpion = getFirstContent(descElmName, metadataStr);
+      final ElementData descritpion = this.getFirstContent(descElmName, metadataStr);
       if (descritpion == null) {
         return PDFAStatus.builder()
             .valid(false)
             .build();
       }
 
-      final String partVal = getAttributeOrElementValue(pdfaPartElmName, descritpion);
-      final String conformanceVal = getAttributeOrElementValue(pdfaConformanceElmName, descritpion);
+      final String partVal = this.getAttributeOrElementValue(pdfaPartElmName, descritpion);
+      final String conformanceVal = this.getAttributeOrElementValue(pdfaConformanceElmName, descritpion);
 
       if (partVal == null || conformanceVal == null) {
         log.debug("No valid PDF/A conformance declaration found");
@@ -155,7 +158,7 @@ public class BasicMetadataPDFAConformanceChecker implements PDFAConformanceCheck
             .build();
       }
 
-      if (supportedPartValues.contains(partVal) && supportedConformanceValues.contains(conformanceVal)) {
+      if (this.supportedPartValues.contains(partVal) && this.supportedConformanceValues.contains(conformanceVal)) {
         log.debug("Found supported PDF/A conformance declaration in metadata");
         return PDFAStatus.builder()
             .part(partVal)
@@ -173,7 +176,7 @@ public class BasicMetadataPDFAConformanceChecker implements PDFAConformanceCheck
       }
 
     }
-    catch (Exception ex) {
+    catch (final Exception ex) {
       log.debug("PDF/A conformance test caused exception: {}", ex.toString());
       return PDFAStatus.builder()
           .valid(false)
@@ -188,12 +191,12 @@ public class BasicMetadataPDFAConformanceChecker implements PDFAConformanceCheck
     if (element.getAttributeMap().containsKey(targetName)) {
       return element.getAttributeMap().get(targetName);
     }
-    final ElementData targetElement = getFirstContent(targetName, element.getContent());
+    final ElementData targetElement = this.getFirstContent(targetName, element.getContent());
     return targetElement == null ? null : targetElement.getContent();
   }
 
   private String getFullElementName(final String nsUri, final String name, final String document) {
-    String nsId = getNsId(nsUri, document);
+    final String nsId = this.getNsId(nsUri, document);
     return nsId != null
         ? nsId + ":" + name
         : name;
@@ -211,8 +214,8 @@ public class BasicMetadataPDFAConformanceChecker implements PDFAConformanceCheck
   }
 
   private ElementData getFirstContent(final String fullElementName, final String data) {
-    final List<ElementData> contentList = getContent(fullElementName, data);
-    return contentList.isEmpty() ? null : contentList.get(0);
+    final List<ElementData> contentList = this.getContent(fullElementName, data);
+    return contentList.isEmpty() ? null : contentList.getFirst();
   }
 
   private List<ElementData> getContent(final String fullElementName, final String dataFragment) {
@@ -220,15 +223,15 @@ public class BasicMetadataPDFAConformanceChecker implements PDFAConformanceCheck
     final Pattern pattern = Pattern.compile("<" + fullElementName + "[\\S\\s]+" + ("</" + fullElementName + ">"));
     final Matcher matcher = pattern.matcher(dataFragment);
 
-    List<ElementData> elementDataList = new ArrayList<>();
+    final List<ElementData> elementDataList = new ArrayList<>();
     while (matcher.find()) {
-      String fullElement = matcher.group(0);
-      ElementData elementData = ElementData.builder()
+      final String fullElement = matcher.group(0);
+      final ElementData elementData = ElementData.builder()
           .element(fullElement)
           .content(fullElement.substring(
               fullElement.indexOf(">") + 1,
               fullElement.lastIndexOf("</" + fullElementName + ">")))
-          .attributeMap(getAttributeMap(fullElementName, fullElement))
+          .attributeMap(this.getAttributeMap(fullElementName, fullElement))
           .build();
       elementDataList.add(elementData);
     }
@@ -236,18 +239,18 @@ public class BasicMetadataPDFAConformanceChecker implements PDFAConformanceCheck
   }
 
   private Map<String, String> getAttributeMap(final String fullElementName, final String fullElement) {
-    Map<String, String> attributeMap = new HashMap<>();
+    final Map<String, String> attributeMap = new HashMap<>();
 
-    String attributeDataStr = fullElement.substring(
+    final String attributeDataStr = fullElement.substring(
         fullElementName.length() + 1,
         fullElement.indexOf(">")).trim();
-    if (attributeDataStr.length() > 0) {
-      String[] attributes = attributeDataStr.split("\\s+");
-      for (String attribute : attributes) {
+    if (!attributeDataStr.isEmpty()) {
+      final String[] attributes = attributeDataStr.split("\\s+");
+      for (final String attribute : attributes) {
         if (attribute.contains("=")) {
-          String[] attributeParts = attribute.split("=");
-          String attrName = attributeParts[0];
-          String attrVal = attributeParts[1].substring(1, attributeParts[1].length() - 1);
+          final String[] attributeParts = attribute.split("=");
+          final String attrName = attributeParts[0];
+          final String attrVal = attributeParts[1].substring(1, attributeParts[1].length() - 1);
           attributeMap.put(attrName, attrVal);
         }
       }

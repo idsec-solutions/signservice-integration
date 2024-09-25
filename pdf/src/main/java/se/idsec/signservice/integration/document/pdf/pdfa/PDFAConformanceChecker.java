@@ -17,8 +17,7 @@ package se.idsec.signservice.integration.document.pdf.pdfa;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.common.PDMetadata;
-
-import se.idsec.signservice.integration.document.DocumentProcessingException;
+import se.idsec.signservice.integration.document.pdf.PdfAConsistencyCheckException;
 
 /**
  * Interface for testing PDF/A conformance
@@ -39,11 +38,21 @@ public interface PDFAConformanceChecker {
   PDFAStatus checkPDFAConformance(final PDMetadata metadata);
 
   /**
+   * Predicate that tells whether the {@code tbsDoc} and the {@code signPage} is "consistent", meaning that the method
+   * will return {@code false} the main document is PDF/A and the added sign page is not, and {@code true} otherwise
+   *
+   * @param tbsDoc the pdf document to be signed
+   * @param signPage the sign page added to the document to be signed
+   * @return {@code true} if constistent and {@code false otherwise}
+   */
+  boolean isPDFAConsistent(final PDDocument tbsDoc, final PDDocument signPage);
+
+  /**
    * Check PDF/A consistency between the main document to be signed and a sign page added to the main document.
    *
    * @param tbsDoc the pdf document to be signed
    * @param signPage the sign page added to the document to be signed
-   * @throws DocumentProcessingException if the main document is PDF/A and the added sign page is not
+   * @throws PdfAConsistencyCheckException if the main document is PDF/A and the added sign page is not
    */
-  void checkPDFAConsistency(final PDDocument tbsDoc, final PDDocument signPage) throws DocumentProcessingException;
+  void assertPDFAConsistency(final PDDocument tbsDoc, final PDDocument signPage) throws PdfAConsistencyCheckException;
 }
