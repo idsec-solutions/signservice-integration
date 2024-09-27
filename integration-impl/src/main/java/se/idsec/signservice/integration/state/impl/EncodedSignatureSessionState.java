@@ -16,6 +16,7 @@
 package se.idsec.signservice.integration.state.impl;
 
 import java.io.IOException;
+import java.io.Serial;
 import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
@@ -41,6 +42,7 @@ import se.idsec.signservice.integration.state.SignatureSessionState;
 public class EncodedSignatureSessionState implements Serializable {
 
   /** For serialization. */
+  @Serial
   private static final long serialVersionUID = -4038769805839320240L;
 
   /** JSON mapper. */
@@ -49,10 +51,6 @@ public class EncodedSignatureSessionState implements Serializable {
 
   /**
    * The state in the Base64-encoded form of the JSON-serialization of SignatureSessionState.
-   *
-   * @param encodedState
-   *          the state in the Base64-encoded form of the JSON-serialization of SignatureSessionState
-   * @return the state in the Base64-encoded form of the JSON-serialization of SignatureSessionState
    */
   @Setter
   @Getter

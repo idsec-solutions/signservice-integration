@@ -15,6 +15,7 @@
  */
 package se.idsec.signservice.integration.state.impl;
 
+import java.io.Serial;
 import java.io.Serializable;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -41,22 +42,17 @@ import se.idsec.signservice.integration.core.SignatureState;
 public class EncodedSignatureState implements SignatureState {
 
   /** For serializing. */
+  @Serial
   private static final long serialVersionUID = 7403001397690504390L;
 
   /**
    * The state ID.
-   *
-   * @param id
-   *          the state ID
    */
   @Setter
   private String id;
 
   /**
    * The compressed session state.
-   *
-   * @param state
-   *          the compressed session state
    */
   @Setter
   private EncodedSignatureSessionState state;

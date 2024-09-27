@@ -17,6 +17,7 @@ package se.idsec.signservice.integration.config.impl;
 
 import java.lang.reflect.Constructor;
 
+import jakarta.annotation.Nonnull;
 import org.apache.commons.lang3.StringUtils;
 
 import lombok.extern.slf4j.Slf4j;
@@ -81,7 +82,7 @@ class IntegrationServiceConfigurationValidator extends
 
   /** {@inheritDoc} */
   @Override
-  public ValidationResult validate(final IntegrationServiceConfiguration object, final String objectName, final Void hint) {
+  public ValidationResult validate(final IntegrationServiceConfiguration object, @Nonnull final String objectName, final Void hint) {
     if (object == null) {
       throw new IllegalArgumentException("IntegrationServiceConfiguration object must not be null");
     }
@@ -225,7 +226,7 @@ class IntegrationServiceConfigurationValidator extends
 
     /** {@inheritDoc} */
     @Override
-    public ValidationResult validate(final EncryptionParameters object, final String objectName, final Void hint) {
+    public ValidationResult validate(final EncryptionParameters object, @Nonnull final String objectName, final Void hint) {
       final ValidationResult result = new ValidationResult(objectName);
 
       if (StringUtils.isBlank(object.getDataEncryptionAlgorithm())) {

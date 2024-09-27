@@ -21,7 +21,6 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import se.idsec.signservice.integration.ExtendedSignServiceIntegrationService;
-import se.idsec.signservice.integration.SignServiceIntegrationService;
 import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
 import se.idsec.signservice.integration.core.DocumentCache;
 import se.idsec.signservice.integration.core.error.ErrorCode;
@@ -41,8 +40,8 @@ import java.util.UUID;
 
 /**
  * Implementation of the
- * {@link ExtendedSignServiceIntegrationService#preparePdfSignaturePage(String, byte[], PdfSignaturePagePreferences)}
- * method.
+ * {@link ExtendedSignServiceIntegrationService#preparePdfDocument(String, byte[], PdfSignaturePagePreferences, Boolean,
+ * String)} method.
  *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
@@ -69,9 +68,12 @@ public class DefaultPdfSignaturePagePreparator implements PdfSignaturePagePrepar
 
   /** {@inheritDoc} */
   @Override
-  public PreparedPdfDocument preparePdfSignaturePage(@Nonnull final byte[] pdfDocument,
+  @Nonnull
+  public PreparedPdfDocument preparePdfDocument(@Nonnull final byte[] pdfDocument,
       @Nullable final PdfSignaturePagePreferences signaturePagePreferences,
-      @Nonnull final IntegrationServiceConfiguration policyConfiguration) throws SignServiceIntegrationException {
+      @Nonnull final IntegrationServiceConfiguration policyConfiguration,
+      @Nullable final Boolean returnDocumentReference, @Nullable final String callerId)
+      throws SignServiceIntegrationException {
 
     // We might update the preferences, so make a copy ...
     //
@@ -118,18 +120,31 @@ public class DefaultPdfSignaturePagePreparator implements PdfSignaturePagePrepar
         signPageAdded = false;
       }
 
-      // Check if document references should be used ...
+      // Check whether document references should be used ...
       //
       boolean returnReference = false;
       if (!policyConfiguration.isStateless()) {
-        if (preferences.getReturnDocumentReference() == null || preferences.getReturnDocumentReference()) {
-          if (this.documentCache != null) {
+        // If we are stateful, and the return document reference has not been assigned, the default is
+        // to use document references ...
+        //
+        // Also handle deprecated setting in preferences ...
+        //
+        if (returnDocumentReference == null) {
+          if (preferences == null) {
             returnReference = true;
           }
-          else {
-            log.warn(
-                "Caller has requested a document reference instead of entire document, but no document cache is configured");
+          else if (preferences.getReturnDocumentReference() == null ||
+              Boolean.TRUE.equals(preferences.getReturnDocumentReference())) {
+            returnReference = true;
           }
+        }
+        else {
+          returnReference = returnDocumentReference;
+        }
+        if (returnReference && this.documentCache == null) {
+          log.warn(
+              "Caller has requested a document reference instead of entire document, but no document cache is configured");
+          returnReference = false;
         }
       }
 
@@ -137,16 +152,16 @@ public class DefaultPdfSignaturePagePreparator implements PdfSignaturePagePrepar
         // Return only the reference to the document. If the document was not updated, use the bytes that was
         // passed in.
         //
-        final String ownerId = preferences.getExtensionValue(SignServiceIntegrationService.OWNER_ID_EXTENSION_KEY);
         final String documentReference = UUID.randomUUID().toString();
 
         if (fixesApplied || signPageAdded) {
-          this.documentCache.put(documentReference, encoder.encodeDocument(PDDocumentUtils.toBytes(document)), ownerId);
+          this.documentCache.put(documentReference, encoder.encodeDocument(PDDocumentUtils.toBytes(document)),
+              callerId);
         }
         else {
-          this.documentCache.put(documentReference, encoder.encodeDocument(pdfDocument), ownerId);
+          this.documentCache.put(documentReference, encoder.encodeDocument(pdfDocument), callerId);
         }
-        result.setUpdatedPdfDocumentReference(documentReference);
+        result.setPdfDocumentReference(documentReference);
       }
       else {
         // Return updated document ...
@@ -288,7 +303,7 @@ public class DefaultPdfSignaturePagePreparator implements PdfSignaturePagePrepar
 
   /**
    * Validates the input supplied to
-   * {@link #preparePdfSignaturePage(byte[], PdfSignaturePagePreferences, IntegrationServiceConfiguration)}.
+   * {@link #preparePdfDocument(byte[], PdfSignaturePagePreferences, IntegrationServiceConfiguration, Boolean, String)}
    *
    * @param pdfDocument the PDF document
    * @param signaturePagePreferences the signature page preferences

@@ -38,6 +38,7 @@ import se.idsec.signservice.integration.core.ObjectBuilder;
 import se.idsec.signservice.integration.document.pdf.PdfPrepareSettings;
 import se.idsec.signservice.integration.document.pdf.PdfSignatureImageTemplate;
 import se.idsec.signservice.integration.document.pdf.PdfSignaturePage;
+import se.idsec.signservice.integration.document.pdf.PdfSignaturePagePreferences;
 import se.idsec.signservice.integration.document.pdf.VisiblePdfSignatureRequirement;
 import se.idsec.signservice.integration.security.EncryptionParameters;
 import se.swedenconnect.security.credential.PkiCredential;
@@ -154,9 +155,9 @@ public class DefaultIntegrationServiceConfiguration implements IntegrationServic
 
   /**
    * A policy may have one, or more, configured PDF signature pages. See
-   * {@link ExtendedSignServiceIntegrationService#preparePdfSignaturePage(String, byte[],
-   * se.idsec.signservice.integration.document.pdf.PdfSignaturePagePreferences)} for a description of PDF signature
-   * pages. The first object in the list is regarded as the default page for the policy.
+   * {@link ExtendedSignServiceIntegrationService#preparePdfDocument(String, byte[], PdfSignaturePagePreferences,
+   * Boolean, String)} for a description of PDF signature pages. The first object in the list is regarded as the default
+   * page for the policy.
    */
   @Setter
   @Singular
@@ -228,8 +229,6 @@ public class DefaultIntegrationServiceConfiguration implements IntegrationServic
     this.parentPolicy = config.getPolicy();
     this.mergeConfiguration(config);
   }
-
-
 
   /** {@inheritDoc} */
   @Override

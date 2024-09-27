@@ -15,18 +15,15 @@
  */
 package se.idsec.signservice.integration.impl;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
-
-import org.apache.commons.lang3.StringUtils;
-
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import se.idsec.signservice.integration.ApiVersion;
 import se.idsec.signservice.integration.ExtendedSignServiceIntegrationService;
 import se.idsec.signservice.integration.SignRequestData;
 import se.idsec.signservice.integration.SignRequestInput;
-import se.idsec.signservice.integration.SignResponseCancelStatusException;
 import se.idsec.signservice.integration.SignResponseErrorStatusException;
 import se.idsec.signservice.integration.SignResponseProcessingParameters;
 import se.idsec.signservice.integration.SignatureResult;
@@ -37,11 +34,9 @@ import se.idsec.signservice.integration.config.PolicyNotFoundException;
 import se.idsec.signservice.integration.core.SignatureState;
 import se.idsec.signservice.integration.core.error.BadRequestException;
 import se.idsec.signservice.integration.core.error.ErrorCode;
-import se.idsec.signservice.integration.core.error.InputValidationException;
 import se.idsec.signservice.integration.core.error.SignServiceIntegrationException;
 import se.idsec.signservice.integration.core.error.impl.InternalSignServiceIntegrationException;
 import se.idsec.signservice.integration.core.impl.CorrelationID;
-import se.idsec.signservice.integration.document.pdf.PdfSignaturePageFullException;
 import se.idsec.signservice.integration.document.pdf.PdfSignaturePagePreferences;
 import se.idsec.signservice.integration.document.pdf.PreparedPdfDocument;
 import se.idsec.signservice.integration.process.SignRequestProcessingResult;
@@ -50,6 +45,10 @@ import se.idsec.signservice.integration.process.SignResponseProcessor;
 import se.idsec.signservice.integration.state.SignatureSessionState;
 import se.idsec.signservice.integration.state.SignatureStateProcessor;
 import se.idsec.signservice.utils.AssertThat;
+
+import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
 
 /**
  * Implementation of the SignService Integration Service.
@@ -61,9 +60,9 @@ import se.idsec.signservice.utils.AssertThat;
 public class DefaultSignServiceIntegrationService implements ExtendedSignServiceIntegrationService {
 
   /** The default version. */
-  public static final String VERSION = "1.3.0";
+  public static final String VERSION = ApiVersion.getVersion();
 
-  /** The version of this service. Defaults to {@value #VERSION}. */
+  /** The version of this service. Defaults to {@link ApiVersion#getVersion()}. */
   private String version;
 
   /** Handles policy configurations. */
@@ -80,7 +79,8 @@ public class DefaultSignServiceIntegrationService implements ExtendedSignService
 
   /**
    * Optional implementation of
-   * {@link ExtendedSignServiceIntegrationService#preparePdfSignaturePage(String, byte[], PdfSignaturePagePreferences)}.
+   * {@link ExtendedSignServiceIntegrationService#preparePdfDocument(String, byte[], PdfSignaturePagePreferences,
+   * Boolean, String)}.
    */
   private PdfSignaturePagePreparator pdfSignaturePagePreparator;
 
@@ -92,7 +92,9 @@ public class DefaultSignServiceIntegrationService implements ExtendedSignService
 
   /** {@inheritDoc} */
   @Override
-  public SignRequestData createSignRequest(final SignRequestInput signRequestInput) throws SignServiceIntegrationException {
+  @Nonnull
+  public SignRequestData createSignRequest(@Nonnull final SignRequestInput signRequestInput,
+      @Nullable final String callerId) throws SignServiceIntegrationException {
 
     CorrelationID.init(signRequestInput != null ? signRequestInput.getCorrelationId() : null);
     log.debug("{}: Request for creating a SignRequest: {}", CorrelationID.id(), signRequestInput);
@@ -100,7 +102,8 @@ public class DefaultSignServiceIntegrationService implements ExtendedSignService
     try {
       // Find out under which policy we should create the SignRequest.
       //
-      final IntegrationServiceConfiguration config = this.configurationManager.getConfiguration(signRequestInput.getPolicy());
+      final IntegrationServiceConfiguration config =
+          this.configurationManager.getConfiguration(signRequestInput.getPolicy());
       if (config == null) {
         final String msg = String.format("Policy '%s' does not exist", signRequestInput.getPolicy());
         log.info("{}", msg);
@@ -109,8 +112,9 @@ public class DefaultSignServiceIntegrationService implements ExtendedSignService
 
       // Validate the input to make sure that we can process it. Also assign default values to use as input.
       //
-      final SignRequestInput input = this.signRequestProcessor.preProcess(signRequestInput, config);
-      log.trace("{}: After validation and pre-processing the following input will be processed: {}", input.getCorrelationId(), input);
+      final SignRequestInput input = this.signRequestProcessor.preProcess(signRequestInput, config, callerId);
+      log.trace("{}: After validation and pre-processing the following input will be processed: {}",
+          input.getCorrelationId(), input);
 
       // Create the SignRequest ...
       //
@@ -121,22 +125,21 @@ public class DefaultSignServiceIntegrationService implements ExtendedSignService
 
       final SignRequestProcessingResult processingResult = this.signRequestProcessor.process(input, requestID, config);
 
-      // Setup the signature state ...
+      // Set up the signature state ...
       //
-      final SignatureState state = this.signatureStateProcessor.createSignatureState(input, processingResult.getSignRequest(), config
-        .isStateless());
+      final SignatureState state =
+          this.signatureStateProcessor.createSignatureState(input, processingResult.getSignRequest(), config
+              .isStateless(), callerId);
 
       // And finally build the result structure that the caller may use to build the POST form
       // that takes the user to the signature service.
       //
-      final SignRequestData signRequestData = SignRequestData.builder()
-        .state(state)
-        .signRequest(processingResult.getEncodedSignRequest())
-        .relayState(requestID)
-        .destinationUrl(input.getDestinationUrl())
-        .build();
-
-      return signRequestData;
+      return SignRequestData.builder()
+          .state(state)
+          .signRequest(processingResult.getEncodedSignRequest())
+          .relayState(requestID)
+          .destinationUrl(input.getDestinationUrl())
+          .build();
     }
     finally {
       CorrelationID.clear();
@@ -145,16 +148,17 @@ public class DefaultSignServiceIntegrationService implements ExtendedSignService
 
   /** {@inheritDoc} */
   @Override
-  public SignatureResult processSignResponse(final String signResponse, final String relayState, final SignatureState state,
-      final SignResponseProcessingParameters parameters)
-      throws SignResponseCancelStatusException, SignResponseErrorStatusException, SignServiceIntegrationException {
+  @Nonnull
+  public SignatureResult processSignResponse(@Nonnull final String signResponse, @Nonnull final String relayState,
+      @Nonnull final SignatureState state, @Nullable final SignResponseProcessingParameters parameters,
+      @Nullable final String callerId)
+      throws SignResponseErrorStatusException, SignServiceIntegrationException {
 
     log.debug("Request to process SignResponse for ID '{}'", relayState);
 
     // Get hold of the session state ...
     //
-    final SignatureSessionState sessionState = this.signatureStateProcessor.getSignatureState(
-      state, parameters != null ? parameters.getExtensionValue(OWNER_ID_EXTENSION_KEY) : null);
+    final SignatureSessionState sessionState = this.signatureStateProcessor.getSignatureState(state, callerId);
 
     CorrelationID.init(sessionState.getCorrelationId());
 
@@ -162,7 +166,7 @@ public class DefaultSignServiceIntegrationService implements ExtendedSignService
     //
     if (!Objects.equals(relayState, state.getId())) {
       final String msg = String.format("Bad request - relayState (%s) does not correspond to signature state (%s)",
-        relayState, state.getId());
+          relayState, state.getId());
       log.error("{}: {}", CorrelationID.id(), msg);
       throw new BadRequestException(new ErrorCode.Code("session"), msg);
     }
@@ -183,9 +187,11 @@ public class DefaultSignServiceIntegrationService implements ExtendedSignService
 
   /** {@inheritDoc} */
   @Override
-  public PreparedPdfDocument preparePdfSignaturePage(final String policy, final byte[] pdfDocument,
-      final PdfSignaturePagePreferences signaturePagePreferences)
-      throws InputValidationException, PdfSignaturePageFullException, SignServiceIntegrationException {
+  @Nonnull
+  public PreparedPdfDocument preparePdfDocument(@Nullable final String policy, @Nonnull final byte[] pdfDocument,
+      @Nullable final PdfSignaturePagePreferences signaturePagePreferences,
+      @Nullable final Boolean returnDocumentReference, @Nullable final String callerId)
+      throws SignServiceIntegrationException {
 
     if (this.pdfSignaturePagePreparator != null) {
       final String _policy = policy != null ? policy : this.configurationManager.getDefaultPolicyName();
@@ -195,7 +201,8 @@ public class DefaultSignServiceIntegrationService implements ExtendedSignService
         log.info("{}", msg);
         throw new PolicyNotFoundException(msg);
       }
-      return this.pdfSignaturePagePreparator.preparePdfSignaturePage(pdfDocument, signaturePagePreferences, config);
+      return this.pdfSignaturePagePreparator.preparePdfDocument(
+          pdfDocument, signaturePagePreferences, config, returnDocumentReference, callerId);
     }
     else {
       throw new IllegalArgumentException("No PdfSignaturePagePreparator installed - can not excecute method");
@@ -204,7 +211,9 @@ public class DefaultSignServiceIntegrationService implements ExtendedSignService
 
   /** {@inheritDoc} */
   @Override
-  public IntegrationServiceDefaultConfiguration getConfiguration(final String policy) throws PolicyNotFoundException {
+  @Nonnull
+  public IntegrationServiceDefaultConfiguration getConfiguration(@Nullable final String policy)
+      throws PolicyNotFoundException {
     final String _policy = policy != null ? policy : this.configurationManager.getDefaultPolicyName();
     log.debug("Request for policy '{}'", _policy);
 
@@ -221,6 +230,7 @@ public class DefaultSignServiceIntegrationService implements ExtendedSignService
 
   /** {@inheritDoc} */
   @Override
+  @Nonnull
   public List<String> getPolicies() {
     return this.configurationManager.getPolicies();
   }
@@ -228,8 +238,7 @@ public class DefaultSignServiceIntegrationService implements ExtendedSignService
   /**
    * Assigns the policy configuration manager bean.
    *
-   * @param configurationManager
-   *          the policy configuration manager
+   * @param configurationManager the policy configuration manager
    */
   public void setConfigurationManager(final ConfigurationManager configurationManager) {
     this.configurationManager = configurationManager;
@@ -237,6 +246,7 @@ public class DefaultSignServiceIntegrationService implements ExtendedSignService
 
   /** {@inheritDoc} */
   @Override
+  @Nonnull
   public String getVersion() {
     return this.version;
   }
@@ -244,8 +254,7 @@ public class DefaultSignServiceIntegrationService implements ExtendedSignService
   /**
    * Assigns the version string.
    *
-   * @param version
-   *          the version
+   * @param version the version
    */
   public void setVersion(final String version) {
     this.version = version;
@@ -254,8 +263,7 @@ public class DefaultSignServiceIntegrationService implements ExtendedSignService
   /**
    * Assigns the signature state processor.
    *
-   * @param signatureStateProcessor
-   *          the processor
+   * @param signatureStateProcessor the processor
    */
   public void setSignatureStateProcessor(final SignatureStateProcessor signatureStateProcessor) {
     this.signatureStateProcessor = signatureStateProcessor;
@@ -264,8 +272,7 @@ public class DefaultSignServiceIntegrationService implements ExtendedSignService
   /**
    * Sets the sign request processor.
    *
-   * @param signRequestProcessor
-   *          the sign request processor
+   * @param signRequestProcessor the sign request processor
    */
   public void setSignRequestProcessor(final SignRequestProcessor signRequestProcessor) {
     this.signRequestProcessor = signRequestProcessor;
@@ -274,18 +281,18 @@ public class DefaultSignServiceIntegrationService implements ExtendedSignService
   /**
    * Sets the sign response processor.
    *
-   * @param signResponseProcessor
-   *          the sign response processor
+   * @param signResponseProcessor the sign response processor
    */
   public void setSignResponseProcessor(final SignResponseProcessor signResponseProcessor) {
     this.signResponseProcessor = signResponseProcessor;
   }
 
   /**
-   * Assigns the implementation for {@link #preparePdfSignaturePage(String, byte[], PdfSignaturePagePreferences)}.
+   * Assigns the implementation for
+   * {@link #preparePdfDocument(String, byte[], PdfSignaturePagePreferences, Boolean, String)}.
    *
-   * @param pdfSignaturePagePreparator
-   *          the implementation for {@link #preparePdfSignaturePage(String, byte[], PdfSignaturePagePreferences)}
+   * @param pdfSignaturePagePreparator the implementation for
+   *     {@link #preparePdfDocument(String, byte[], PdfSignaturePagePreferences, Boolean, String)}
    */
   public void setPdfSignaturePagePreparator(final PdfSignaturePagePreparator pdfSignaturePagePreparator) {
     this.pdfSignaturePagePreparator = pdfSignaturePagePreparator;
@@ -299,8 +306,7 @@ public class DefaultSignServiceIntegrationService implements ExtendedSignService
    * been assigned. Otherwise it should be explicitly invoked.
    * </p>
    *
-   * @throws Exception
-   *           if not all settings are correct
+   * @throws Exception if not all settings are correct
    */
   @PostConstruct
   public void afterPropertiesSet() throws Exception {

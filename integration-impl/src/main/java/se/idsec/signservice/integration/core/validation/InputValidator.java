@@ -22,6 +22,8 @@ import se.idsec.signservice.integration.core.error.InputValidationException;
 /**
  * Interface for input validators.
  *
+ * @param <T> the type of validation object
+ * @param <H> hint type
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
@@ -31,12 +33,9 @@ public interface InputValidator<T, H> {
    * Validates the supplied object using the supplied hint. The returned {@code ValidationResult} should be queried for
    * errors.
    *
-   * @param object
-   *          the object to validate
-   * @param objectName
-   *          the object name
-   * @param hint
-   *          an optional validation hint
+   * @param object the object to validate
+   * @param objectName the object name
+   * @param hint an optional validation hint
    * @return a validation errors object
    */
   ValidationResult validate(
@@ -46,16 +45,13 @@ public interface InputValidator<T, H> {
    * Validates the supplied object using the supplied hint and throws an {@code InputValidationException} for validation
    * errors.
    *
-   * @param object
-   *          the object to validate
-   * @param objectName
-   *          the object name
-   * @param hint
-   *          an optional validation hint
-   * @throws InputValidationException
-   *           for validation errors
+   * @param object the object to validate
+   * @param objectName the object name
+   * @param hint an optional validation hint
+   * @throws InputValidationException for validation errors
    */
   void validateObject(
-      @Nullable final T object, @Nonnull final String objectName, @Nullable final H hint) throws InputValidationException;
+      @Nullable final T object, @Nonnull final String objectName, @Nullable final H hint)
+      throws InputValidationException;
 
 }

@@ -15,6 +15,7 @@
  */
 package se.idsec.signservice.integration.certificate.impl;
 
+import jakarta.annotation.Nonnull;
 import org.apache.commons.lang3.StringUtils;
 
 import se.idsec.signservice.integration.authentication.SignerIdentityAttribute;
@@ -39,7 +40,7 @@ public class SigningCertificateRequirementsValidator extends
 
   /** {@inheritDoc} */
   @Override
-  public ValidationResult validate(final SigningCertificateRequirements object, final String objectName,
+  public ValidationResult validate(final SigningCertificateRequirements object, @Nonnull final String objectName,
       final IntegrationServiceConfiguration hint) {
 
     final ValidationResult result = new ValidationResult(objectName);

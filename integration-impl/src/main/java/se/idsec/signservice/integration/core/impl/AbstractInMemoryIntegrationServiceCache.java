@@ -15,25 +15,28 @@
  */
 package se.idsec.signservice.integration.core.impl;
 
+import lombok.extern.slf4j.Slf4j;
+import se.idsec.signservice.integration.core.IntegrationServiceCache;
+
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import lombok.extern.slf4j.Slf4j;
-import se.idsec.signservice.integration.core.IntegrationServiceCache;
-
 /**
  * Base class for an in-memory implementation of the {@link IntegrationServiceCache} interface.
  *
+ * @param <T> the cached object type
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
 @Slf4j
-public abstract class AbstractInMemoryIntegrationServiceCache<T extends Serializable> extends AbstractIntegrationServiceCache<T> {
+public abstract class AbstractInMemoryIntegrationServiceCache<T extends Serializable>
+    extends AbstractIntegrationServiceCache<T> {
 
   /** The cache. */
-  private ConcurrentMap<String, InMemoryCacheEntry<T>> cache = new ConcurrentHashMap<>();
+  private final ConcurrentMap<String, InMemoryCacheEntry<T>> cache = new ConcurrentHashMap<>();
 
   /** {@inheritDoc} */
   @Override
@@ -43,10 +46,9 @@ public abstract class AbstractInMemoryIntegrationServiceCache<T extends Serializ
 
   /** {@inheritDoc} */
   @Override
-  protected void putCacheObject(final String id, T object, final String ownerId, final long expirationTime) {
-    this.cache.put(id, new InMemoryCacheEntry<T>(object, ownerId, expirationTime));
+  protected void putCacheObject(final String id, final T object, final String ownerId, final long expirationTime) {
+    this.cache.put(id, new InMemoryCacheEntry<>(object, ownerId, expirationTime));
   }
-
 
   /** {@inheritDoc} */
   @Override
@@ -57,7 +59,7 @@ public abstract class AbstractInMemoryIntegrationServiceCache<T extends Serializ
   /** {@inheritDoc} */
   @Override
   public void clearExpired() {
-    for (String id : this.cache.keySet()) {
+    for (final String id : this.cache.keySet()) {
       final CacheEntry<T> entry = this.cache.get(id);
       if (System.currentTimeMillis() > Optional.ofNullable(entry.getExpirationTime()).orElse(Long.MAX_VALUE)) {
         log.debug("{}: Clearing expired cache entry '{}'", CorrelationID.id(), id);
@@ -68,10 +70,13 @@ public abstract class AbstractInMemoryIntegrationServiceCache<T extends Serializ
 
   /**
    * Class representing the cache entry.
+   *
+   * @param <T> the entry type
    */
   public static class InMemoryCacheEntry<T extends Serializable> implements CacheEntry<T> {
 
     /** For serializing. */
+    @Serial
     private static final long serialVersionUID = 6027367800009250991L;
 
     /** The cached object. */
@@ -86,10 +91,9 @@ public abstract class AbstractInMemoryIntegrationServiceCache<T extends Serializ
     /**
      * Constructor.
      *
-     * @param object
-     *          the object to cache.
-     *          @param ownerId the owner identity (may be null)
-     *          @param expirationTime the expiration time
+     * @param object the object to cache.
+     * @param ownerId the owner identity (may be null)
+     * @param expirationTime the expiration time
      */
     public InMemoryCacheEntry(final T object, final String ownerId, final long expirationTime) {
       this.object = object;

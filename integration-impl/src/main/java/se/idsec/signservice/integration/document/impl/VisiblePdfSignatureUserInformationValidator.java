@@ -15,6 +15,7 @@
  */
 package se.idsec.signservice.integration.document.impl;
 
+import jakarta.annotation.Nonnull;
 import se.idsec.signservice.integration.core.validation.AbstractInputValidator;
 import se.idsec.signservice.integration.core.validation.ValidationResult;
 import se.idsec.signservice.integration.document.pdf.PdfSignatureImageTemplate;
@@ -32,7 +33,7 @@ public class VisiblePdfSignatureUserInformationValidator
   /** {@inheritDoc} */
   @Override
   public ValidationResult validate(
-      final VisiblePdfSignatureUserInformation object, final String objectName, final PdfSignatureImageTemplate hint) {
+      final VisiblePdfSignatureUserInformation object, @Nonnull final String objectName, final PdfSignatureImageTemplate hint) {
 
     final ValidationResult result = new ValidationResult(objectName);
     if (object == null) {

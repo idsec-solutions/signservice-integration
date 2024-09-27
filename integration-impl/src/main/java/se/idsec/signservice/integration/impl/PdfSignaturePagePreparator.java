@@ -30,7 +30,8 @@ import se.idsec.signservice.integration.document.pdf.PreparedPdfDocument;
 
 /**
  * Implementation of
- * {@link ExtendedSignServiceIntegrationService#preparePdfSignaturePage(String, byte[], PdfSignaturePagePreferences)}.
+ * {@link ExtendedSignServiceIntegrationService#preparePdfDocument(String, byte[], PdfSignaturePagePreferences, Boolean,
+ * String)}.
  *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
@@ -39,12 +40,14 @@ public interface PdfSignaturePagePreparator {
 
   /**
    * See
-   * {@link ExtendedSignServiceIntegrationService#preparePdfSignaturePage(String, byte[],
-   * PdfSignaturePagePreferences)}.
+   * {@link ExtendedSignServiceIntegrationService#preparePdfDocument(String, byte[], PdfSignaturePagePreferences,
+   * Boolean, String)}.
    *
    * @param pdfDocument the contents of the PDF document that is to be prepared
    * @param signaturePagePreferences the PDF signature page preferences
    * @param policyConfiguration the policy configuration under which this operation is to be executed
+   * @param returnDocumentReference whether to use document references
+   * @param callerId optional id for the caller
    * @return a PreparedPdfDocument object containing the modified PDF document (if a sign page was added) and the
    *     VisiblePdfSignatureRequirement telling how a signature image should be added
    * @throws InputValidationException for input validation errors
@@ -58,9 +61,10 @@ public interface PdfSignaturePagePreparator {
    *     is not configured to remove these)
    * @throws SignServiceIntegrationException for other processing errors
    */
-  PreparedPdfDocument preparePdfSignaturePage(@Nonnull final byte[] pdfDocument,
+  PreparedPdfDocument preparePdfDocument(@Nonnull final byte[] pdfDocument,
       @Nullable final PdfSignaturePagePreferences signaturePagePreferences,
-      @Nonnull final IntegrationServiceConfiguration policyConfiguration)
+      @Nonnull final IntegrationServiceConfiguration policyConfiguration,
+      @Nullable final Boolean returnDocumentReference, @Nullable final String callerId)
       throws InputValidationException, PdfSignaturePageFullException, PdfAConsistencyCheckException,
       PdfContainsAcroformException, PdfContainsEncryptionDictionaryException, SignServiceIntegrationException;
 

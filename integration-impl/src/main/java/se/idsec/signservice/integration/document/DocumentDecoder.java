@@ -18,6 +18,7 @@ package se.idsec.signservice.integration.document;
 /**
  * Document decoder interface.
  *
+ * @param <T> document type
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
@@ -26,11 +27,9 @@ public interface DocumentDecoder<T> {
   /**
    * Given the document content (in Base64 encoded form), the document object is returned.
    *
-   * @param content
-   *          the document in Base64 encoded format
+   * @param content the document in Base64 encoded format
    * @return the document object
-   * @throws DocumentProcessingException
-   *           for decoding errors
+   * @throws DocumentProcessingException for decoding errors
    */
   T decodeDocument(final String content) throws DocumentProcessingException;
 

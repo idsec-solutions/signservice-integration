@@ -18,6 +18,7 @@ package se.idsec.signservice.integration.document.pdf.signpage.impl;
 import java.util.Base64;
 import java.util.List;
 
+import jakarta.annotation.Nonnull;
 import org.apache.pdfbox.pdmodel.PDDocument;
 
 import se.idsec.signservice.integration.core.validation.ValidationResult;
@@ -39,7 +40,7 @@ public class ExtendedPdfSignaturePageValidator extends PdfSignaturePageValidator
   /** {@inheritDoc} */
   @Override
   public ValidationResult validate(
-      final PdfSignaturePage object, final String objectName, final List<? extends PdfSignatureImageTemplate> hint) {
+      final PdfSignaturePage object, @Nonnull final String objectName, final List<? extends PdfSignatureImageTemplate> hint) {
     final ValidationResult result = super.validate(object, objectName, hint);
 
     if (object.getPdfDocument() != null) {

@@ -15,6 +15,7 @@
  */
 package se.idsec.signservice.integration.core.validation;
 
+import jakarta.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import se.idsec.signservice.integration.core.error.InputValidationException;
 import se.idsec.signservice.integration.core.impl.CorrelationID;
@@ -22,6 +23,8 @@ import se.idsec.signservice.integration.core.impl.CorrelationID;
 /**
  * Abstract implementation of an input validator.
  *
+ * @param <T> type of object being validated
+ * @param <H> hint type
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
@@ -30,11 +33,12 @@ public abstract class AbstractInputValidator<T, H> implements InputValidator<T, 
 
   /** {@inheritDoc} */
   @Override
-  public void validateObject(final T object, final String objectName, final H hint) throws InputValidationException {
+  public void validateObject(final T object, @Nonnull final String objectName, final H hint)
+      throws InputValidationException {
     if (objectName == null) {
       throw new InputValidationException("unknown", "Bad call to validateObject");
     }
-    ValidationResult errors = this.validate(object, objectName, hint);
+    final ValidationResult errors = this.validate(object, objectName, hint);
     if (errors.hasErrors()) {
       log.error("{}: Validation error: {}", CorrelationID.id(), errors);
       if (errors.getGlobalError() != null) {

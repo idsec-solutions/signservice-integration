@@ -15,13 +15,10 @@
  */
 package se.idsec.signservice.integration.state.impl;
 
-import java.io.Serializable;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
@@ -31,6 +28,9 @@ import se.idsec.signservice.integration.SignRequestInput;
 import se.idsec.signservice.integration.core.SignatureState;
 import se.idsec.signservice.integration.state.CacheableSignatureState;
 import se.idsec.signservice.integration.state.SignatureSessionState;
+
+import java.io.Serial;
+import java.io.Serializable;
 
 /**
  * Default implementation of the {@link SignatureState} interface.
@@ -50,23 +50,14 @@ import se.idsec.signservice.integration.state.SignatureSessionState;
 public class DefaultSignatureState implements CacheableSignatureState {
 
   /** For serialization. */
+  @Serial
   private static final long serialVersionUID = 8679954351779851073L;
 
-  /**
-   * The state ID.
-   *
-   * @param id
-   *          the state ID
-   */
+  /** The state ID. */
   @Setter
   private String id;
 
-  /**
-   * The session state.
-   *
-   * @param state
-   *          the session state
-   */
+  /** The session state. */
   @Setter
   private SignatureSessionState state;
 

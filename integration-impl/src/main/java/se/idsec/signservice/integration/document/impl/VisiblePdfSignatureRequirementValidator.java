@@ -15,15 +15,15 @@
  */
 package se.idsec.signservice.integration.document.impl;
 
-import java.util.List;
-
+import jakarta.annotation.Nonnull;
 import org.apache.commons.lang3.StringUtils;
-
 import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
 import se.idsec.signservice.integration.core.validation.AbstractInputValidator;
 import se.idsec.signservice.integration.core.validation.ValidationResult;
 import se.idsec.signservice.integration.document.pdf.PdfSignatureImageTemplate;
 import se.idsec.signservice.integration.document.pdf.VisiblePdfSignatureRequirement;
+
+import java.util.List;
 
 /**
  * Validator for {@link VisiblePdfSignatureRequirement} objects.
@@ -35,12 +35,12 @@ public class VisiblePdfSignatureRequirementValidator extends
     AbstractInputValidator<VisiblePdfSignatureRequirement, IntegrationServiceConfiguration> {
 
   /** Validator for VisiblePdfSignatureUserInformation objects. */
-  private VisiblePdfSignatureUserInformationValidator visiblePdfSignatureUserInformationValidator =
+  private final VisiblePdfSignatureUserInformationValidator visiblePdfSignatureUserInformationValidator =
       new VisiblePdfSignatureUserInformationValidator();
 
   /** {@inheritDoc} */
   @Override
-  public ValidationResult validate(final VisiblePdfSignatureRequirement object, final String objectName,
+  public ValidationResult validate(final VisiblePdfSignatureRequirement object, @Nonnull final String objectName,
       final IntegrationServiceConfiguration hint) {
 
     final ValidationResult result = new ValidationResult(objectName);
@@ -51,11 +51,11 @@ public class VisiblePdfSignatureRequirementValidator extends
 
     final PdfSignatureImageTemplate template = object.getTemplateImageRef() != null
         ? templates != null
-            ? templates.stream()
-              .filter(t -> object.getTemplateImageRef().equals(t.getReference()))
-              .findFirst()
-              .orElse(null)
-            : null
+        ? templates.stream()
+        .filter(t -> object.getTemplateImageRef().equals(t.getReference()))
+        .findFirst()
+        .orElse(null)
+        : null
         : null;
 
     if (StringUtils.isBlank(object.getTemplateImageRef())) {
@@ -63,23 +63,24 @@ public class VisiblePdfSignatureRequirementValidator extends
     }
     else if (template == null) {
       result.rejectValue("templateImageRef",
-        String.format("The PDF template reference '%s' could not be found in the configuration", object.getTemplateImageRef()));
+          String.format("The PDF template reference '%s' could not be found in the configuration",
+              object.getTemplateImageRef()));
     }
     if (object.getXPosition() == null) {
       result.rejectValue("xPosition", "Missing xPosition value");
     }
-    else if (object.getXPosition().intValue() < 0) {
+    else if (object.getXPosition() < 0) {
       result.rejectValue("xPosition", "Illegal value for xPosition given in visiblePdfSignatureRequirement");
     }
     if (object.getYPosition() == null) {
       result.rejectValue("yPosition", "Missing yPosition value");
     }
-    else if (object.getYPosition().intValue() < 0) {
+    else if (object.getYPosition() < 0) {
       result.rejectValue("yPosition", "Illegal value for yPosition given in visiblePdfSignatureRequirement");
     }
 
     result.setFieldErrors(
-      this.visiblePdfSignatureUserInformationValidator.validate(object, null, template));
+        this.visiblePdfSignatureUserInformationValidator.validate(object, objectName, template));
 
     return result;
   }

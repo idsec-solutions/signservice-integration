@@ -15,6 +15,7 @@
  */
 package se.idsec.signservice.integration.authentication.impl;
 
+import jakarta.annotation.Nonnull;
 import org.apache.commons.lang3.StringUtils;
 
 import se.idsec.signservice.integration.authentication.AuthnRequirements;
@@ -34,7 +35,7 @@ public class AuthnRequirementsValidator extends AbstractInputValidator<AuthnRequ
 
   /** {@inheritDoc} */
   @Override
-  public ValidationResult validate(final AuthnRequirements object, final String objectName,
+  public ValidationResult validate(final AuthnRequirements object, @Nonnull final String objectName,
       final IntegrationServiceConfiguration hint) {
 
     final ValidationResult result = new ValidationResult(objectName);

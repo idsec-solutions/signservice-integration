@@ -15,6 +15,7 @@
  */
 package se.idsec.signservice.integration.document.impl;
 
+import jakarta.annotation.Nonnull;
 import org.apache.commons.lang3.StringUtils;
 
 import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
@@ -48,7 +49,7 @@ public class TbsDocumentValidator extends AbstractInputValidator<TbsDocument, In
 
   /** {@inheritDoc} */
   @Override
-  public ValidationResult validate(final TbsDocument object, final String objectName, final IntegrationServiceConfiguration hint) {
+  public ValidationResult validate(final TbsDocument object, @Nonnull final String objectName, final IntegrationServiceConfiguration hint) {
     ValidationResult result = new ValidationResult(objectName);
     if (object == null) {
       return result;

@@ -17,6 +17,7 @@ package se.idsec.signservice.integration.document.impl;
 
 import java.util.List;
 
+import jakarta.annotation.Nonnull;
 import se.idsec.signservice.integration.config.impl.FileResourceValidator;
 import se.idsec.signservice.integration.core.validation.AbstractInputValidator;
 import se.idsec.signservice.integration.core.validation.ValidationResult;
@@ -37,7 +38,7 @@ public class PdfSignaturePageValidator extends AbstractInputValidator<PdfSignatu
 
   /** {@inheritDoc} */
   @Override
-  public ValidationResult validate(final PdfSignaturePage object, final String objectName,
+  public ValidationResult validate(final PdfSignaturePage object, @Nonnull final String objectName,
       final List<? extends PdfSignatureImageTemplate> hint) {
     final ValidationResult result = new ValidationResult(objectName);
     if (object == null) {

@@ -15,6 +15,7 @@
  */
 package se.idsec.signservice.integration.testbase;
 
+import jakarta.annotation.Nonnull;
 import se.idsec.signservice.integration.core.validation.ValidationResult;
 import se.idsec.signservice.integration.document.TbsDocument.EtsiAdesRequirement;
 import se.idsec.signservice.integration.document.impl.EtsiAdesRequirementValidator;
@@ -22,7 +23,7 @@ import se.idsec.signservice.integration.document.impl.EtsiAdesRequirementValidat
 public class TestEtsiAdesRequirementValidator extends EtsiAdesRequirementValidator {
 
   @Override
-  public ValidationResult validate(EtsiAdesRequirement object, String objectName, Void hint) {
+  public ValidationResult validate(EtsiAdesRequirement object, @Nonnull String objectName, Void hint) {
     return new ValidationResult(objectName);
   }
 

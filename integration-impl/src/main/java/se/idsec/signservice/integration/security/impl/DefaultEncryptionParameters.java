@@ -15,16 +15,17 @@
  */
 package se.idsec.signservice.integration.security.impl;
 
-import org.apache.xml.security.algorithms.MessageDigestAlgorithm;
-import org.apache.xml.security.encryption.XMLCipher;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import org.apache.xml.security.algorithms.MessageDigestAlgorithm;
+import org.apache.xml.security.encryption.XMLCipher;
 import se.idsec.signservice.integration.core.ObjectBuilder;
 import se.idsec.signservice.integration.security.EncryptionParameters;
+
+import java.io.Serial;
 
 /**
  * Default implementation of the {@link EncryptionParameters} interface.
@@ -38,6 +39,9 @@ import se.idsec.signservice.integration.security.EncryptionParameters;
 @NoArgsConstructor
 public class DefaultEncryptionParameters implements EncryptionParameters {
 
+  @Serial
+  private static final long serialVersionUID = 5475705400371189456L;
+
   /** The default data encryption algorithm is AES-128 GCM. */
   public static final String DEFAULT_DATA_ENCRYPTION_ALGORITHM = XMLCipher.AES_128_GCM;
 
@@ -46,15 +50,12 @@ public class DefaultEncryptionParameters implements EncryptionParameters {
 
   /** The default RSA OAEP parameters. */
   public static final RSAOAEPParameters DEFAULT_RSA_OAEP_PARAMETERS = RSAOAEPParameters.builder()
-    .digestMethod(MessageDigestAlgorithm.ALGO_ID_DIGEST_SHA1)
-    .maskGenerationFunction("http://www.w3.org/2009/xmlenc11#mgf1sha1")
-    .build();
+      .digestMethod(MessageDigestAlgorithm.ALGO_ID_DIGEST_SHA1)
+      .maskGenerationFunction("http://www.w3.org/2009/xmlenc11#mgf1sha1")
+      .build();
 
   /**
    * The data encryption algorithm that should be used when encrypting the sign message for a given Identity Provider.
-   *
-   * @param dataEncryptionAlgorithm
-   *          URI for the data encryption algorithm to use
    */
   @Setter
   @Builder.Default
@@ -63,9 +64,6 @@ public class DefaultEncryptionParameters implements EncryptionParameters {
   /**
    * The key transport encryption algorithm that should be used when encrypting the sign message for a given Identity
    * Provider.
-   *
-   * @param keyTransportEncryptionAlgorithm
-   *          URI for the key transport encryption algorithm to use.
    */
   @Setter
   @Builder.Default
@@ -93,8 +91,7 @@ public class DefaultEncryptionParameters implements EncryptionParameters {
   /**
    * Assigns the RSA OAEP parameters.
    *
-   * @param rsaOAEPParameters
-   *          the RSA OAEP parameters
+   * @param rsaOAEPParameters the RSA OAEP parameters
    */
   public void setRSAOAEPParameters(final RSAOAEPParameters rsaOAEPParameters) {
     this.rsaOaepParameters = rsaOAEPParameters;

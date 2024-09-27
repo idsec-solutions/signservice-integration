@@ -15,6 +15,7 @@
  */
 package se.idsec.signservice.integration.process.impl;
 
+import jakarta.annotation.Nonnull;
 import org.apache.commons.lang3.StringUtils;
 
 import se.idsec.signservice.integration.SignRequestInput;
@@ -47,7 +48,7 @@ public class SignRequestInputValidator
   /** {@inheritDoc} */
   @Override
   public ValidationResult validate(
-      final SignRequestInput object, final String objectName, final IntegrationServiceConfiguration hint) {
+      final SignRequestInput object, @Nonnull final String objectName, final IntegrationServiceConfiguration hint) {
 
     final ValidationResult result = new ValidationResult("signRequestInput");
     if (object == null) {

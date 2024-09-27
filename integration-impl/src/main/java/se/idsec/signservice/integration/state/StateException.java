@@ -20,6 +20,8 @@ import se.idsec.signservice.integration.core.error.ErrorCode;
 import se.idsec.signservice.integration.core.error.ErrorCode.Category;
 import se.idsec.signservice.integration.core.error.SignServiceIntegrationException;
 
+import java.io.Serial;
+
 /**
  * Exception class for state errors.
  *
@@ -29,6 +31,7 @@ import se.idsec.signservice.integration.core.error.SignServiceIntegrationExcepti
 public class StateException extends SignServiceIntegrationException {
 
   /** For serializing. */
+  @Serial
   private static final long serialVersionUID = 5194407159860357991L;
 
   /**
