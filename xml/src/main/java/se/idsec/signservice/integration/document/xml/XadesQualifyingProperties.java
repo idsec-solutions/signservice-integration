@@ -15,11 +15,10 @@
  */
 package se.idsec.signservice.integration.document.xml;
 
-import org.apache.xml.security.binding.xmldsig.ObjectType;
-import org.w3c.dom.Element;
-
 import jakarta.xml.bind.JAXBException;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.xml.security.binding.xmldsig.ObjectType;
+import org.w3c.dom.Element;
 import se.idsec.signservice.integration.core.error.ErrorCode;
 import se.idsec.signservice.integration.core.impl.CorrelationID;
 import se.idsec.signservice.integration.document.DocumentProcessingException;
@@ -57,7 +56,7 @@ public class XadesQualifyingProperties implements AdesObject {
       new org.apache.xml.security.binding.xmldsig.ObjectFactory();
 
   /** The ds:Object holding the QualifyingProperties. */
-  private ObjectType dsObject;
+  private final ObjectType dsObject;
 
   /** The XAdES object. */
   private QualifyingProperties qualifyingProperties;
@@ -68,10 +67,8 @@ public class XadesQualifyingProperties implements AdesObject {
   /**
    * Constructor.
    *
-   * @param dsObject
-   *          the ds:Object holding the QualifyingProperties element
-   * @throws DocumentProcessingException
-   *           for protocol errors
+   * @param dsObject the ds:Object holding the QualifyingProperties element
+   * @throws DocumentProcessingException for protocol errors
    */
   public XadesQualifyingProperties(final ObjectType dsObject) throws DocumentProcessingException {
     if (dsObject == null) {
@@ -84,8 +81,7 @@ public class XadesQualifyingProperties implements AdesObject {
           this.qualifyingProperties = (QualifyingProperties) child;
           break;
         }
-        else if (child instanceof Element) {
-          final Element elm = (Element) child;
+        else if (child instanceof final Element elm) {
           if (XadesQualifyingProperties.LOCAL_NAME.equals(elm.getLocalName())) {
             this.qualifyingProperties = JAXBUnmarshaller.unmarshall(elm, QualifyingProperties.class);
             break;
@@ -108,13 +104,12 @@ public class XadesQualifyingProperties implements AdesObject {
   /**
    * Creates a {@code XadesQualifyingProperties} from a DOM element.
    *
-   * @param dsObject
-   *          DOM element of the ds:Object holding the QualifyingProperties element
+   * @param dsObject DOM element of the ds:Object holding the QualifyingProperties element
    * @return a XadesQualifyingProperties object
-   * @throws DocumentProcessingException
-   *           for protocol errors
+   * @throws DocumentProcessingException for protocol errors
    */
-  public static XadesQualifyingProperties createXadesQualifyingProperties(final Element dsObject) throws DocumentProcessingException {
+  public static XadesQualifyingProperties createXadesQualifyingProperties(final Element dsObject)
+      throws DocumentProcessingException {
     try {
       return new XadesQualifyingProperties(JAXBUnmarshaller.unmarshall(dsObject, ObjectType.class));
     }
@@ -130,8 +125,7 @@ public class XadesQualifyingProperties implements AdesObject {
    * with no content.
    *
    * @return a XadesQualifyingProperties object
-   * @throws DocumentProcessingException
-   *           for protocol errors
+   * @throws DocumentProcessingException for protocol errors
    */
   public static XadesQualifyingProperties createXadesQualifyingProperties() throws DocumentProcessingException {
     try {
@@ -152,8 +146,7 @@ public class XadesQualifyingProperties implements AdesObject {
    * {@code xades:QualifyingProperties}).
    *
    * @return the DOM element for the AdES object
-   * @throws JAXBException
-   *           for marshalling errors
+   * @throws JAXBException for marshalling errors
    */
   public Element getAdesElement() throws JAXBException {
     if (this.updated) {
@@ -161,8 +154,9 @@ public class XadesQualifyingProperties implements AdesObject {
       //
       for (int i = 0; i < this.dsObject.getContent().size(); i++) {
         final Object child = this.dsObject.getContent().get(i);
-        if (QualifyingProperties.class.isInstance(child)
-            || Element.class.isInstance(child) && XadesQualifyingProperties.LOCAL_NAME.equals(((Element) child).getLocalName())) {
+        if (child instanceof QualifyingProperties
+            || child instanceof Element && XadesQualifyingProperties.LOCAL_NAME.equals(
+            ((Element) child).getLocalName())) {
 
           this.dsObject.getContent().set(i, JAXBMarshaller.marshall(this.qualifyingProperties).getDocumentElement());
           this.updated = false;
@@ -181,27 +175,31 @@ public class XadesQualifyingProperties implements AdesObject {
 
       DigestAlgAndValueType digest = null;
 
-      if (this.qualifyingProperties.getSignedProperties().getSignedSignatureProperties().getSigningCertificateV2() != null) {
+      if (this.qualifyingProperties.getSignedProperties().getSignedSignatureProperties().getSigningCertificateV2()
+          != null) {
         final SigningCertificateV2 signingCert =
             this.qualifyingProperties.getSignedProperties().getSignedSignatureProperties().getSigningCertificateV2();
-        if (!signingCert.getCerts().isEmpty() && signingCert.getCerts().get(0).getCertDigest() != null) {
-          digest = signingCert.getCerts().get(0).getCertDigest();
+        if (!signingCert.getCerts().isEmpty() && signingCert.getCerts().getFirst().getCertDigest() != null) {
+          digest = signingCert.getCerts().getFirst().getCertDigest();
         }
       }
-      else if (this.qualifyingProperties.getSignedProperties().getSignedSignatureProperties().getSigningCertificate() != null) {
+      else if (this.qualifyingProperties.getSignedProperties().getSignedSignatureProperties().getSigningCertificate()
+          != null) {
         final SigningCertificate signingCert =
             this.qualifyingProperties.getSignedProperties().getSignedSignatureProperties().getSigningCertificate();
-        if (!signingCert.getCerts().isEmpty() && signingCert.getCerts().get(0).getCertDigest() != null) {
-          log.warn("{}: XAdES object contains <xades:SigningCertificate>. Should be <xades:SigningCertificateV2>", CorrelationID.id());
-          digest = signingCert.getCerts().get(0).getCertDigest();
+        if (!signingCert.getCerts().isEmpty() && signingCert.getCerts().getFirst().getCertDigest() != null) {
+          log.warn("{}: XAdES object contains <xades:SigningCertificate>. Should be <xades:SigningCertificateV2>",
+              CorrelationID.id());
+          digest = signingCert.getCerts().getFirst().getCertDigest();
         }
       }
       if (digest != null) {
-        if (digest.getDigestMethod() != null && digest.getDigestMethod().getAlgorithm() != null && digest.getDigestValue() != null) {
+        if (digest.getDigestMethod() != null && digest.getDigestMethod().getAlgorithm() != null
+            && digest.getDigestValue() != null) {
           return AdesSigningCertificateDigest.builder()
-            .digestMethod(digest.getDigestMethod().getAlgorithm())
-            .digestValue(digest.getDigestValue())
-            .build();
+              .digestMethod(digest.getDigestMethod().getAlgorithm())
+              .digestValue(digest.getDigestValue())
+              .build();
         }
       }
     }
@@ -220,7 +218,7 @@ public class XadesQualifyingProperties implements AdesObject {
         && this.qualifyingProperties.getSignedProperties().getSignedSignatureProperties().getSigningTime() != null) {
 
       return this.qualifyingProperties.getSignedProperties().getSignedSignatureProperties().getSigningTime()
-        .toGregorianCalendar().getTimeInMillis();
+          .toGregorianCalendar().getTimeInMillis();
     }
     return null;
   }
@@ -233,8 +231,10 @@ public class XadesQualifyingProperties implements AdesObject {
   public SignaturePolicyIdentifier getSignaturePolicyIdentifier() {
     if (this.qualifyingProperties.getSignedProperties() != null
         && this.qualifyingProperties.getSignedProperties().getSignedSignatureProperties() != null
-        && this.qualifyingProperties.getSignedProperties().getSignedSignatureProperties().getSignaturePolicyIdentifier() != null) {
-      return this.qualifyingProperties.getSignedProperties().getSignedSignatureProperties().getSignaturePolicyIdentifier();
+        && this.qualifyingProperties.getSignedProperties().getSignedSignatureProperties().getSignaturePolicyIdentifier()
+        != null) {
+      return this.qualifyingProperties.getSignedProperties().getSignedSignatureProperties()
+          .getSignaturePolicyIdentifier();
     }
     return null;
   }
@@ -242,8 +242,7 @@ public class XadesQualifyingProperties implements AdesObject {
   /**
    * Assigns the signature policy ID to the XAdES object.
    *
-   * @param signaturePolicy
-   *          the ID to assign
+   * @param signaturePolicy the ID to assign
    * @return whether the object was updated
    */
   public boolean setSignaturePolicy(final String signaturePolicy) {
@@ -252,45 +251,55 @@ public class XadesQualifyingProperties implements AdesObject {
       this.updated = true;
     }
     if (this.qualifyingProperties.getSignedProperties().getSignedSignatureProperties() == null) {
-      this.qualifyingProperties.getSignedProperties().setSignedSignatureProperties(xadesObjectFactory.createSignedSignatureProperties());
-      this.updated = true;
-    }
-    if (this.qualifyingProperties.getSignedProperties().getSignedSignatureProperties().getSignaturePolicyIdentifier() == null) {
-      this.qualifyingProperties.getSignedProperties().getSignedSignatureProperties().setSignaturePolicyIdentifier(
-        xadesObjectFactory.createSignaturePolicyIdentifier());
+      this.qualifyingProperties.getSignedProperties()
+          .setSignedSignatureProperties(xadesObjectFactory.createSignedSignatureProperties());
       this.updated = true;
     }
     if (this.qualifyingProperties.getSignedProperties().getSignedSignatureProperties().getSignaturePolicyIdentifier()
-      .getSignaturePolicyId() == null) {
-      this.qualifyingProperties.getSignedProperties().getSignedSignatureProperties().getSignaturePolicyIdentifier().setSignaturePolicyId(
-        xadesObjectFactory.createSignaturePolicyIdType());
+        == null) {
+      this.qualifyingProperties.getSignedProperties().getSignedSignatureProperties().setSignaturePolicyIdentifier(
+          xadesObjectFactory.createSignaturePolicyIdentifier());
       this.updated = true;
     }
-    if (this.qualifyingProperties.getSignedProperties().getSignedSignatureProperties().getSignaturePolicyIdentifier().getSignaturePolicyId()
-      .getSigPolicyId() == null) {
-      this.qualifyingProperties.getSignedProperties().getSignedSignatureProperties().getSignaturePolicyIdentifier().getSignaturePolicyId()
-        .setSigPolicyId(
-          xadesObjectFactory.createObjectIdentifier());
+    if (this.qualifyingProperties.getSignedProperties().getSignedSignatureProperties().getSignaturePolicyIdentifier()
+        .getSignaturePolicyId() == null) {
+      this.qualifyingProperties.getSignedProperties().getSignedSignatureProperties().getSignaturePolicyIdentifier()
+          .setSignaturePolicyId(
+              xadesObjectFactory.createSignaturePolicyIdType());
       this.updated = true;
     }
-    if (this.qualifyingProperties.getSignedProperties().getSignedSignatureProperties().getSignaturePolicyIdentifier().getSignaturePolicyId()
-      .getSigPolicyId().getIdentifier() == null) {
-      this.qualifyingProperties.getSignedProperties().getSignedSignatureProperties().getSignaturePolicyIdentifier().getSignaturePolicyId()
-        .getSigPolicyId().setIdentifier(
-          xadesObjectFactory.createIdentifierType());
+    if (this.qualifyingProperties.getSignedProperties().getSignedSignatureProperties().getSignaturePolicyIdentifier()
+        .getSignaturePolicyId()
+        .getSigPolicyId() == null) {
+      this.qualifyingProperties.getSignedProperties().getSignedSignatureProperties().getSignaturePolicyIdentifier()
+          .getSignaturePolicyId()
+          .setSigPolicyId(
+              xadesObjectFactory.createObjectIdentifier());
+      this.updated = true;
+    }
+    if (this.qualifyingProperties.getSignedProperties().getSignedSignatureProperties().getSignaturePolicyIdentifier()
+        .getSignaturePolicyId()
+        .getSigPolicyId().getIdentifier() == null) {
+      this.qualifyingProperties.getSignedProperties().getSignedSignatureProperties().getSignaturePolicyIdentifier()
+          .getSignaturePolicyId()
+          .getSigPolicyId().setIdentifier(
+              xadesObjectFactory.createIdentifierType());
       this.updated = true;
     }
     final String value =
-        this.qualifyingProperties.getSignedProperties().getSignedSignatureProperties().getSignaturePolicyIdentifier().getSignaturePolicyId()
-          .getSigPolicyId().getIdentifier().getValue();
+        this.qualifyingProperties.getSignedProperties().getSignedSignatureProperties().getSignaturePolicyIdentifier()
+            .getSignaturePolicyId()
+            .getSigPolicyId().getIdentifier().getValue();
     if (value == null) {
-      this.qualifyingProperties.getSignedProperties().getSignedSignatureProperties().getSignaturePolicyIdentifier().getSignaturePolicyId()
-        .getSigPolicyId().getIdentifier().setValue(signaturePolicy);
+      this.qualifyingProperties.getSignedProperties().getSignedSignatureProperties().getSignaturePolicyIdentifier()
+          .getSignaturePolicyId()
+          .getSigPolicyId().getIdentifier().setValue(signaturePolicy);
       this.updated = true;
     }
     else if (!value.equals(signaturePolicy)) {
-      this.qualifyingProperties.getSignedProperties().getSignedSignatureProperties().getSignaturePolicyIdentifier().getSignaturePolicyId()
-        .getSigPolicyId().getIdentifier().setValue(signaturePolicy);
+      this.qualifyingProperties.getSignedProperties().getSignedSignatureProperties().getSignaturePolicyIdentifier()
+          .getSignaturePolicyId()
+          .getSigPolicyId().getIdentifier().setValue(signaturePolicy);
       this.updated = true;
     }
 

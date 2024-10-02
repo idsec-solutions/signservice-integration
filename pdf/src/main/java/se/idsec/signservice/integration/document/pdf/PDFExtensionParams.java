@@ -33,5 +33,5 @@ public enum PDFExtensionParams {
   visibleSignImage,
 
   /** ADeS requirement string. */
-  adesRequirement;
+  adesRequirement
 }

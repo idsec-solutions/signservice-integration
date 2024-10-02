@@ -15,7 +15,7 @@
  */
 package se.idsec.signservice.integration.document.impl;
 
-import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import se.idsec.signservice.integration.core.validation.AbstractInputValidator;
 import se.idsec.signservice.integration.core.validation.ValidationResult;
 import se.idsec.signservice.integration.document.pdf.PdfSignatureImageTemplate;
@@ -33,7 +33,8 @@ public class VisiblePdfSignatureUserInformationValidator
   /** {@inheritDoc} */
   @Override
   public ValidationResult validate(
-      final VisiblePdfSignatureUserInformation object, @Nonnull final String objectName, final PdfSignatureImageTemplate hint) {
+      final VisiblePdfSignatureUserInformation object, @Nullable final String objectName,
+      final PdfSignatureImageTemplate hint) {
 
     final ValidationResult result = new ValidationResult(objectName);
     if (object == null) {
@@ -51,8 +52,8 @@ public class VisiblePdfSignatureUserInformationValidator
       if (object.getSignerName() == null || object.getSignerName().getSignerAttributes() == null
           || object.getSignerName().getSignerAttributes().isEmpty()) {
         result.rejectValue("signerName", String.format(
-          "Requested templateImageRef '%s' requires signerName, but requirements does not include visiblePdfSignatureRequirement.signerName",
-          hint.getReference()));
+            "Requested templateImageRef '%s' requires signerName, but requirements does not include visiblePdfSignatureRequirement.signerName",
+            hint.getReference()));
       }
     }
     // Make sure that all fields required by the template are given in the requirement.
@@ -65,11 +66,11 @@ public class VisiblePdfSignatureUserInformationValidator
         }
         if (object.getFieldValues() == null) {
           result.rejectValue("fieldValues." + field, String.format(
-            "The field %s is required by template, but not given in input", field));
+              "The field %s is required by template, but not given in input", field));
         }
-        else if (!object.getFieldValues().keySet().stream().filter(f -> field.equalsIgnoreCase(f)).findFirst().isPresent()) {
+        else if (object.getFieldValues().keySet().stream().noneMatch(f -> field.equalsIgnoreCase(f))) {
           result.rejectValue("fieldValues." + field, String.format(
-            "The field %s is required by template, but not given in input", field));
+              "The field %s is required by template, but not given in input", field));
         }
       }
     }

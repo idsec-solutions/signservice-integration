@@ -16,6 +16,7 @@
 package se.idsec.signservice.integration.document.xml;
 
 import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import jakarta.xml.bind.JAXBException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -209,7 +210,7 @@ public class XmlTbsDocumentProcessor extends AbstractTbsDocumentProcessor<Docume
 
     /** {@inheritDoc} */
     @Override
-    public ValidationResult validate(final EtsiAdesRequirement object, @Nonnull final String objectName,
+    public ValidationResult validate(final EtsiAdesRequirement object, @Nullable final String objectName,
         final Void hint) {
       final ValidationResult result = new ValidationResult(objectName);
       if (object == null) {

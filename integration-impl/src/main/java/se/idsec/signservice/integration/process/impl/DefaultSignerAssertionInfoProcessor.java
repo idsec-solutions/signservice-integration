@@ -65,7 +65,7 @@ public class DefaultSignerAssertionInfoProcessor implements SignerAssertionInfoP
   /** {@inheritDoc} */
   @Override
   public SignerAssertionInformation processSignerAssertionInfo(
-      final SignResponseWrapper signResponse, @Nonnull final SignatureSessionState state,
+      @Nonnull final SignResponseWrapper signResponse, @Nonnull final SignatureSessionState state,
       final SignResponseProcessingParameters parameters) throws SignServiceIntegrationException {
 
     final SignerAssertionInfo signerAssertionInfo = signResponse.getSignResponseExtension().getSignerAssertionInfo();

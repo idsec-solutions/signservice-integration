@@ -34,10 +34,6 @@ public class AdesSigningCertificateDigest {
 
   /**
    * The URI for the digest method used to hash the signer certificate.
-   *
-   * @param digestMethod
-   *          the URI for the digest method used to hash the signer certificate
-   * @return the URI for the digest method used to hash the signer certificate
    */
   @Getter
   @Setter
@@ -45,10 +41,6 @@ public class AdesSigningCertificateDigest {
 
   /**
    * The digest value.
-   *
-   * @param digestValue
-   *          the digest value
-   * @return the digest value
    */
   @Getter
   @Setter

@@ -33,13 +33,12 @@ public class ValidationResult {
   private String globalError;
 
   /** Underlying errors (field names and error messages). */
-  private Map<String, String> fieldErrors = new HashMap<>();
+  private final Map<String, String> fieldErrors = new HashMap<>();
 
   /**
    * Constructor.
    *
-   * @param objectName
-   *          the name for the object that is validated (null for no name)
+   * @param objectName the name for the object that is validated (null for no name)
    */
   public ValidationResult(final String objectName) {
     this.objectName = objectName;
@@ -84,8 +83,7 @@ public class ValidationResult {
   /**
    * Register an error for the entire object.
    *
-   * @param msg
-   *          the error message
+   * @param msg the error message
    */
   public void reject(final String msg) {
     this.globalError = msg;
@@ -94,10 +92,8 @@ public class ValidationResult {
   /**
    * Register an error for a specific field.
    *
-   * @param field
-   *          the field name
-   * @param msg
-   *          the error message
+   * @param field the field name
+   * @param msg the error message
    */
   public void rejectValue(final String field, final String msg) {
     if (this.objectName != null) {
@@ -111,8 +107,7 @@ public class ValidationResult {
   /**
    * If an underlying object (to this object) has been verified, its result should be installed.
    *
-   * @param result
-   *          the result from the underlying object
+   * @param result the result from the underlying object
    */
   public void setFieldErrors(final ValidationResult result) {
     if (result.hasErrors()) {
@@ -124,7 +119,7 @@ public class ValidationResult {
           this.rejectValue(this.getObjectName(), result.getGlobalError());
         }
       }
-      for (Map.Entry<String, String> fe : result.getFieldErrors().entrySet()) {
+      for (final Map.Entry<String, String> fe : result.getFieldErrors().entrySet()) {
         this.rejectValue(fe.getKey(), fe.getValue());
       }
     }
@@ -133,7 +128,7 @@ public class ValidationResult {
   /** {@inheritDoc} */
   @Override
   public String toString() {
-    StringBuffer sb = new StringBuffer(this.objectName);
+    final StringBuilder sb = new StringBuilder(this.objectName);
     sb.append(":");
     if (!this.hasErrors()) {
       sb.append(" Success");

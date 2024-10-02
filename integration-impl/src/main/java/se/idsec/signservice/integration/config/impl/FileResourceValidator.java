@@ -15,7 +15,7 @@
  */
 package se.idsec.signservice.integration.config.impl;
 
-import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import se.idsec.signservice.integration.core.FileResource;
 import se.idsec.signservice.integration.core.validation.AbstractInputValidator;
 import se.idsec.signservice.integration.core.validation.ValidationResult;
@@ -30,7 +30,7 @@ public class FileResourceValidator extends AbstractInputValidator<FileResource, 
 
   /** {@inheritDoc} */
   @Override
-  public ValidationResult validate(final FileResource object, @Nonnull final String objectName, final Void hint) {
+  public ValidationResult validate(final FileResource object, @Nullable final String objectName, final Void hint) {
     final ValidationResult result = new ValidationResult(objectName);
     if (object == null) {
       return result;

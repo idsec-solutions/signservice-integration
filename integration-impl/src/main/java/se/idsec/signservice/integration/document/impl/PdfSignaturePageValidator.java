@@ -15,9 +15,7 @@
  */
 package se.idsec.signservice.integration.document.impl;
 
-import java.util.List;
-
-import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import se.idsec.signservice.integration.config.impl.FileResourceValidator;
 import se.idsec.signservice.integration.core.validation.AbstractInputValidator;
 import se.idsec.signservice.integration.core.validation.ValidationResult;
@@ -25,20 +23,23 @@ import se.idsec.signservice.integration.document.pdf.PdfSignatureImageTemplate;
 import se.idsec.signservice.integration.document.pdf.PdfSignaturePage;
 import se.idsec.signservice.integration.document.pdf.PdfSignaturePage.PdfSignatureImagePlacementConfiguration;
 
+import java.util.List;
+
 /**
  * Validator for {@link PdfSignaturePage} objects.
  *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
-public class PdfSignaturePageValidator extends AbstractInputValidator<PdfSignaturePage, List<? extends PdfSignatureImageTemplate>> {
+public class PdfSignaturePageValidator
+    extends AbstractInputValidator<PdfSignaturePage, List<? extends PdfSignatureImageTemplate>> {
 
   /** Validator for FileResource objects. */
   private final FileResourceValidator fileResourceValidator = new FileResourceValidator();
 
   /** {@inheritDoc} */
   @Override
-  public ValidationResult validate(final PdfSignaturePage object, @Nonnull final String objectName,
+  public ValidationResult validate(final PdfSignaturePage object, @Nullable final String objectName,
       final List<? extends PdfSignatureImageTemplate> hint) {
     final ValidationResult result = new ValidationResult(objectName);
     if (object == null) {
@@ -52,7 +53,7 @@ public class PdfSignaturePageValidator extends AbstractInputValidator<PdfSignatu
     }
     else {
       result.setFieldErrors(
-        this.fileResourceValidator.validate(object.getPdfDocument(), "pdfDocument", null));
+          this.fileResourceValidator.validate(object.getPdfDocument(), "pdfDocument", null));
     }
     if (object.getSignatureImageReference() == null) {
       result.rejectValue("signatureImageReference", "Missing signatureImageReference for PdfSignaturePage");
@@ -62,9 +63,9 @@ public class PdfSignaturePageValidator extends AbstractInputValidator<PdfSignatu
       PdfSignatureImageTemplate template = null;
       if (hint != null) {
         template = hint.stream()
-          .filter(t -> object.getSignatureImageReference().equals(t.getReference()))
-          .findFirst()
-          .orElse(null);
+            .filter(t -> object.getSignatureImageReference().equals(t.getReference()))
+            .findFirst()
+            .orElse(null);
       }
       if (template == null) {
         result.rejectValue("signatureImageReference", "No PdfSignatureImageTemplate matching signatureImageReference");
@@ -77,27 +78,27 @@ public class PdfSignaturePageValidator extends AbstractInputValidator<PdfSignatu
       final PdfSignatureImagePlacementConfiguration config = object.getImagePlacementConfiguration();
       if (config.getXPosition() == null) {
         result.rejectValue("imagePlacementConfiguration.xPosition",
-          "Missing xPosition of imagePlacementConfiguration for PdfSignaturePage");
+            "Missing xPosition of imagePlacementConfiguration for PdfSignaturePage");
       }
       else if (config.getXPosition() < 0) {
         result.rejectValue("imagePlacementConfiguration.xPosition",
-          "Invalid value for xPosition of imagePlacementConfiguration for PdfSignaturePage");
+            "Invalid value for xPosition of imagePlacementConfiguration for PdfSignaturePage");
       }
       if (config.getYPosition() == null) {
         result.rejectValue("imagePlacementConfiguration.yPosition",
-          "Missing yPosition of imagePlacementConfiguration for PdfSignaturePage");
+            "Missing yPosition of imagePlacementConfiguration for PdfSignaturePage");
       }
       else if (config.getYPosition() < 0) {
         result.rejectValue("imagePlacementConfiguration.yPosition",
-          "Invalid value for yPosition of imagePlacementConfiguration for PdfSignaturePage");
+            "Invalid value for yPosition of imagePlacementConfiguration for PdfSignaturePage");
       }
       if (object.getColumns() != null && object.getColumns() > 1 && config.getXIncrement() == null) {
         result.rejectValue("imagePlacementConfiguration.xIncrement",
-          "Missing xIncrement of imagePlacementConfiguration for PdfSignaturePage");
+            "Missing xIncrement of imagePlacementConfiguration for PdfSignaturePage");
       }
       if (object.getRows() != null && object.getRows() > 1 && config.getYIncrement() == null) {
         result.rejectValue("imagePlacementConfiguration.yIncrement",
-          "Missing yIncrement of imagePlacementConfiguration for PdfSignaturePage");
+            "Missing yIncrement of imagePlacementConfiguration for PdfSignaturePage");
       }
     }
 

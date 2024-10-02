@@ -62,7 +62,7 @@ public abstract class AbstractSignedDocumentProcessor<T, X extends AdesObject>
 
   /** {@inheritDoc} */
   @Override
-  public final void validateAdesObject(final X adesObject, @Nonnull final X509Certificate signingCertificate,
+  public final void validateAdesObject(@Nonnull final X adesObject, @Nonnull final X509Certificate signingCertificate,
       @Nonnull final SignTaskData signTaskData,
       @Nonnull final SignRequestWrapper signRequest, @Nonnull final SignResponseWrapper signResponse,
       final SignResponseProcessingParameters parameters) throws SignServiceIntegrationException {

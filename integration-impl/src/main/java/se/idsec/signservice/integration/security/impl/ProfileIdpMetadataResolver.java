@@ -15,17 +15,17 @@
  */
 package se.idsec.signservice.integration.security.impl;
 
-import java.util.Map;
-
-import org.opensaml.saml.saml2.metadata.EntityDescriptor;
-
+import jakarta.annotation.Nonnull;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
+import org.opensaml.saml.saml2.metadata.EntityDescriptor;
 import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
 import se.idsec.signservice.integration.core.impl.CorrelationID;
 import se.idsec.signservice.integration.security.IdpMetadataResolver;
 import se.idsec.signservice.integration.security.MetadataException;
 import se.idsec.signservice.utils.AssertThat;
+
+import java.util.Map;
 
 /**
  * An {@link IdpMetadataResolver} that offers the possibility to use different resolvers for different profiles.
@@ -44,7 +44,8 @@ public class ProfileIdpMetadataResolver implements IdpMetadataResolver {
 
   /** {@inheritDoc} */
   @Override
-  public EntityDescriptor resolveMetadata(final String entityID, final IntegrationServiceConfiguration config) throws MetadataException {
+  public EntityDescriptor resolveMetadata(@Nonnull final String entityID,
+      @Nonnull final IntegrationServiceConfiguration config) throws MetadataException {
 
     final IdpMetadataResolver resolver = this.resolvers != null
         ? this.resolvers.getOrDefault(config.getPolicy(), this.defaultResolver)
@@ -60,8 +61,7 @@ public class ProfileIdpMetadataResolver implements IdpMetadataResolver {
   /**
    * Adds a mapping of policy names and metadata resolvers.
    *
-   * @param resolvers
-   *          resolver mappings
+   * @param resolvers resolver mappings
    */
   public void setResolvers(final Map<String, IdpMetadataResolver> resolvers) {
     this.resolvers = resolvers;
@@ -70,8 +70,7 @@ public class ProfileIdpMetadataResolver implements IdpMetadataResolver {
   /**
    * Sets the default resolver to use.
    *
-   * @param defaultResolver
-   *          the default metadata resolver
+   * @param defaultResolver the default metadata resolver
    */
   public void setDefaultResolver(final IdpMetadataResolver defaultResolver) {
     this.defaultResolver = defaultResolver;
@@ -85,13 +84,12 @@ public class ProfileIdpMetadataResolver implements IdpMetadataResolver {
    * been assigned. Otherwise it should be explicitly invoked.
    * </p>
    *
-   * @throws Exception
-   *           if not all settings are correct
+   * @throws Exception if not all settings are correct
    */
   @PostConstruct
   public void afterPropertiesSet() throws Exception {
     AssertThat.isTrue(this.resolvers != null && !this.resolvers.isEmpty() || this.defaultResolver != null,
-      "No resolvers have been configured");
+        "No resolvers have been configured");
   }
 
 }

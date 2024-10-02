@@ -15,6 +15,7 @@
  */
 package se.idsec.signservice.integration.dss;
 
+import java.io.Serial;
 import java.io.Serializable;
 
 import org.w3c.dom.Element;
@@ -41,14 +42,15 @@ import se.swedenconnect.xml.jaxb.JAXBUnmarshaller;
 public class SignRequestWrapper extends SignRequest implements Serializable {
 
   /** For serialization. */
+  @Serial
   private static final long serialVersionUID = 8934202280623051779L;
 
   /** Object factory for DSS objects. */
-  private static se.swedenconnect.schemas.dss_1_0.ObjectFactory dssObjectFactory =
+  private static final se.swedenconnect.schemas.dss_1_0.ObjectFactory dssObjectFactory =
       new se.swedenconnect.schemas.dss_1_0.ObjectFactory();
 
   /** The wrapped SignRequest. */
-  private JAXBSerializable<SignRequest> signRequest;
+  private final JAXBSerializable<SignRequest> signRequest;
 
   /** The SignRequest extension (stored in OptionalInputs). */
   private transient SignRequestExtension signRequestExtension;
@@ -229,7 +231,7 @@ public class SignRequestWrapper extends SignRequest implements Serializable {
       }
       this.getWrappedSignRequest().setInputDocuments(dssObjectFactory.createInputDocuments());
     }
-    Element signTasksElement;
+    final Element signTasksElement;
     try {
       signTasksElement = JAXBMarshaller.marshall(this.signTasks).getDocumentElement();
     }
@@ -240,9 +242,8 @@ public class SignRequestWrapper extends SignRequest implements Serializable {
 
     for (final Object o : this.getWrappedSignRequest().getInputDocuments()
         .getDocumentsAndTransformedDatasAndDocumentHashes()) {
-      if (o instanceof AnyType) {
+      if (o instanceof final AnyType other) {
         // Replace the entire object.
-        final AnyType other = (AnyType) o;
         other.unsetAnies();
         other.getAnies().add(signTasksElement);
         return;

@@ -15,6 +15,7 @@
  */
 package se.idsec.signservice.integration.dss;
 
+import java.io.Serial;
 import java.io.Serializable;
 
 import org.w3c.dom.Element;
@@ -42,10 +43,11 @@ import se.swedenconnect.xml.jaxb.JAXBUnmarshaller;
 @Slf4j
 public class SignResponseWrapper extends SignResponse implements Serializable {
 
+  @Serial
   private static final long serialVersionUID = -3618698475882073845L;
 
   /** Object factory for DSS objects. */
-  private static se.swedenconnect.schemas.dss_1_0.ObjectFactory dssObjectFactory =
+  private static final se.swedenconnect.schemas.dss_1_0.ObjectFactory dssObjectFactory =
       new se.swedenconnect.schemas.dss_1_0.ObjectFactory();
 
   /** The wrapped SignResponse. */
@@ -151,7 +153,7 @@ public class SignResponseWrapper extends SignResponse implements Serializable {
       this.getWrappedSignResponse().getSignatureObject().setOther(dssObjectFactory.createAnyType());
     }
 
-    Element signTasksElement;
+    final Element signTasksElement;
     try {
       signTasksElement = JAXBMarshaller.marshall(this.signTasks).getDocumentElement();
     }

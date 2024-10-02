@@ -22,6 +22,8 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.List;
 
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.opensaml.xmlsec.signature.support.SignatureConstants;
@@ -207,22 +209,22 @@ public class AbstractSignedDocumentProcessorTest extends TestBase {
     private TestDocumentEncoderDecoder encoderDecoder = new TestDocumentEncoderDecoder();
 
     @Override
-    public boolean supports(SignTaskData signData) {
+    public boolean supports(@Nonnull SignTaskData signData) {
       return "TEST".equalsIgnoreCase(signData.getSigType());
     }
 
     @Override
     public CompiledSignedDocument<TestDocumentType, TestAdesObject>
-        buildSignedDocument(TbsDocument tbsDocument, SignTaskData signedData,
-            List<X509Certificate> signerCertificateChain, SignRequestWrapper signRequest, SignResponseProcessingParameters parameters)
+        buildSignedDocument(@Nonnull TbsDocument tbsDocument, @Nonnull SignTaskData signedData,
+            @Nonnull List<X509Certificate> signerCertificateChain, @Nonnull SignRequestWrapper signRequest, SignResponseProcessingParameters parameters)
             throws SignServiceIntegrationException {
 
       return null;
     }
 
     @Override
-    public void validateSignedDocument(TestDocumentType signedDocument, X509Certificate signerCertificate, SignTaskData signTaskData,
-        SignResponseProcessingParameters parameters, String requestID) throws SignServiceIntegrationException {
+    public void validateSignedDocument(@Nonnull TestDocumentType signedDocument, @Nonnull X509Certificate signerCertificate, @Nonnull SignTaskData signTaskData,
+        @Nullable SignResponseProcessingParameters parameters, @Nonnull String requestID) throws SignServiceIntegrationException {
     }
 
     @Override

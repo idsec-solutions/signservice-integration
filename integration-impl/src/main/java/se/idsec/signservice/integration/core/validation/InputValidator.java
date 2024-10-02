@@ -34,12 +34,12 @@ public interface InputValidator<T, H> {
    * errors.
    *
    * @param object the object to validate
-   * @param objectName the object name
+   * @param objectName the object name ({@code null} for no name)
    * @param hint an optional validation hint
    * @return a validation errors object
    */
   ValidationResult validate(
-      @Nullable final T object, @Nonnull final String objectName, @Nullable final H hint);
+      @Nullable final T object, @Nullable final String objectName, @Nullable final H hint);
 
   /**
    * Validates the supplied object using the supplied hint and throws an {@code InputValidationException} for validation

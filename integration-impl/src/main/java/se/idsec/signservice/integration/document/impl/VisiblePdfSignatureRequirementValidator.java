@@ -15,7 +15,7 @@
  */
 package se.idsec.signservice.integration.document.impl;
 
-import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import org.apache.commons.lang3.StringUtils;
 import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
 import se.idsec.signservice.integration.core.validation.AbstractInputValidator;
@@ -40,7 +40,7 @@ public class VisiblePdfSignatureRequirementValidator extends
 
   /** {@inheritDoc} */
   @Override
-  public ValidationResult validate(final VisiblePdfSignatureRequirement object, @Nonnull final String objectName,
+  public ValidationResult validate(final VisiblePdfSignatureRequirement object, @Nullable final String objectName,
       final IntegrationServiceConfiguration hint) {
 
     final ValidationResult result = new ValidationResult(objectName);
@@ -80,7 +80,7 @@ public class VisiblePdfSignatureRequirementValidator extends
     }
 
     result.setFieldErrors(
-        this.visiblePdfSignatureUserInformationValidator.validate(object, objectName, template));
+        this.visiblePdfSignatureUserInformationValidator.validate(object, null, template));
 
     return result;
   }

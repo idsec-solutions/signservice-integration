@@ -15,24 +15,12 @@
  */
 package se.idsec.signservice.integration.process.impl;
 
-import java.security.GeneralSecurityException;
-import java.security.SignatureException;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.xpath.XPathExpressionException;
-
-import org.w3c.dom.DOMException;
-import org.w3c.dom.Document;
-
+import jakarta.annotation.Nonnull;
 import jakarta.annotation.PostConstruct;
 import jakarta.xml.bind.JAXBException;
 import lombok.extern.slf4j.Slf4j;
+import org.w3c.dom.DOMException;
+import org.w3c.dom.Document;
 import se.idsec.signservice.dss.DSSStatusCodes;
 import se.idsec.signservice.integration.SignResponseCancelStatusException;
 import se.idsec.signservice.integration.SignResponseErrorStatusException;
@@ -74,6 +62,17 @@ import se.swedenconnect.schemas.csig.dssext_1_1.SignatureCertificateChain;
 import se.swedenconnect.schemas.dss_1_0.SignResponse;
 import se.swedenconnect.xml.jaxb.JAXBUnmarshaller;
 
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.xpath.XPathExpressionException;
+import java.security.GeneralSecurityException;
+import java.security.SignatureException;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
 /**
  * Default implementation of the {@link SignResponseProcessor} interface.
  *
@@ -90,7 +89,7 @@ public class DefaultSignResponseProcessor implements SignResponseProcessor {
   private final XMLMessageSignatureValidator signResponseSignatureValidator = new DefaultXMLMessageSignatureValidator();
 
   /** Needed when validating the SignResponse signatures. */
-  private XMLSignatureLocation xmlSignatureLocation;
+  private final XMLSignatureLocation xmlSignatureLocation;
 
   /** The processors for handling the signed documents. */
   private List<SignedDocumentProcessor<?, ?>> signedDocumentProcessors;
@@ -106,7 +105,8 @@ public class DefaultSignResponseProcessor implements SignResponseProcessor {
    * validator has been configured with since this will be explicitly set for each call. This information is taken from
    * the {@link IntegrationServiceConfiguration#getTrustAnchors()}.
    * <p>
-   * If no mapping for a given policy exists, a default validator will be used (see {@link SimpleCertificateValidator}).
+   * If no mapping for a given policy exists, a default validator will be used (see
+   * {@link SimpleCertificateValidator}).
    * </p>
    */
   private Map<String, CertificateValidator> certificateValidators;
@@ -128,17 +128,18 @@ public class DefaultSignResponseProcessor implements SignResponseProcessor {
   }
 
   /** {@inheritDoc} */
+  @Nonnull
   @Override
-  public SignatureResult processSignResponse(final String signResponse,
-      final SignatureSessionState sessionState,
-      final IntegrationServiceConfiguration config,
+  public SignatureResult processSignResponse(@Nonnull final String signResponse,
+      @Nonnull final SignatureSessionState sessionState,
+      @Nonnull final IntegrationServiceConfiguration config,
       final SignResponseProcessingParameters parameters)
-      throws SignResponseCancelStatusException, SignResponseErrorStatusException, SignServiceIntegrationException {
+      throws SignResponseErrorStatusException, SignServiceIntegrationException {
 
     // First decode the encoded SignResponse ...
     //
-    Document signResponseDocument;
-    SignResponseWrapper response;
+    final Document signResponseDocument;
+    final SignResponseWrapper response;
     try {
       signResponseDocument = DOMUtils.base64ToDocument(signResponse);
       if (log.isTraceEnabled()) {
@@ -154,7 +155,7 @@ public class DefaultSignResponseProcessor implements SignResponseProcessor {
         throw new SignServiceProtocolException(msg);
       }
     }
-    catch (DOMException | JAXBException e) {
+    catch (final DOMException | JAXBException e) {
       throw new SignServiceProtocolException("Failed to decode received SignResponse", e);
     }
 
@@ -205,10 +206,10 @@ public class DefaultSignResponseProcessor implements SignResponseProcessor {
     final ProtocolVersion requestVersion =
         Optional.ofNullable(sessionState.getSignRequest().getSignRequestExtension().getVersion())
             .map(ProtocolVersion::valueOf)
-            .orElseGet(() -> DEFAULT_VERSION);
+            .orElse(DEFAULT_VERSION);
     final ProtocolVersion responseVersion = Optional.ofNullable(response.getSignResponseExtension().getVersion())
         .map(ProtocolVersion::valueOf)
-        .orElseGet(() -> DEFAULT_VERSION);
+        .orElse(DEFAULT_VERSION);
     if (!requestVersion.equals(responseVersion)) {
       // OK, this is an error. The response version MUST be set to the same version as the request version ...
       final String msg = String.format("Version of SignResponse (%s) does not equal version of SignRequest (%s)",
@@ -255,12 +256,12 @@ public class DefaultSignResponseProcessor implements SignResponseProcessor {
     //
     final CertificateValidator certificateValidator = this.getCertificateValidator(config.getPolicy());
     try {
-      certificateValidator.validate(signerCertificateChain.get(0),
+      certificateValidator.validate(signerCertificateChain.getFirst(),
           signerCertificateChain.size() > 1 ? signerCertificateChain.subList(1, signerCertificateChain.size()) : null,
           null, config.getTrustAnchorsInternal());
 
-      log.info("{}: Signer certificate successfully validated - {} [request-id='%s']",
-          CorrelationID.id(), CertificateUtils.toLogString(signerCertificateChain.get(0)),
+      log.info("{}: Signer certificate successfully validated - {} [request-id='{}']",
+          CorrelationID.id(), CertificateUtils.toLogString(signerCertificateChain.getFirst()),
           sessionState.getSignRequest().getRequestID());
     }
     catch (final GeneralSecurityException e) {
@@ -350,12 +351,12 @@ public class DefaultSignResponseProcessor implements SignResponseProcessor {
 
     // Validate the signature of the document ...
     processor.validateSignedDocument(
-        signedDocument.getDocument(), signerCertificateChain.get(0), signTaskData, parameters,
+        signedDocument.getDocument(), signerCertificateChain.getFirst(), signTaskData, parameters,
         state.getSignRequest().getRequestID());
 
     // Optionally, validate the XAdES object ...
     if (signedDocument.getAdesObject() != null) {
-      processor.validateAdesObject(signedDocument.getAdesObject(), signerCertificateChain.get(0), signTaskData,
+      processor.validateAdesObject(signedDocument.getAdesObject(), signerCertificateChain.getFirst(), signTaskData,
           state.getSignRequest(), signResponse, parameters);
     }
 
@@ -363,8 +364,8 @@ public class DefaultSignResponseProcessor implements SignResponseProcessor {
   }
 
   /**
-   * Validates the the response time from the SignResponse is valid. The method also ensures that the server processing
-   * time hasn't exceeded or max limit.
+   * Validates the response time from the SignResponse is valid. The method also ensures that the server processing time
+   * hasn't exceeded or max limit.
    *
    * @param responseTime the response time
    * @param requestTime the time when the request was sent
@@ -537,7 +538,7 @@ public class DefaultSignResponseProcessor implements SignResponseProcessor {
           .equals(
               signRequest.getSignRequestExtension().getRequestedSignatureAlgorithm())) {
         final String msg = String.format(
-            "Signature algorithm used for sign task '%s' does not match requested signature '%s' [request-id='%s']",
+            "Signature algorithm used for sign task '%s' (%s) does not match requested signature '%s' [request-id='%s']",
             signTaskData.getSignTaskId(), signTaskData.getBase64Signature().getType(),
             signRequest.getSignRequestExtension().getRequestedSignatureAlgorithm(), signRequest.getRequestID());
         log.error("{}: {}", CorrelationID.id(), msg);
@@ -618,6 +619,7 @@ public class DefaultSignResponseProcessor implements SignResponseProcessor {
   }
 
   /** {@inheritDoc} */
+  @Nonnull
   @Override
   public SignResponseProcessingConfig getProcessingConfiguration() {
     return this.processingConfiguration;
@@ -628,7 +630,8 @@ public class DefaultSignResponseProcessor implements SignResponseProcessor {
    * has been configured with since this will be explicitly set for each call. This information is taken from the
    * {@link IntegrationServiceConfiguration#getTrustAnchors()}.
    * <p>
-   * If no mapping for a given policy exists, a default validator will be used (see {@link SimpleCertificateValidator}).
+   * If no mapping for a given policy exists, a default validator will be used (see
+   * {@link SimpleCertificateValidator}).
    * </p>
    *
    * @param certificateValidators policy to certificate validator mappings

@@ -15,10 +15,10 @@
  */
 package se.idsec.signservice.integration.config;
 
-import java.util.List;
-
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
+
+import java.util.List;
 
 /**
  * Interface for managing integration service configurations/policies.
@@ -32,8 +32,7 @@ public interface ConfigurationManager {
    * Given the name of a SignService Integration policy, the method returns the service configuration used for this
    * policy.
    *
-   * @param policy
-   *          the policy name (null is interpreted as the default policy)
+   * @param policy the policy name (null is interpreted as the default policy)
    * @return the service configuration for the given policy, or null if no policy is found
    */
   @Nullable
@@ -59,8 +58,7 @@ public interface ConfigurationManager {
    * Assigns the default policy name. If not assigned,
    * {@value IntegrationServiceDefaultConfiguration#DEFAULT_POLICY_NAME} will be used.
    *
-   * @param defaultPolicyName
-   *          the default policy name
+   * @param defaultPolicyName the default policy name
    */
   void setDefaultPolicyName(@Nonnull final String defaultPolicyName);
 

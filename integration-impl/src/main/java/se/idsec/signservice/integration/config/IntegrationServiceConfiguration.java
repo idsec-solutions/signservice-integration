@@ -15,11 +15,11 @@
  */
 package se.idsec.signservice.integration.config;
 
-import java.security.cert.X509Certificate;
-import java.util.List;
-
 import se.idsec.signservice.integration.SignServiceIntegrationService;
 import se.swedenconnect.security.credential.PkiCredential;
+
+import java.security.cert.X509Certificate;
+import java.util.List;
 
 /**
  * Interface that represents the configuration settings of a SignService Integration Service policy/instance.

@@ -15,12 +15,12 @@
  */
 package se.idsec.signservice.integration.document.pdf.signpage;
 
-import java.util.List;
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import se.idsec.signservice.integration.authentication.SignerIdentityAttribute;
+
+import java.util.List;
 
 /**
  * Holds the signer name requirements for a PDF sign image.
@@ -36,9 +36,6 @@ public class SignerNameRequirement {
   /**
    * List of name attributes included in the sign request representing the signer identity. Signer name attributes must
    * be among these attributes.
-   *
-   * @param signerNameAttributeList name attributes included in the sign request representing the signer identity
-   * @return name attributes included in the sign request representing the signer identity
    */
   private List<SignerIdentityAttribute> signerNameAttributeList;
 
@@ -47,9 +44,6 @@ public class SignerNameRequirement {
    * <p>
    * Example "%1 %2 (%3)" causes the result "AttributeVal-1 AttriubteVal-2 (AttributeVal-3)".
    * </p>
-   *
-   * @param formatString the format string determining the formatting of the signer name in the visible sign image.
-   * @return the format string determining the formatting of the signer name in the visible sign image, or null
    */
   private String formatString;
 }

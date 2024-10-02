@@ -15,17 +15,17 @@
  */
 package se.idsec.signservice.integration.security.impl;
 
-import java.util.Optional;
-
-import org.opensaml.saml.saml2.metadata.EntityDescriptor;
-
+import jakarta.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import net.shibboleth.shared.resolver.ResolverException;
+import org.opensaml.saml.saml2.metadata.EntityDescriptor;
 import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
 import se.idsec.signservice.integration.core.impl.CorrelationID;
 import se.idsec.signservice.integration.security.IdpMetadataResolver;
 import se.idsec.signservice.integration.security.MetadataException;
 import se.swedenconnect.opensaml.saml2.metadata.provider.MetadataProvider;
+
+import java.util.Optional;
 
 /**
  * Default implementation of the {@link IdpMetadataResolver}.
@@ -42,8 +42,7 @@ public class DefaultIdpMetadataResolver implements IdpMetadataResolver {
   /**
    * Constructor.
    *
-   * @param metadataProvider
-   *          the metadata provider from where metadata is obtained
+   * @param metadataProvider the metadata provider from where metadata is obtained
    */
   public DefaultIdpMetadataResolver(final MetadataProvider metadataProvider) {
     this.metadataProvider = metadataProvider;
@@ -51,10 +50,11 @@ public class DefaultIdpMetadataResolver implements IdpMetadataResolver {
 
   /** {@inheritDoc} */
   @Override
-  public EntityDescriptor resolveMetadata(final String entityID, final IntegrationServiceConfiguration config) throws MetadataException {
+  public EntityDescriptor resolveMetadata(@Nonnull final String entityID,
+      @Nonnull final IntegrationServiceConfiguration config) throws MetadataException {
     try {
       return Optional.ofNullable(this.metadataProvider.getEntityDescriptor(entityID))
-        .orElseThrow(() -> new MetadataException(String.format("Metadata for '%s' could not be found", entityID)));
+          .orElseThrow(() -> new MetadataException(String.format("Metadata for '%s' could not be found", entityID)));
     }
     catch (final ResolverException e) {
       final String msg = String.format("Error during download of metadata for '%s' - %s", entityID, e.getMessage());

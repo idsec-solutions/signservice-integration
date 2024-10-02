@@ -65,7 +65,7 @@ public class SignServiceIntegrationServiceInitializer {
 
   /**
    * Initializes Apache and OpenSAML with the algorithm settings provided by the supplied OpenSAML security settings.
-   * Possible security settings comprises of:
+   * Possible security settings consists of:
    * <ul>
    * <li>{@link DefaultSecurityConfiguration} - OpenSAML's default configuration.</li>
    * <li>{@link SAML2IntSecurityConfiguration} - Security defaults according to Kantara's
@@ -86,7 +86,7 @@ public class SignServiceIntegrationServiceInitializer {
 
     // First of all, before initializing Apache xmlsec, we make sure that no chunked Base64 string
     // are produced. They end with CRLF, and XML serializing will escape CR with in some cases leads
-    // to signature validation errors (.Net software etc).
+    // to signature validation errors (.Net software etc.).
     //
     log.info("Setting system property 'org.apache.xml.security.ignoreLineBreaks' to true");
     System.setProperty("org.apache.xml.security.ignoreLineBreaks", "true");

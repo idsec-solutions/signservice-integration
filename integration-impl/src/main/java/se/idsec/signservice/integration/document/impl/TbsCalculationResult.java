@@ -36,10 +36,6 @@ public class TbsCalculationResult {
 
   /**
    * The {@code SignTaskData.SigType} attribute.
-   *
-   * @param sigType
-   *          the signature type
-   * @return the signature type
    */
   @Getter
   @Setter
@@ -47,10 +43,6 @@ public class TbsCalculationResult {
 
   /**
    * The {@code SignTaskData.ToBeSignedBytes} element.
-   *
-   * @param toBeSignedBytes
-   *          the to-be-signed-bytes
-   * @return the to-be-signed-bytes
    */
   @Getter
   @Setter
@@ -58,10 +50,6 @@ public class TbsCalculationResult {
 
   /**
    * The {@code SignTaskData.AdESObject.SignatureId} element.
-   *
-   * @param adesSignatureId
-   *          the AdES signature id
-   * @return the AdES signature id
    */
   @Getter
   @Setter
@@ -69,10 +57,6 @@ public class TbsCalculationResult {
 
   /**
    * The {@code SignTaskData.AdESObject.AdESObjectBytes} element.
-   *
-   * @param adesObjectBytes
-   *          the AdES object bytes
-   * @return the AdES object bytes
    */
   @Getter
   @Setter

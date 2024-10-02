@@ -15,14 +15,9 @@
  */
 package se.idsec.signservice.integration.state;
 
-import java.io.Serial;
-import java.io.Serializable;
-import java.util.List;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -40,6 +35,10 @@ import se.idsec.signservice.xml.DOMUtils;
 import se.swedenconnect.schemas.dss_1_0.SignRequest;
 import se.swedenconnect.xml.jaxb.JAXBMarshaller;
 import se.swedenconnect.xml.jaxb.JAXBUnmarshaller;
+
+import java.io.Serial;
+import java.io.Serializable;
+import java.util.List;
 
 /**
  * Representation of the signature session state. See {@link DefaultSignatureState}.
@@ -128,9 +127,10 @@ public class SignatureSessionState implements Serializable {
     }
     if (this.signRequest != null) {
       try {
-        this.encodedSignRequest = DOMUtils.nodeToBase64(JAXBMarshaller.marshall(this.signRequest.getWrappedSignRequest()));
+        this.encodedSignRequest =
+            DOMUtils.nodeToBase64(JAXBMarshaller.marshall(this.signRequest.getWrappedSignRequest()));
       }
-      catch (Exception e) {
+      catch (final Exception e) {
         log.error("Failed to marshall SignRequest", e);
       }
     }
@@ -147,9 +147,9 @@ public class SignatureSessionState implements Serializable {
     if (this.encodedSignRequest != null) {
       try {
         this.signRequest = new SignRequestWrapper(
-          JAXBUnmarshaller.unmarshall(DOMUtils.base64ToDocument(this.encodedSignRequest), SignRequest.class));
+            JAXBUnmarshaller.unmarshall(DOMUtils.base64ToDocument(this.encodedSignRequest), SignRequest.class));
       }
-      catch (Exception e) {
+      catch (final Exception e) {
         log.error("Failed to unmarshall encoded SignRequest", e);
       }
     }

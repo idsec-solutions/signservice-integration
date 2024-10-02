@@ -43,7 +43,7 @@ public class GenericSignImagePlacementCalculator implements SignatureImagePlacem
    *
    * @param cols number of columns used to place sign images
    * @param rows number of maximum rows to place sign images
-   * @param xIncrement the x axis increment amount between sign images on the same row
+   * @param xIncrement the x-axis increment amount between sign images on the same row
    * @param yIncrement the y (height) axis increment amount between sign image rows
    */
   public GenericSignImagePlacementCalculator(final int cols, final int rows, final int xIncrement,

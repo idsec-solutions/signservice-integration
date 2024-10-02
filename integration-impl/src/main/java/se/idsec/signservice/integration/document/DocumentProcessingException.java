@@ -18,6 +18,8 @@ package se.idsec.signservice.integration.document;
 import se.idsec.signservice.integration.core.error.ErrorCode;
 import se.idsec.signservice.integration.core.error.SignServiceIntegrationCategoryException;
 
+import java.io.Serial;
+
 /**
  * Exception class for document processing errors.
  *
@@ -27,6 +29,7 @@ import se.idsec.signservice.integration.core.error.SignServiceIntegrationCategor
 public class DocumentProcessingException extends SignServiceIntegrationCategoryException {
 
   /** For serializing. */
+  @Serial
   private static final long serialVersionUID = -5663907049066116365L;
 
   /**

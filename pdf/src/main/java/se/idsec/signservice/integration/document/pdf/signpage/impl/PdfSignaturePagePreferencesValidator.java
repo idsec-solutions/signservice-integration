@@ -15,7 +15,7 @@
  */
 package se.idsec.signservice.integration.document.pdf.signpage.impl;
 
-import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
 import se.idsec.signservice.integration.core.validation.AbstractInputValidator;
 import se.idsec.signservice.integration.core.validation.ValidationResult;
@@ -44,7 +44,7 @@ public class PdfSignaturePagePreferencesValidator
   /** {@inheritDoc} */
   @Override
   public ValidationResult validate(
-      final PdfSignaturePagePreferences object, @Nonnull final String objectName,
+      final PdfSignaturePagePreferences object, @Nullable final String objectName,
       final IntegrationServiceConfiguration hint) {
 
     final ValidationResult result = new ValidationResult(objectName);

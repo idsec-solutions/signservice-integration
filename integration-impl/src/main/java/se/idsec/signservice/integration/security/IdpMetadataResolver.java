@@ -15,9 +15,8 @@
  */
 package se.idsec.signservice.integration.security;
 
-import org.opensaml.saml.saml2.metadata.EntityDescriptor;
-
 import jakarta.annotation.Nonnull;
+import org.opensaml.saml.saml2.metadata.EntityDescriptor;
 import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
 
 /**
@@ -39,7 +38,6 @@ public interface IdpMetadataResolver {
    * @throws MetadataException if no valid metadata can be found, or any other error occur
    */
   EntityDescriptor resolveMetadata(@Nonnull final String entityID,
-      @Nonnull final IntegrationServiceConfiguration config)
-      throws MetadataException;
+      @Nonnull final IntegrationServiceConfiguration config) throws MetadataException;
 
 }

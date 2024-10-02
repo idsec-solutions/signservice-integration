@@ -16,6 +16,7 @@
 package se.idsec.signservice.integration.document.pdf;
 
 import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -213,7 +214,7 @@ public class PdfSignedDocumentProcessor extends AbstractSignedDocumentProcessor<
   public void validateSignedDocument(@Nonnull final byte[] signedDocument,
       @Nonnull final X509Certificate signerCertificate,
       @Nonnull final SignTaskData signTaskData,
-      final SignResponseProcessingParameters parameters,
+      @Nullable final SignResponseProcessingParameters parameters,
       @Nonnull final String requestID) throws SignServiceIntegrationException {
 
     log.debug("{}: Validating signed PDF document for Sign task '{}' ... [request-id='{}']",
