@@ -15,22 +15,22 @@
  */
 package se.idsec.signservice.integration.config.spring;
 
-import java.io.IOException;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
-
+import jakarta.annotation.Nonnull;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.convert.converter.ConverterRegistry;
 import org.springframework.core.io.Resource;
-
 import se.idsec.signservice.security.certificate.CertificateUtils;
 
+import java.io.IOException;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+
 /**
- * For Spring Framework users. A {@link Converter} that gets the property value (e.g., {@code classpath:cert.crt})
- * and instantiates a {@link X509Certificate} onbject.
+ * For Spring Framework users. A {@link Converter} that gets the property value (e.g., {@code classpath:cert.crt}) and
+ * instantiates a {@link X509Certificate} onbject.
  * <p>
  * To use this converter it has to be instantiated as a bean and then registered in the registry using
  * {@link ConverterRegistry#addConverter(Converter)}.
@@ -46,7 +46,6 @@ import se.idsec.signservice.security.certificate.CertificateUtils;
  * }
  * </pre>
  *
- *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
@@ -57,7 +56,7 @@ public class PropertyToX509CertificateConverter implements Converter<String, X50
 
   /** {@inheritDoc} */
   @Override
-  public X509Certificate convert(final String source) {
+  public X509Certificate convert(@Nonnull final String source) {
 
     final Resource resource = this.applicationContext.getResource(source);
 
@@ -71,7 +70,7 @@ public class PropertyToX509CertificateConverter implements Converter<String, X50
 
   /** {@inheritDoc} */
   @Override
-  public void setApplicationContext(final ApplicationContext applicationContext) throws BeansException {
+  public void setApplicationContext(@Nonnull final ApplicationContext applicationContext) throws BeansException {
     this.applicationContext = applicationContext;
   }
 

@@ -15,16 +15,10 @@
  */
 package se.idsec.signservice.integration.process.impl;
 
-import java.util.Base64;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
-import org.apache.commons.lang3.StringUtils;
-
+import jakarta.annotation.Nonnull;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import se.idsec.signservice.integration.SignResponseProcessingParameters;
 import se.idsec.signservice.integration.authentication.SignerAssertionInformation;
 import se.idsec.signservice.integration.authentication.SignerAssertionInformation.SignerAssertionInformationBuilder;
@@ -49,6 +43,12 @@ import se.swedenconnect.schemas.saml_2_0.assertion.Assertion;
 import se.swedenconnect.schemas.saml_2_0.assertion.AttributeStatement;
 import se.swedenconnect.xml.jaxb.JAXBUnmarshaller;
 
+import java.util.Base64;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
 /**
  * Default implementation of the {@link SignerAssertionInfoProcessor} interface.
  *
@@ -65,7 +65,7 @@ public class DefaultSignerAssertionInfoProcessor implements SignerAssertionInfoP
   /** {@inheritDoc} */
   @Override
   public SignerAssertionInformation processSignerAssertionInfo(
-      final SignResponseWrapper signResponse, final SignatureSessionState state,
+      @Nonnull final SignResponseWrapper signResponse, @Nonnull final SignatureSessionState state,
       final SignResponseProcessingParameters parameters) throws SignServiceIntegrationException {
 
     final SignerAssertionInfo signerAssertionInfo = signResponse.getSignResponseExtension().getSignerAssertionInfo();
@@ -148,7 +148,7 @@ public class DefaultSignerAssertionInfoProcessor implements SignerAssertionInfoP
     else {
       if (signerAssertionInfo.getSamlAssertions().getAssertions().size() == 1
           && !this.processingConfig.isStrictProcessing()) {
-        // If strict processing is turned off and we only got one assertion we trust that the SignService
+        // If strict processing is turned off, and we only got one assertion we trust that the SignService
         // included the assertion that corresponds to AssertionRef.
         //
         idpAssertion = signerAssertionInfo.getSamlAssertions().getAssertions().get(0);
@@ -223,7 +223,7 @@ public class DefaultSignerAssertionInfoProcessor implements SignerAssertionInfoP
       if (requireDisplaySignMessageProof) {
         String signMessageDigest = attributes.stream()
             .filter(a -> SignMessageProcessor.SIGN_MESSAGE_DIGEST_ATTRIBUTE.equals(a.getName()))
-            .map(a -> a.getValue())
+            .map(SignerIdentityAttributeValue::getValue)
             .findFirst()
             .orElse(null);
 
@@ -304,7 +304,7 @@ public class DefaultSignerAssertionInfoProcessor implements SignerAssertionInfoP
    */
   protected boolean requireDisplaySignMessageProof(final SignatureSessionState state) {
     if (state.getSignMessage() != null && state.getSignMessage().getMustShow() != null) {
-      return state.getSignMessage().getMustShow().booleanValue();
+      return state.getSignMessage().getMustShow();
     }
     return false;
   }
@@ -315,6 +315,7 @@ public class DefaultSignerAssertionInfoProcessor implements SignerAssertionInfoP
    *
    * @param signerAssertionInfo the signer info (including the received attributes)
    * @param signRequest the request
+   * @return a list of attributes
    * @throws SignServiceIntegrationException for validation errors
    */
   protected List<SignerIdentityAttributeValue> processAttributes(final SignerAssertionInfo signerAssertionInfo,
@@ -342,7 +343,7 @@ public class DefaultSignerAssertionInfoProcessor implements SignerAssertionInfoP
         }
         boolean attrDelivered = false;
         for (final PreferredSAMLAttributeNameType attr : mat.getSamlAttributeNames()) {
-          if (attributes.stream().filter(a -> a.getName().equals(attr.getValue())).findFirst().isPresent()) {
+          if (attributes.stream().anyMatch(a -> a.getName().equals(attr.getValue()))) {
             log.trace("{}: Requested attribute '{}' was delivered by IdP/AA [request-id='{}']",
                 CorrelationID.id(), attr.getValue(), signRequest.getRequestID());
             attrDelivered = true;
@@ -352,7 +353,8 @@ public class DefaultSignerAssertionInfoProcessor implements SignerAssertionInfoP
         if (!attrDelivered) {
           final String msg = String.format(
               "None of the requested attribute(s) %s were delivered in SignerAssertionInfo/AttributeStatement [request-id='%s']",
-              mat.getSamlAttributeNames().stream().map(a -> a.getValue()).collect(Collectors.toList()),
+              mat.getSamlAttributeNames().stream().map(PreferredSAMLAttributeNameType::getValue)
+                  .collect(Collectors.toList()),
               signRequest.getRequestID());
           log.error("{}: {}", CorrelationID.id(), msg);
           throw new SignResponseProcessingException(new ErrorCode.Code("invalid-response"), msg);

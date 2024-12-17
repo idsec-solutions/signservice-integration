@@ -28,10 +28,8 @@ public interface IntegrationServiceStateCache extends IntegrationServiceCache<Ca
   /**
    * Adds an object to the cache.
    *
-   * @param id
-   *          the object ID
-   * @param state
-   *          the state object to add
+   * @param id the object ID
+   * @param state the state object to add
    */
   default void put(final String id, final CacheableSignatureState state) {
     this.put(id, state, state != null ? state.getOwnerId() : null);

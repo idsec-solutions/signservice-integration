@@ -15,27 +15,14 @@
  */
 package se.idsec.signservice.integration.process.impl;
 
-import java.security.SignatureException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.GregorianCalendar;
-import java.util.List;
-
-import javax.xml.datatype.DatatypeConfigurationException;
-import javax.xml.datatype.DatatypeFactory;
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.xpath.XPathExpressionException;
-
-import org.apache.commons.lang3.StringUtils;
-import org.w3c.dom.Document;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
-
 import jakarta.annotation.PostConstruct;
 import jakarta.xml.bind.JAXBException;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.w3c.dom.Document;
 import se.idsec.signservice.integration.SignRequestInput;
 import se.idsec.signservice.integration.authentication.AuthnRequirements;
 import se.idsec.signservice.integration.certificate.SigningCertificateRequirements;
@@ -72,6 +59,16 @@ import se.swedenconnect.schemas.saml_2_0.assertion.Conditions;
 import se.swedenconnect.security.credential.PkiCredential;
 import se.swedenconnect.xml.jaxb.JAXBMarshaller;
 
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.xpath.XPathExpressionException;
+import java.io.Serial;
+import java.security.SignatureException;
+import java.util.Collections;
+import java.util.GregorianCalendar;
+import java.util.List;
+
 /**
  * Default implementation of the {@link SignRequestProcessor} interface.
  *
@@ -94,15 +91,15 @@ public class DefaultSignRequestProcessor implements SignRequestProcessor {
   private SignMessageProcessor signMessageProcessor;
 
   /** Object factory for DSS objects. */
-  private static se.swedenconnect.schemas.dss_1_0.ObjectFactory dssObjectFactory =
+  private static final se.swedenconnect.schemas.dss_1_0.ObjectFactory dssObjectFactory =
       new se.swedenconnect.schemas.dss_1_0.ObjectFactory();
 
   /** Object factory for DSS-Ext objects. */
-  private static se.swedenconnect.schemas.csig.dssext_1_1.ObjectFactory dssExtObjectFactory =
+  private static final se.swedenconnect.schemas.csig.dssext_1_1.ObjectFactory dssExtObjectFactory =
       new se.swedenconnect.schemas.csig.dssext_1_1.ObjectFactory();
 
   /** Needed when signing the sign request. */
-  private XMLSignatureLocation xmlSignatureLocation;
+  private final XMLSignatureLocation xmlSignatureLocation;
 
   /**
    * The default version to use. If not set, section 3.1 of "DSS Extension for Federated Central Signing Services"
@@ -115,8 +112,8 @@ public class DefaultSignRequestProcessor implements SignRequestProcessor {
   private static final ProtocolVersion VERSION_1_4 = new ProtocolVersion("1.4");
 
   /** Constants for conditions. */
-  private static javax.xml.datatype.Duration ONE_MINUTE_BACK;
-  private static javax.xml.datatype.Duration FIVE_MINUTES_FORWARD;
+  private static final javax.xml.datatype.Duration ONE_MINUTE_BACK;
+  private static final javax.xml.datatype.Duration FIVE_MINUTES_FORWARD;
 
   static {
     try {
@@ -144,8 +141,7 @@ public class DefaultSignRequestProcessor implements SignRequestProcessor {
   /** {@inheritDoc} */
   @Override
   public SignRequestInput preProcess(final SignRequestInput signRequestInput,
-      final IntegrationServiceConfiguration config)
-      throws InputValidationException {
+      final IntegrationServiceConfiguration config, final String callerId) throws InputValidationException {
 
     // First validate ...
     //
@@ -210,7 +206,7 @@ public class DefaultSignRequestProcessor implements SignRequestProcessor {
         || authnRequirements.getAuthnContextClassRefs().isEmpty()) {
       log.debug("{}: No authnRequirements.authnContextClassRefs given in input, using '{}'",
           CorrelationID.id(), config.getDefaultAuthnContextRef());
-      authnRequirements.setAuthnContextClassRefs(Arrays.asList(config.getDefaultAuthnContextRef()));
+      authnRequirements.setAuthnContextClassRefs(Collections.singletonList(config.getDefaultAuthnContextRef()));
     }
     if (authnRequirements.getRequestedSignerAttributes() == null
         || authnRequirements.getRequestedSignerAttributes().isEmpty()) {
@@ -258,15 +254,13 @@ public class DefaultSignRequestProcessor implements SignRequestProcessor {
               String.format("Document of type '%s' is not supported", doc.getMimeType())));
 
       final ProcessedTbsDocument processedTbsDocument = processor.preProcess(
-          doc, signRequestInput, config, this.documentCache, fieldName);
+          doc, signRequestInput, config, this.documentCache, callerId, fieldName);
 
       if (processedTbsDocument.getDocumentObject() != null) {
-        if (processedTbsDocument.getDocumentObject() != null) {
-          final Extension ext = processedTbsDocument.getTbsDocument().getExtension();
-          final DocumentExtension docExt = ext == null ? new DocumentExtension() : new DocumentExtension(ext);
-          docExt.setDocument(processedTbsDocument.getDocumentObject());
-          processedTbsDocument.getTbsDocument().setExtension(docExt);
-        }
+        final Extension ext = processedTbsDocument.getTbsDocument().getExtension();
+        final DocumentExtension docExt = ext == null ? new DocumentExtension() : new DocumentExtension(ext);
+        docExt.setDocument(processedTbsDocument.getDocumentObject());
+        processedTbsDocument.getTbsDocument().setExtension(docExt);
       }
 
       inputBuilder.tbsDocument(processedTbsDocument.getTbsDocument());
@@ -424,8 +418,8 @@ public class DefaultSignRequestProcessor implements SignRequestProcessor {
           .orElseThrow(() -> new InternalSignServiceIntegrationException(new ErrorCode.Code("config"),
               "Could not find document processor"));
 
-      final Object cachedDocument = doc.getExtension() != null && DocumentExtension.class.isInstance(doc.getExtension())
-          ? DocumentExtension.class.cast(doc.getExtension()).getDocument()
+      final Object cachedDocument = doc.getExtension() != null && doc.getExtension() instanceof DocumentExtension
+          ? ((DocumentExtension) doc.getExtension()).getDocument()
           : null;
       if (cachedDocument != null) {
         // Clean up cached object. We don't want to save it to the session ...
@@ -494,7 +488,7 @@ public class DefaultSignRequestProcessor implements SignRequestProcessor {
 
       return signerResult.getSignedDocument();
     }
-    catch (JAXBException | SignatureException e) {
+    catch (final JAXBException | SignatureException e) {
       log.error("{}: Error during signing of SignRequest - {}", correlationID, e.getMessage(), e);
       throw new InternalSignServiceIntegrationException(new ErrorCode.Code("signing"),
           "Error during signing of SignRequest", e);
@@ -556,8 +550,7 @@ public class DefaultSignRequestProcessor implements SignRequestProcessor {
     try {
       final GregorianCalendar gregorianCalendar = new GregorianCalendar();
       final DatatypeFactory datatypeFactory = DatatypeFactory.newInstance();
-      final XMLGregorianCalendar now = datatypeFactory.newXMLGregorianCalendar(gregorianCalendar);
-      return now;
+      return datatypeFactory.newXMLGregorianCalendar(gregorianCalendar);
     }
     catch (final DatatypeConfigurationException e) {
       throw new RuntimeException(e);
@@ -588,6 +581,7 @@ public class DefaultSignRequestProcessor implements SignRequestProcessor {
    */
   private static class DocumentExtension extends Extension {
 
+    @Serial
     private static final long serialVersionUID = -7525964206819771980L;
 
     /** The non-string document object that is stored. */

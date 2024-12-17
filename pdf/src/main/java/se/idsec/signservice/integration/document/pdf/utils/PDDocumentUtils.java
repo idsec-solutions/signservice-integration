@@ -15,22 +15,22 @@
  */
 package se.idsec.signservice.integration.document.pdf.utils;
 
-import java.io.BufferedOutputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
+import lombok.extern.slf4j.Slf4j;
+import org.apache.pdfbox.Loader;
+import org.apache.pdfbox.pdfwriter.compress.CompressParameters;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageTree;
-
-import lombok.extern.slf4j.Slf4j;
 import se.idsec.signservice.integration.core.error.ErrorCode;
 import se.idsec.signservice.integration.document.DocumentProcessingException;
 import se.idsec.signservice.integration.document.pdf.pdfa.BasicMetadataPDFAConformanceChecker;
 import se.idsec.signservice.integration.document.pdf.pdfa.PDFAConformanceChecker;
+
+import java.io.BufferedOutputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Utility methods for working with {@link PDDocument} objects.
@@ -55,7 +55,7 @@ public class PDDocumentUtils {
    */
   public static PDDocument load(final byte[] contents) throws DocumentProcessingException {
     try {
-      return PDDocument.load(contents);
+      return Loader.loadPDF(contents);
     }
     catch (final IOException e) {
       log.error("Failed to load PDF document", e);
@@ -87,10 +87,10 @@ public class PDDocumentUtils {
    * @throws DocumentProcessingException for processing errors
    */
   public static byte[] toBytes(final PDDocument document) throws DocumentProcessingException {
-    try {
-      final ByteArrayOutputStream bos = new ByteArrayOutputStream();
-      final BufferedOutputStream os = new BufferedOutputStream(bos);
-      document.save(os);
+    try (final ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        final BufferedOutputStream os = new BufferedOutputStream(bos)) {
+      document.save(os, CompressParameters.NO_COMPRESSION);
+      os.flush();
       return bos.toByteArray();
     }
     catch (final IOException e) {
@@ -115,9 +115,8 @@ public class PDDocumentUtils {
       final int pagesToAdd = insertDocument.getNumberOfPages();
       final boolean append = page == 0 || page == documentNumberOfPages + 1;
 
-      final Iterator<PDPage> it = insertDocument.getPages().iterator();
-      while (it.hasNext()) {
-        document.importPage(it.next());
+      for (final PDPage pdPage : insertDocument.getPages()) {
+        document.importPage(pdPage);
       }
 
       if (!append) {
@@ -139,13 +138,12 @@ public class PDDocumentUtils {
 
       return PDDocumentUtils.load(PDDocumentUtils.toBytes(document));
     }
-    catch (IndexOutOfBoundsException | IllegalStateException | IllegalArgumentException e) {
+    catch (final IndexOutOfBoundsException | IllegalStateException | IllegalArgumentException e) {
       throw new DocumentProcessingException(new ErrorCode.Code("pdf"),
           String.format("Failed to insert sign page at page %d of document (no such page)", page), e);
     }
     catch (final IOException e) {
-      throw new DocumentProcessingException(new ErrorCode.Code("pdf"),
-          String.format("Failed to insert sign page into document"), e);
+      throw new DocumentProcessingException(new ErrorCode.Code("pdf"), "Failed to insert sign page into document", e);
     }
     finally {
       PDDocumentUtils.close(document);

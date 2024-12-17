@@ -15,16 +15,17 @@
  */
 package se.idsec.signservice.integration.core.impl;
 
-import java.io.Serializable;
-import java.util.Optional;
-
 import lombok.extern.slf4j.Slf4j;
 import se.idsec.signservice.integration.core.IntegrationServiceCache;
 import se.idsec.signservice.integration.core.error.NoAccessException;
 
+import java.io.Serializable;
+import java.util.Optional;
+
 /**
  * Base class for an implementation of the {@link IntegrationServiceCache} interface.
  *
+ * @param <T> the cachec object type
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
@@ -39,7 +40,7 @@ public abstract class AbstractIntegrationServiceCache<T extends Serializable> im
 
   /** {@inheritDoc} */
   @Override
-  public T get(String id, final String requesterId) throws NoAccessException {
+  public T get(final String id, final String requesterId) throws NoAccessException {
     return this.get(id, false, requesterId);
   }
 
@@ -53,12 +54,15 @@ public abstract class AbstractIntegrationServiceCache<T extends Serializable> im
     }
     if (entry.getOwnerId() != null) {
       if (requesterId == null) {
-        final String msg = String.format("Cached object '%s' has an registered owner - anonymous access is not allowed", id);
+        final String msg =
+            String.format("Cached object '%s' has an registered owner - anonymous access is not allowed", id);
         log.error("{}: {}", CorrelationID.id(), msg);
         throw new NoAccessException(msg);
       }
       if (!requesterId.equals(entry.getOwnerId())) {
-        final String msg = String.format("Cached object '%s' has an registered owner that does not match requester (%s)", id, requesterId);
+        final String msg =
+            String.format("Cached object '%s' has an registered owner that does not match requester (%s)", id,
+                requesterId);
         log.error("{}: {}", CorrelationID.id(), msg);
         throw new NoAccessException(msg);
       }
@@ -79,8 +83,7 @@ public abstract class AbstractIntegrationServiceCache<T extends Serializable> im
   /**
    * Gets the cache entry identified by {@code id}.
    *
-   * @param id
-   *          the ID
+   * @param id the ID
    * @return the entry or null
    */
   protected abstract CacheEntry<T> getCacheEntry(final String id);
@@ -101,16 +104,13 @@ public abstract class AbstractIntegrationServiceCache<T extends Serializable> im
   /**
    * Adds the supplied entry identified by {@code id} to the cache.
    *
-   * @param id
-   *          the ID
-   * @param object
-   *          the object to add
-   * @param ownerId
-   *          the owner of the object (may be null)
-   * @param expirationTime
-   *          expiration time (in millis)
+   * @param id the ID
+   * @param object the object to add
+   * @param ownerId the owner of the object (may be null)
+   * @param expirationTime expiration time (in millis)
    */
-  protected abstract void putCacheObject(final String id, final T object, final String ownerId, final long expirationTime);
+  protected abstract void putCacheObject(final String id, final T object, final String ownerId,
+      final long expirationTime);
 
   /** {@inheritDoc} */
   @Override
@@ -121,16 +121,14 @@ public abstract class AbstractIntegrationServiceCache<T extends Serializable> im
   /**
    * Removes the object identified by {@code id}.
    *
-   * @param id
-   *          the ID
+   * @param id the ID
    */
   protected abstract void removeCacheObject(final String id);
 
   /**
    * Assigns the maximum time (in millis) to keep an object in the cache. Default is {@value #MAX_AGE}.
    *
-   * @param maxAge
-   *          age in millis
+   * @param maxAge age in millis
    */
   public void setMaxAge(final long maxAge) {
     this.maxAge = maxAge;
@@ -138,6 +136,8 @@ public abstract class AbstractIntegrationServiceCache<T extends Serializable> im
 
   /**
    * Representation of a cache entry.
+   *
+   * @param <T> the entry type
    */
   public interface CacheEntry<T extends Serializable> extends Serializable {
 

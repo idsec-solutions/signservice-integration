@@ -15,13 +15,9 @@
  */
 package se.idsec.signservice.integration.state;
 
-import java.io.Serializable;
-import java.util.List;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -40,6 +36,10 @@ import se.swedenconnect.schemas.dss_1_0.SignRequest;
 import se.swedenconnect.xml.jaxb.JAXBMarshaller;
 import se.swedenconnect.xml.jaxb.JAXBUnmarshaller;
 
+import java.io.Serial;
+import java.io.Serializable;
+import java.util.List;
+
 /**
  * Representation of the signature session state. See {@link DefaultSignatureState}.
  *
@@ -55,15 +55,13 @@ import se.swedenconnect.xml.jaxb.JAXBUnmarshaller;
 public class SignatureSessionState implements Serializable {
 
   /** For serialization. */
+  @Serial
   private static final long serialVersionUID = 6334324655251433759L;
 
   /**
    * The owner identity of this operaration. This is set in the cases when the SignService Integration Service is
    * running in stateful mode. It is primary useful when the SignService Integration Service is running as a stand-alone
    * service.
-   *
-   * @param ownerId the owner ID
-   * @return the owner ID or null
    */
   @JsonIgnore
   @Getter
@@ -72,9 +70,6 @@ public class SignatureSessionState implements Serializable {
 
   /**
    * The correlation ID for this session/process.
-   *
-   * @param correlationId the correlation ID for this session
-   * @return the correlation ID for this session
    */
   @Getter
   @Setter
@@ -82,9 +77,6 @@ public class SignatureSessionState implements Serializable {
 
   /**
    * The policy under which the operation is executing.
-   *
-   * @param policy the policy under which the operation is executing
-   * @return he policy under which the operation is executing
    */
   @Setter
   @Getter
@@ -93,19 +85,13 @@ public class SignatureSessionState implements Serializable {
   /**
    * The URL to which the user agent along with the sign response message should be directed after a signature
    * operation.
-   *
-   * @param expectedReturnUrl the URL to which a sign response is to be returned
-   * @return the URL to which a sign response is to be returned
    */
   @Setter
   @Getter
   private String expectedReturnUrl;
 
   /**
-   * The document(s) to be signed along with a per document signing requirements and parameters.
-   *
-   * @param tbsDocuments a list of To-be-signed documents
-   * @return a list of To-be-signed documents
+   * The document(s) to be signed along with a per-document signing requirements and parameters.
    */
   @Setter
   @Getter
@@ -114,9 +100,6 @@ public class SignatureSessionState implements Serializable {
 
   /**
    * The sign message that was ordered by the initiator.
-   *
-   * @param signMessage the sign message parameters
-   * @return the sign message parameters
    */
   @Setter
   @Getter
@@ -124,8 +107,6 @@ public class SignatureSessionState implements Serializable {
 
   /**
    * The SignRequest that was passed to the signature service.
-   *
-   * @param signRequest the SignRequest that was passed to the signature service
    */
   @Setter
   @JsonIgnore
@@ -133,16 +114,12 @@ public class SignatureSessionState implements Serializable {
 
   /**
    * The Base64-encoded SignRequest. Used in cases when the state is passed back to the caller (via REST).
-   *
-   * @param encodedSignRequest the encoded SignRequest
    */
   @Setter
   private String encodedSignRequest;
 
   /**
    * Gets the encoded SignRequest.
-   *
-   * @return the encoded SignRequest
    */
   public String getEncodedSignRequest() {
     if (this.encodedSignRequest != null) {
@@ -150,9 +127,10 @@ public class SignatureSessionState implements Serializable {
     }
     if (this.signRequest != null) {
       try {
-        this.encodedSignRequest = DOMUtils.nodeToBase64(JAXBMarshaller.marshall(this.signRequest.getWrappedSignRequest()));
+        this.encodedSignRequest =
+            DOMUtils.nodeToBase64(JAXBMarshaller.marshall(this.signRequest.getWrappedSignRequest()));
       }
-      catch (Exception e) {
+      catch (final Exception e) {
         log.error("Failed to marshall SignRequest", e);
       }
     }
@@ -161,8 +139,6 @@ public class SignatureSessionState implements Serializable {
 
   /**
    * Gets the SignRequest that was passed to the signature service.
-   *
-   * @return the SignRequest
    */
   public SignRequestWrapper getSignRequest() {
     if (this.signRequest != null) {
@@ -171,9 +147,9 @@ public class SignatureSessionState implements Serializable {
     if (this.encodedSignRequest != null) {
       try {
         this.signRequest = new SignRequestWrapper(
-          JAXBUnmarshaller.unmarshall(DOMUtils.base64ToDocument(this.encodedSignRequest), SignRequest.class));
+            JAXBUnmarshaller.unmarshall(DOMUtils.base64ToDocument(this.encodedSignRequest), SignRequest.class));
       }
-      catch (Exception e) {
+      catch (final Exception e) {
         log.error("Failed to unmarshall encoded SignRequest", e);
       }
     }

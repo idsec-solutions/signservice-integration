@@ -15,8 +15,8 @@
  */
 package se.idsec.signservice.integration.signmessage.impl;
 
+import jakarta.annotation.Nullable;
 import org.apache.commons.lang3.StringUtils;
-
 import se.idsec.signservice.integration.core.validation.AbstractInputValidator;
 import se.idsec.signservice.integration.core.validation.ValidationResult;
 import se.idsec.signservice.integration.signmessage.SignMessageMimeType;
@@ -32,7 +32,8 @@ public class SignMessageParametersValidator extends AbstractInputValidator<SignM
 
   /** {@inheritDoc} */
   @Override
-  public ValidationResult validate(final SignMessageParameters object, final String objectName, final Void hint) {
+  public ValidationResult validate(final SignMessageParameters object, @Nullable final String objectName,
+      final Void hint) {
 
     final ValidationResult result = new ValidationResult(objectName);
     if (object == null) {

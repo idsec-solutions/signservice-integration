@@ -15,12 +15,12 @@
  */
 package se.idsec.signservice.integration.security.impl;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.opensaml.xmlsec.EncryptionConfiguration;
 import org.opensaml.xmlsec.SecurityConfigurationSupport;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
 import se.idsec.signservice.integration.security.EncryptionParameters;
+
+import java.io.Serial;
 
 /**
  * Implementation of {@link EncryptionParameters} that uses OpenSAML's system configuration.
@@ -29,6 +29,9 @@ import se.idsec.signservice.integration.security.EncryptionParameters;
  * @author Stefan Santesson (stefan@idsec.se)
  */
 public class OpenSAMLEncryptionParameters implements EncryptionParameters {
+
+  @Serial
+  private static final long serialVersionUID = 3074989264317284157L;
 
   /** The OpenSAML system encryption configuration. */
   private final EncryptionConfiguration systemConfiguration;
@@ -56,9 +59,9 @@ public class OpenSAMLEncryptionParameters implements EncryptionParameters {
   @Override
   public RSAOAEPParameters getRsaOaepParameters() {
     return new RSAOAEPParameters(
-      this.systemConfiguration.getRSAOAEPParameters().getDigestMethod(),
-      this.systemConfiguration.getRSAOAEPParameters().getMaskGenerationFunction(),
-      this.systemConfiguration.getRSAOAEPParameters().getOAEPParams());
+        this.systemConfiguration.getRSAOAEPParameters().getDigestMethod(),
+        this.systemConfiguration.getRSAOAEPParameters().getMaskGenerationFunction(),
+        this.systemConfiguration.getRSAOAEPParameters().getOAEPParams());
   }
 
   /**

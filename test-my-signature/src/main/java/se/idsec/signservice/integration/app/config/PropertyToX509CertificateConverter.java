@@ -30,23 +30,23 @@ import se.idsec.signservice.security.certificate.CertificateUtils;
 
 /**
  * Converts property strings into {@link X509Certificate} objects.
- * 
+ *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
 @Component
 @ConfigurationPropertiesBinding
 public class PropertyToX509CertificateConverter implements Converter<String, X509Certificate> {
-  
+
   @Autowired
-  private ApplicationContext applicationContext;  
+  private ApplicationContext applicationContext;
 
   /** {@inheritDoc} */
   @Override
   public X509Certificate convert(final String source) {
-    
+
     final Resource resource = this.applicationContext.getResource(source);
-    
+
     try {
       return CertificateUtils.decodeCertificate(resource.getInputStream());
     }

@@ -35,10 +35,10 @@ public class PDFIntegrationUtils {
   public static AdesProfileType getPadesRequirement(final TbsDocument.EtsiAdesRequirement requestedAdes) {
     if (requestedAdes != null) {
       final TbsDocument.AdesType adesType = requestedAdes.getAdesFormat();
-      if (TbsDocument.AdesType.BES.equals(adesType)) {
+      if (TbsDocument.AdesType.BES == adesType) {
         return AdesProfileType.BES;
       }
-      else if (TbsDocument.AdesType.EPES.equals(adesType)) {
+      else if (TbsDocument.AdesType.EPES == adesType) {
         return AdesProfileType.EPES;
       }
     }

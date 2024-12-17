@@ -61,8 +61,8 @@ public class SignatureImagePlacement {
   /**
    * Get new sign image placement with relative location change.
    *
-   * @param addX add placement this number of pixels on the x axis
-   * @param addY add placement this number of pixels on the y axis
+   * @param addX add placement this number of pixels on the x-axis
+   * @param addY add placement this number of pixels on the y-axis
    * @param basePlacement the base placement
    */
   public SignatureImagePlacement(final int addX, final int addY, final SignatureImagePlacement basePlacement) {
@@ -75,8 +75,8 @@ public class SignatureImagePlacement {
   /**
    * Get new sign image placement with relative location change.
    *
-   * @param addX add placement this number of pixels on the x axis
-   * @param addY add placement this number of pixels on the y axis
+   * @param addX add placement this number of pixels on the x-axis
+   * @param addY add placement this number of pixels on the y-axis
    * @param signImageScale new scale
    * @param basePlacement the base placement
    */

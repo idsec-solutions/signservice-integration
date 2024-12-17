@@ -15,19 +15,18 @@
  */
 package se.idsec.signservice.integration.config.impl;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import org.apache.commons.lang3.StringUtils;
-
+import jakarta.annotation.Nonnull;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import se.idsec.signservice.integration.config.ConfigurationManager;
 import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
 import se.idsec.signservice.integration.config.IntegrationServiceDefaultConfiguration;
 import se.idsec.signservice.integration.core.error.InputValidationException;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Default implementation of the {@link ConfigurationManager} interface.
@@ -47,10 +46,8 @@ public class DefaultConfigurationManager implements ConfigurationManager {
   /**
    * Constructor.
    *
-   * @param policies
-   *          a mapping between policy names and service configuration objects
-   * @throws IllegalArgumentException
-   *           if policies are invalid
+   * @param policies a mapping between policy names and service configuration objects
+   * @throws IllegalArgumentException if policies are invalid
    */
   public DefaultConfigurationManager(final Map<String, ? extends IntegrationServiceConfiguration> policies)
       throws IllegalArgumentException {
@@ -62,14 +59,14 @@ public class DefaultConfigurationManager implements ConfigurationManager {
     // We have the policy name in two places, both as the key and the named property. Make sure that
     // they are correct (and also set the property if missing).
     //
-    for (Map.Entry<String, ? extends IntegrationServiceConfiguration> p : this.policies.entrySet()) {
+    for (final Map.Entry<String, ? extends IntegrationServiceConfiguration> p : this.policies.entrySet()) {
       if (StringUtils.isNotBlank(p.getValue().getPolicy()) && !p.getKey().equals(p.getValue().getPolicy().trim())) {
         throw new IllegalArgumentException(String.format("Illegal policyName (%s) - expected '%s'",
-          p.getValue().getPolicy(), p.getKey()));
+            p.getValue().getPolicy(), p.getKey()));
       }
       else if (StringUtils.isBlank(p.getValue().getPolicy())) {
-        if (DefaultIntegrationServiceConfiguration.class.isInstance(p.getValue())) {
-          DefaultIntegrationServiceConfiguration.class.cast(p.getValue()).setPolicy(p.getKey());
+        if (p.getValue() instanceof DefaultIntegrationServiceConfiguration) {
+          ((DefaultIntegrationServiceConfiguration) p.getValue()).setPolicy(p.getKey());
         }
       }
     }
@@ -77,7 +74,7 @@ public class DefaultConfigurationManager implements ConfigurationManager {
     // Go through all policies and make sure that are complete.
     //
     if (this.policies.size() > 1) {
-      for (IntegrationServiceConfiguration policy : this.policies.values()) {
+      for (final IntegrationServiceConfiguration policy : this.policies.values()) {
         this.mergePolicies(policy, new ArrayList<>());
       }
     }
@@ -85,27 +82,28 @@ public class DefaultConfigurationManager implements ConfigurationManager {
     // Validate all policies
     //
     final IntegrationServiceConfigurationValidator validator = new IntegrationServiceConfigurationValidator();
-    for (Map.Entry<String, ? extends IntegrationServiceConfiguration> p : this.policies.entrySet()) {
+    for (final Map.Entry<String, ? extends IntegrationServiceConfiguration> p : this.policies.entrySet()) {
       log.debug("Validating policy '{}' ...", p.getKey());
       try {
         validator.validateObject(p.getValue(), "serviceConfiguration[" + p.getKey() + "]", null);
         log.debug("Policy '{}' was successfully validated", p.getKey());
       }
-      catch (InputValidationException e) {
+      catch (final InputValidationException e) {
         throw new IllegalArgumentException("Service configuration " + p.getKey() + " is invalid", e);
       }
     }
   }
 
-  private void mergePolicies(IntegrationServiceConfiguration policy, List<String> policiesForMerge) {
+  private void mergePolicies(final IntegrationServiceConfiguration policy, final List<String> policiesForMerge) {
     final String parentPolicy = policy.getParentPolicy();
     if (StringUtils.isBlank(parentPolicy)) {
       return;
     }
-    IntegrationServiceConfiguration parent = this.policies.get(parentPolicy);
+    final IntegrationServiceConfiguration parent = this.policies.get(parentPolicy);
     if (parent == null) {
       throw new IllegalArgumentException(
-        String.format("Policy '%s' states parentPolicy '%s' - This policy can not be found", policy.getPolicy(), parentPolicy));
+          String.format("Policy '%s' states parentPolicy '%s' - This policy can not be found", policy.getPolicy(),
+              parentPolicy));
     }
     if (StringUtils.isNotEmpty(parent.getParentPolicy())) {
       // Oops, the parent policy also has a parent. First check so that we don't have a circular dependency.
@@ -128,33 +126,37 @@ public class DefaultConfigurationManager implements ConfigurationManager {
   }
 
   /** {@inheritDoc} */
+  @Nonnull
   @Override
   public List<String> getPolicies() {
-    return this.policies.entrySet().stream().map(m -> m.getKey()).collect(Collectors.toList());
+    return new ArrayList<>(this.policies.keySet());
   }
 
   /** {@inheritDoc} */
+  @Nonnull
   @Override
   public String getDefaultPolicyName() {
-    return this.defaultPolicyName != null ? this.defaultPolicyName : IntegrationServiceDefaultConfiguration.DEFAULT_POLICY_NAME;
+    return this.defaultPolicyName != null
+        ? this.defaultPolicyName
+        : IntegrationServiceDefaultConfiguration.DEFAULT_POLICY_NAME;
   }
 
   /** {@inheritDoc} */
   @Override
-  public void setDefaultPolicyName(final String defaultPolicyName) {
+  public void setDefaultPolicyName(@Nonnull final String defaultPolicyName) {
     this.defaultPolicyName = defaultPolicyName;
   }
 
   /**
    * Checks that the settings for this object is valid.
    *
-   * @throws Exception
-   *           for initialization errors
+   * @throws Exception for initialization errors
    */
   @PostConstruct
   public void afterPropertiesSet() throws Exception {
     if (!this.policies.containsKey(this.getDefaultPolicyName())) {
-      throw new IllegalArgumentException(String.format("There must be a policy named '%s'", this.getDefaultPolicyName()));
+      throw new IllegalArgumentException(
+          String.format("There must be a policy named '%s'", this.getDefaultPolicyName()));
     }
   }
 

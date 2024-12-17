@@ -15,13 +15,13 @@
  */
 package se.idsec.signservice.integration.security.impl;
 
-import org.opensaml.core.criterion.EntityIdCriterion;
-import org.opensaml.saml.metadata.resolver.MetadataResolver;
-import org.opensaml.saml.saml2.metadata.EntityDescriptor;
-
+import jakarta.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import net.shibboleth.shared.resolver.CriteriaSet;
 import net.shibboleth.shared.resolver.ResolverException;
+import org.opensaml.core.criterion.EntityIdCriterion;
+import org.opensaml.saml.metadata.resolver.MetadataResolver;
+import org.opensaml.saml.saml2.metadata.EntityDescriptor;
 import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
 import se.idsec.signservice.integration.core.impl.CorrelationID;
 import se.idsec.signservice.integration.security.IdpMetadataResolver;
@@ -42,8 +42,7 @@ public class OpenSAMLIdpMetadataResolver implements IdpMetadataResolver {
   /**
    * Constructor.
    *
-   * @param metadataResolver
-   *          the metadata resolver
+   * @param metadataResolver the metadata resolver
    */
   public OpenSAMLIdpMetadataResolver(final MetadataResolver metadataResolver) {
     this.metadataResolver = metadataResolver;
@@ -51,7 +50,8 @@ public class OpenSAMLIdpMetadataResolver implements IdpMetadataResolver {
 
   /** {@inheritDoc} */
   @Override
-  public EntityDescriptor resolveMetadata(final String entityID, final IntegrationServiceConfiguration config) throws MetadataException {
+  public EntityDescriptor resolveMetadata(@Nonnull final String entityID,
+      @Nonnull final IntegrationServiceConfiguration config) throws MetadataException {
     try {
       final CriteriaSet criteria = new CriteriaSet();
       criteria.add(new EntityIdCriterion(entityID));

@@ -17,6 +17,8 @@ package se.idsec.signservice.integration.core.error.impl;
 
 import se.idsec.signservice.integration.core.error.ErrorCode;
 
+import java.io.Serial;
+
 /**
  * Exception class for protocol related errors.
  *
@@ -26,13 +28,13 @@ import se.idsec.signservice.integration.core.error.ErrorCode;
 public class SignServiceProtocolException extends InternalSignServiceIntegrationException {
 
   /** For serializing. */
+  @Serial
   private static final long serialVersionUID = -9056039254424787720L;
 
   /**
    * Constructor.
    *
-   * @param message
-   *          the error message
+   * @param message the error message
    */
   public SignServiceProtocolException(final String message) {
     this(message, null);
@@ -41,19 +43,11 @@ public class SignServiceProtocolException extends InternalSignServiceIntegration
   /**
    * Constructor.
    *
-   * @param message
-   *          the error message
-   * @param cause
-   *          the cause of the error
+   * @param message the error message
+   * @param cause the cause of the error
    */
   public SignServiceProtocolException(final String message, final Throwable cause) {
     super(new ErrorCode.Code("protocol"), message, cause);
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public int getHttpStatus() {
-    return 500;
   }
 
 }

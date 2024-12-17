@@ -1,25 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <artifactId>test-my-signature</artifactId>  
+  <artifactId>test-my-signature</artifactId>
   <packaging>jar</packaging>
-  
+
   <parent>
     <groupId>se.idsec.signservice.integration</groupId>
     <artifactId>signservice-integration-parent</artifactId>
-    <version>2.0.0</version>
-  </parent>  
+    <version>2.3.0-SNAPSHOT</version>
+  </parent>
 
   <name>IDsec Solutions :: SignService :: Test my Signature</name>
   <description>Test my Signature</description>
   <url>https://github.com/idsec-solutions/signservice-integration</url>
-  
+
   <licenses>
     <license>
       <name>The Apache Software License, Version 2.0</name>
-      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
       <distribution>repo</distribution>
     </license>
   </licenses>
@@ -50,31 +50,11 @@
       <organizationUrl>https://www.idsec.se</organizationUrl>
     </developer>
   </developers>
-    
+
   <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    <java.version>17</java.version>
-    <docker.image.prefix>docker.eidastest.se:5000</docker.image.prefix>
-    
-    <spring.boot.version>3.1.4</spring.boot.version>
-  </properties>  
-  
-  <repositories>
-    <repository>
-      <id>central</id>
-      <name>Maven Central</name>
-      <url>https://repo1.maven.org/maven2/</url>
-    </repository>  
-    <repository>
-      <id>spring-milestones</id>
-      <name>Spring Milestones</name>
-      <url>https://repo.spring.io/libs-milestone</url>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
-    </repository>  
-  </repositories>
+    <java.version>21</java.version>
+    <spring.boot.version>3.4.0</spring.boot.version>
+  </properties>
 
   <dependencyManagement>
 
@@ -86,37 +66,37 @@
         <type>pom</type>
         <scope>import</scope>
       </dependency>
-      
+
       <!--
       <dependency>
         <groupId>se.swedenconnect.opensaml</groupId>
         <artifactId>opensaml-security-ext</artifactId>
         <version>4.0.0</version>
       </dependency>
-      
+
       <dependency>
         <groupId>se.swedenconnect.opensaml</groupId>
         <artifactId>opensaml-addons</artifactId>
         <version>2.0.0</version>
-      </dependency>      
+      </dependency>
       -->
-      
+
     </dependencies>
-        
-  </dependencyManagement>  
+
+  </dependencyManagement>
 
   <dependencies>
-  
+
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-core</artifactId>
     </dependency>
-    
+
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-context</artifactId>
     </dependency>
-    
+
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-thymeleaf</artifactId>
@@ -132,86 +112,92 @@
       <artifactId>spring-boot-configuration-processor</artifactId>
       <optional>true</optional>
     </dependency>
-    
+
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-actuator</artifactId>
-    </dependency>    
+    </dependency>
 
-    <!-- 
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-devtools</artifactId>
       <scope>runtime</scope>
     </dependency>
-    -->
-    
+
     <dependency>
       <groupId>se.idsec.signservice.integration</groupId>
       <artifactId>signservice-integration-api</artifactId>
     </dependency>
-    
+
     <dependency>
       <artifactId>signservice-integration-impl</artifactId>
       <groupId>se.idsec.signservice.integration</groupId>
       <version>${project.version}</version>
     </dependency>
-    
+
     <dependency>
       <artifactId>signservice-integration-xml</artifactId>
       <groupId>se.idsec.signservice.integration</groupId>
       <version>${project.version}</version>
     </dependency>
-    
+
     <dependency>
       <artifactId>signservice-integration-pdf</artifactId>
       <groupId>se.idsec.signservice.integration</groupId>
       <version>${project.version}</version>
-    </dependency>    
-            
+    </dependency>
+
     <dependency>
       <groupId>se.swedenconnect.security</groupId>
       <artifactId>credentials-support</artifactId>
-    </dependency>    
-    
+    </dependency>
+
     <dependency>
       <groupId>se.swedenconnect.security</groupId>
       <artifactId>algorithm-registry</artifactId>
     </dependency>
-        
+
     <dependency>
       <groupId>se.swedenconnect.opensaml</groupId>
-      <artifactId>opensaml-addons</artifactId>      
-    </dependency>    
-        
+      <artifactId>opensaml-addons</artifactId>
+    </dependency>
+
     <dependency>
       <groupId>se.swedenconnect.opensaml</groupId>
       <artifactId>opensaml-swedish-eid</artifactId>
-    </dependency>    
+    </dependency>
 
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-test</artifactId>
       <scope>test</scope>
     </dependency>
-    
+
     <dependency>
       <groupId>se.swedenconnect.eid</groupId>
       <artifactId>test-my-eid</artifactId>
-      <version>3.0.0</version>
+      <version>3.1.0</version>
       <exclusions>
         <exclusion>
           <groupId>org.springframework.boot</groupId>
           <artifactId>spring-boot-devtools</artifactId>
         </exclusion>
-      </exclusions>      
-    </dependency>    
+      </exclusions>
+    </dependency>
 
   </dependencies>
 
   <build>
 
     <plugins>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <release>${java.version}</release>
+        </configuration>
+      </plugin>
 
       <plugin>
         <groupId>org.springframework.boot</groupId>
@@ -234,10 +220,10 @@
           </execution>
         </executions>
       </plugin>
-      
+
     </plugins>
   </build>
-  
+
   <profiles>
     <profile>
       <id>release</id>
@@ -248,7 +234,7 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-gpg-plugin</artifactId>
-            <version>3.1.0</version>
+            <version>3.2.6</version>
             <executions>
               <execution>
                 <id>sign-artifacts</id>
@@ -263,7 +249,7 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-source-plugin</artifactId>
-            <version>3.3.0</version>
+            <version>3.3.1</version>
             <executions>
               <execution>
                 <id>attach-sources</id>
@@ -284,6 +270,6 @@
       </build>
 
     </profile>
-  </profiles>  
+  </profiles>
 
 </project>

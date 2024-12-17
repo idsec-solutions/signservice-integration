@@ -15,17 +15,17 @@
  */
 package se.idsec.signservice.integration.document.pdf.signpage.impl;
 
-import java.util.Base64;
-import java.util.List;
-
+import jakarta.annotation.Nullable;
 import org.apache.pdfbox.pdmodel.PDDocument;
-
 import se.idsec.signservice.integration.core.validation.ValidationResult;
 import se.idsec.signservice.integration.document.impl.PdfSignaturePageValidator;
 import se.idsec.signservice.integration.document.pdf.PdfSignatureImageTemplate;
 import se.idsec.signservice.integration.document.pdf.PdfSignaturePage;
 import se.idsec.signservice.integration.document.pdf.PdfSignaturePage.PdfSignatureImagePlacementConfiguration;
 import se.idsec.signservice.integration.document.pdf.utils.PDDocumentUtils;
+
+import java.util.Base64;
+import java.util.List;
 
 /**
  * An extension to {@link PdfSignaturePageValidator} that also validates that the PDF document is valid and may be
@@ -39,7 +39,8 @@ public class ExtendedPdfSignaturePageValidator extends PdfSignaturePageValidator
   /** {@inheritDoc} */
   @Override
   public ValidationResult validate(
-      final PdfSignaturePage object, final String objectName, final List<? extends PdfSignatureImageTemplate> hint) {
+      final PdfSignaturePage object, @Nullable final String objectName,
+      final List<? extends PdfSignatureImageTemplate> hint) {
     final ValidationResult result = super.validate(object, objectName, hint);
 
     if (object.getPdfDocument() != null) {
@@ -56,7 +57,7 @@ public class ExtendedPdfSignaturePageValidator extends PdfSignaturePageValidator
           if (object.getImagePlacementConfiguration() != null) {
             final PdfSignatureImagePlacementConfiguration config = object.getImagePlacementConfiguration();
             if (config.getPage() != null) {
-              if (config.getPage().intValue() > document.getNumberOfPages()) {
+              if (config.getPage() > document.getNumberOfPages()) {
                 result.rejectValue("imagePlacementConfiguration.page", String.format(
                     "Invalid page number. Document has %d page(s), but page is %d", document.getNumberOfPages(),
                     config.getPage()));

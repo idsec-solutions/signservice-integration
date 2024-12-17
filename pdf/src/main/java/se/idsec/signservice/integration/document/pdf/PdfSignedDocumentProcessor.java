@@ -15,20 +15,13 @@
  */
 package se.idsec.signservice.integration.document.pdf;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.security.NoSuchAlgorithmException;
-import java.security.SignatureException;
-import java.security.cert.X509Certificate;
-import java.util.Base64;
-import java.util.List;
-import java.util.Objects;
-
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.cms.CMSException;
-
-import lombok.extern.slf4j.Slf4j;
 import se.idsec.signservice.integration.SignResponseProcessingParameters;
 import se.idsec.signservice.integration.core.error.ErrorCode;
 import se.idsec.signservice.integration.core.error.SignServiceIntegrationException;
@@ -58,6 +51,15 @@ import se.idsec.signservice.security.sign.pdf.utils.PDFSigningProcessor;
 import se.swedenconnect.schemas.csig.dssext_1_1.SignTaskData;
 import se.swedenconnect.security.algorithms.SignatureAlgorithm;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.security.NoSuchAlgorithmException;
+import java.security.SignatureException;
+import java.security.cert.X509Certificate;
+import java.util.Base64;
+import java.util.List;
+import java.util.Objects;
+
 /**
  * Signed document processor for PDF documents.
  *
@@ -72,21 +74,21 @@ public class PdfSignedDocumentProcessor extends AbstractSignedDocumentProcessor<
 
   /** {@inheritDoc} */
   @Override
-  public boolean supports(final SignTaskData signData) {
+  public boolean supports(@Nonnull final SignTaskData signData) {
     return "PDF".equalsIgnoreCase(signData.getSigType());
   }
 
   /** {@inheritDoc} */
   @Override
   public CompiledSignedDocument<byte[], PAdESData> buildSignedDocument(
-      final TbsDocument tbsDocument,
-      final SignTaskData signedData,
-      final List<X509Certificate> signerCertificateChain,
-      final SignRequestWrapper signRequest,
+      @Nonnull final TbsDocument tbsDocument,
+      @Nonnull final SignTaskData signedData,
+      @Nonnull final List<X509Certificate> signerCertificateChain,
+      @Nonnull final SignRequestWrapper signRequest,
       final SignResponseProcessingParameters parameters) throws SignServiceIntegrationException {
 
     log.debug("{}: Compiling signed PDF document for Sign task '{}' ... [request-id='{}']",
-      CorrelationID.id(), signedData.getSignTaskId(), signRequest.getRequestID());
+        CorrelationID.id(), signedData.getSignTaskId(), signRequest.getRequestID());
 
     // First decode the original input document ...
     //
@@ -103,11 +105,12 @@ public class PdfSignedDocumentProcessor extends AbstractSignedDocumentProcessor<
       final String _signTimeAndID = getTbsDocumentExtension(tbsDocument, PDFExtensionParams.signTimeAndId.name());
       signTimeAndID = _signTimeAndID != null ? Long.valueOf(_signTimeAndID) : null;
     }
-    catch (final NumberFormatException e) {
+    catch (final NumberFormatException ignored) {
     }
     if (signTimeAndID == null) {
-      final String msg = String.format("Failed to process sign response (%s) - Missing SignTimeAndID in state [request-id='%s']",
-        signedData.getSignTaskId(), signRequest.getRequestID());
+      final String msg =
+          String.format("Failed to process sign response (%s) - Missing SignTimeAndID in state [request-id='%s']",
+              signedData.getSignTaskId(), signRequest.getRequestID());
       log.error("{}: {}", CorrelationID.id(), msg);
       throw new SignResponseProcessingException(new ErrorCode.Code("state-error"), msg);
     }
@@ -117,25 +120,27 @@ public class PdfSignedDocumentProcessor extends AbstractSignedDocumentProcessor<
     final String encodedCmsSignedData = getTbsDocumentExtension(tbsDocument, PDFExtensionParams.cmsSignedData.name());
     final byte[] cmsSignedData = encodedCmsSignedData != null ? Base64.getDecoder().decode(encodedCmsSignedData) : null;
     if (cmsSignedData == null) {
-      final String msg = String.format("Failed to process sign response (%s) - Missing CMS SignedData in state [request-id='%s']",
-        signedData.getSignTaskId(), signRequest.getRequestID());
+      final String msg =
+          String.format("Failed to process sign response (%s) - Missing CMS SignedData in state [request-id='%s']",
+              signedData.getSignTaskId(), signRequest.getRequestID());
       log.error("{}: {}", CorrelationID.id(), msg);
       throw new SignResponseProcessingException(new ErrorCode.Code("state-error"), msg);
     }
 
     // Visible signature image
     //
-    VisibleSignatureImage visibleSignatureImage = null;
+    final VisibleSignatureImage visibleSignatureImage;
     try {
-      final String encodedVisibleSignatureImage = getTbsDocumentExtension(tbsDocument, PDFExtensionParams.visibleSignImage.name());
+      final String encodedVisibleSignatureImage =
+          getTbsDocumentExtension(tbsDocument, PDFExtensionParams.visibleSignImage.name());
       visibleSignatureImage = encodedVisibleSignatureImage != null
           ? VisibleSignatureImageSerializer.deserializeVisibleSignImage(encodedVisibleSignatureImage)
           : null;
     }
     catch (final IOException e) {
       final String msg = String.format(
-        "Failed to process sign response (%s) - Invalid encoding of Visible signature image in state - %s [request-id='%s']",
-        signedData.getSignTaskId(), e.getMessage(), signRequest.getRequestID());
+          "Failed to process sign response (%s) - Invalid encoding of Visible signature image in state - %s [request-id='%s']",
+          signedData.getSignTaskId(), e.getMessage(), signRequest.getRequestID());
       log.error("{}: {}", CorrelationID.id(), msg, e);
       throw new SignResponseProcessingException(new ErrorCode.Code("state-error"), msg, e);
     }
@@ -148,47 +153,53 @@ public class PdfSignedDocumentProcessor extends AbstractSignedDocumentProcessor<
     //
     PDDocument pdfDocument = null;
     try {
-      pdfDocument = PDDocument.load(document);
+      pdfDocument = Loader.loadPDF(document);
 
       final PDFBoxSignatureInterface replaceSignatureInterface = new ReplacingSignatureInterface(
-        cmsSignedData,
-        signedData.getToBeSignedBytes(),
-        signedData.getBase64Signature().getValue(),
-        signerCertificateChain,
-        adesType);
+          cmsSignedData,
+          signedData.getToBeSignedBytes(),
+          signedData.getBase64Signature().getValue(),
+          signerCertificateChain,
+          adesType);
 
       final PDFSigningProcessor.Result signResult = PDFSigningProcessor.signPdfDocument(
-        pdfDocument, replaceSignatureInterface, signTimeAndID, visibleSignatureImage);
+          pdfDocument, replaceSignatureInterface, signTimeAndID, visibleSignatureImage);
 
       // Check if we have PAdES data ...
       //
       PAdESData padesData = null;
-      final PDFBoxSignatureUtils.SignedCertRef signedCertRefAttribute = PDFBoxSignatureUtils.getSignedCertRefAttribute(signResult
-        .getCmsSignedAttributes());
+      final PDFBoxSignatureUtils.SignedCertRef signedCertRefAttribute =
+          PDFBoxSignatureUtils.getSignedCertRefAttribute(signResult
+              .getCmsSignedAttributes());
       if (signedCertRefAttribute != null) {
         final SignatureAlgorithm algorithmProperties = PDFAlgorithmRegistry.getAlgorithmProperties(
-          signedData.getBase64Signature().getType());
+            signedData.getBase64Signature().getType());
 
-        final ASN1ObjectIdentifier digestOid = algorithmProperties.getMessageDigestAlgorithm().getAlgorithmIdentifier().getAlgorithm();
+        final ASN1ObjectIdentifier digestOid =
+            algorithmProperties.getMessageDigestAlgorithm().getAlgorithmIdentifier().getAlgorithm();
         if (!Objects.equals(digestOid, signedCertRefAttribute.getHashAlgorithm())) {
           final String msg = String.format(
-            "Error during PDF signature processing - PAdES object hash algorithm (%s) does not match signature algorithm (%s) [request-id='%s']",
-            signedCertRefAttribute.getHashAlgorithm().getId(), signedData.getBase64Signature().getType(), signRequest.getRequestID());
+              "Error during PDF signature processing - PAdES object hash algorithm (%s) does not match signature algorithm (%s) [request-id='%s']",
+              signedCertRefAttribute.getHashAlgorithm().getId(), signedData.getBase64Signature().getType(),
+              signRequest.getRequestID());
           log.error("{}: {}", CorrelationID.id(), msg);
           throw new DocumentProcessingException(new ErrorCode.Code("ades-validation-error"), msg);
         }
-        padesData = new PAdESData(algorithmProperties.getMessageDigestAlgorithm().getUri(), signedCertRefAttribute.getSignedCertHash());
+        padesData = new PAdESData(algorithmProperties.getMessageDigestAlgorithm().getUri(),
+            signedCertRefAttribute.getSignedCertHash());
       }
 
-      log.debug("{}: Successful completion of PDF signature with task id '%s' [request-id='%s']",
-        CorrelationID.id(), signedData.getSignTaskId(), signRequest.getRequestID());
+      log.debug("{}: Successful completion of PDF signature with task id '{}' [request-id='{}']",
+          CorrelationID.id(), signedData.getSignTaskId(), signRequest.getRequestID());
 
       return new DefaultCompiledSignedDocument<>(
-        signedData.getSignTaskId(), signResult.getDocument(), DocumentType.PDF.getMimeType(), this.getDocumentEncoder(), padesData);
+          signedData.getSignTaskId(), signResult.getDocument(), DocumentType.PDF.getMimeType(),
+          this.getDocumentEncoder(), padesData);
     }
-    catch (IOException | NoSuchAlgorithmException | SignatureException e) {
-      final String msg = String.format("Failed to build signed PDF document - %s [request-id='%s']", e.getMessage(), signRequest
-        .getRequestID());
+    catch (final IOException | NoSuchAlgorithmException | SignatureException e) {
+      final String msg =
+          String.format("Failed to build signed PDF document - %s [request-id='%s']", e.getMessage(), signRequest
+              .getRequestID());
       log.error("{}: {}", CorrelationID.id(), msg);
       throw new SignResponseProcessingException(new ErrorCode.Code("signature-processing"), msg, e);
     }
@@ -200,14 +211,14 @@ public class PdfSignedDocumentProcessor extends AbstractSignedDocumentProcessor<
 
   /** {@inheritDoc} */
   @Override
-  public void validateSignedDocument(final byte[] signedDocument,
-      final X509Certificate signerCertificate,
-      final SignTaskData signTaskData,
-      final SignResponseProcessingParameters parameters,
-      final String requestID) throws SignServiceIntegrationException {
+  public void validateSignedDocument(@Nonnull final byte[] signedDocument,
+      @Nonnull final X509Certificate signerCertificate,
+      @Nonnull final SignTaskData signTaskData,
+      @Nullable final SignResponseProcessingParameters parameters,
+      @Nonnull final String requestID) throws SignServiceIntegrationException {
 
     log.debug("{}: Validating signed PDF document for Sign task '{}' ... [request-id='{}']",
-      CorrelationID.id(), signTaskData.getSignTaskId(), requestID);
+        CorrelationID.id(), signTaskData.getSignTaskId(), requestID);
 
     try {
       final BasicPDFSignatureValidator signatureValidator = new BasicPDFSignatureValidator();
@@ -219,41 +230,42 @@ public class PdfSignedDocumentProcessor extends AbstractSignedDocumentProcessor<
 
       if (!result.isSuccess()) {
         final String msg = String.format("Signature validation failed for sign task '%s' - %s - %s [request-id='%s']",
-          signTaskData.getSignTaskId(), result.getStatus(), result.getStatusMessage(), requestID);
-        log.error("{}: {}", CorrelationID.id());
+            signTaskData.getSignTaskId(), result.getStatus(), result.getStatusMessage(), requestID);
+        log.error("{}: {}", CorrelationID.id(), msg);
         throw new DocumentProcessingException(new ErrorCode.Code("invalid-signature"), msg, result.getException());
       }
       else if (!SignatureValidator.isCompleteSuccess(allResults)) {
         log.warn(
-          "{}: Signature validation for sign task '{}' was successful, but document contains other signatures that are invalid [request-id='{}']",
-          CorrelationID.id(), signTaskData.getSignTaskId(), requestID);
+            "{}: Signature validation for sign task '{}' was successful, but document contains other signatures that are invalid [request-id='{}']",
+            CorrelationID.id(), signTaskData.getSignTaskId(), requestID);
       }
       else {
         // Make sure that the signature was signed by the given signer certificate ...
         //
         if (!signerCertificate.equals(result.getSignerCertificate())) {
-          final String msg = String.format("Incorrect signature certificate for signature for sign task '%s' [request-id='%s']",
-            signTaskData.getSignTaskId(), requestID);
-          log.error("{}: {}", CorrelationID.id());
+          final String msg =
+              String.format("Incorrect signature certificate for signature for sign task '%s' [request-id='%s']",
+                  signTaskData.getSignTaskId(), requestID);
+          log.error("{}: {}", CorrelationID.id(), msg);
           throw new DocumentProcessingException(new ErrorCode.Code("invalid-signature"), msg, result.getException());
         }
 
-        log.debug("{}: Signature validation for sign task '{}' succeeded", CorrelationID.id(), signTaskData.getSignTaskId());
+        log.debug("{}: Signature validation for sign task '{}' succeeded", CorrelationID.id(),
+            signTaskData.getSignTaskId());
       }
     }
     catch (final SignatureException e) {
       log.debug("Signature validation fails with exception", e);
-      throw new SignResponseProcessingException(new ErrorCode.Code("complete-sign"), "Generated signature fails signature validation", e);
+      throw new SignResponseProcessingException(new ErrorCode.Code("complete-sign"),
+          "Generated signature fails signature validation", e);
     }
   }
 
   /**
    * Utility method that gets an extension from the supplied document
    *
-   * @param tbsDocument
-   *          the document
-   * @param extName
-   *          the extension name
+   * @param tbsDocument the document
+   * @param extName the extension name
    * @return the extension value or null if it does not exist
    */
   private static String getTbsDocumentExtension(final TbsDocument tbsDocument, final String extName) {
@@ -306,18 +318,14 @@ public class PdfSignedDocumentProcessor extends AbstractSignedDocumentProcessor<
     private final boolean pades;
 
     /**
-     * Constructor for the replace signature interface implementation.
+     * Constructor for the signature interface implementation.
      *
-     * @param originalSignedData
-     *          the original ContentInfo bytes holding SignedInfo from the original pre-signing process
-     * @param newSignedAttributesData
-     *          the modified signed attributes provided from the signature service
-     * @param newSignatureValue
-     *          the signature value provided by the signature service
-     * @param signerCertchain
-     *          the signer certificate chain provided by the signature service
-     * @param pades
-     *          PAdES type (may be null)
+     * @param originalSignedData the original ContentInfo bytes holding SignedInfo from the original pre-signing
+     *     process
+     * @param newSignedAttributesData the modified signed attributes provided from the signature service
+     * @param newSignatureValue the signature value provided by the signature service
+     * @param signerCertchain the signer certificate chain provided by the signature service
+     * @param pades PAdES type (may be null)
      */
     public ReplacingSignatureInterface(final byte[] originalSignedData, final byte[] newSignedAttributesData,
         final byte[] newSignatureValue, final List<X509Certificate> signerCertchain, final AdesProfileType pades) {
@@ -326,7 +334,7 @@ public class PdfSignedDocumentProcessor extends AbstractSignedDocumentProcessor<
       this.newSignedAttributesData = newSignedAttributesData;
       this.newSignatureValue = newSignatureValue;
       this.signerCertchain = signerCertchain;
-      this.pades = pades != null && !AdesProfileType.None.equals(pades);
+      this.pades = pades != null && AdesProfileType.None != pades;
     }
 
     /** {@inheritDoc} */
@@ -352,17 +360,15 @@ public class PdfSignedDocumentProcessor extends AbstractSignedDocumentProcessor<
      * signature is updated with signature value, signed attributes and certificates from a remote signature process
      * </p>
      *
-     * @param content
-     *          the message bytes being signed (specified by ByteRange in the signature dictionary)
+     * @param content the message bytes being signed (specified by ByteRange in the signature dictionary)
      * @return CMS ContentInfo bytes holding the complete PKCS#7 signature structure
-     * @throws IOException
-     *           error during signature creation
+     * @throws IOException error during signature creation
      */
     @Override
     public byte[] sign(final InputStream content) throws IOException {
       try {
         this.updatedCmsSignedData = PDFBoxSignatureUtils.updatePdfPKCS7(
-          this.originalSignedData, this.newSignedAttributesData, this.newSignatureValue, this.signerCertchain);
+            this.originalSignedData, this.newSignedAttributesData, this.newSignatureValue, this.signerCertchain);
         this.cmsSignedAttributes = PDFBoxSignatureUtils.getCmsSignedAttributes(this.updatedCmsSignedData);
         return this.updatedCmsSignedData;
       }

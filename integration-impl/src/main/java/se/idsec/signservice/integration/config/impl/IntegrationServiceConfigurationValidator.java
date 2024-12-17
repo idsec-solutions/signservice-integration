@@ -15,11 +15,9 @@
  */
 package se.idsec.signservice.integration.config.impl;
 
-import java.lang.reflect.Constructor;
-
-import org.apache.commons.lang3.StringUtils;
-
+import jakarta.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import se.idsec.signservice.integration.certificate.impl.SigningCertificateRequirementsValidator;
 import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
 import se.idsec.signservice.integration.core.validation.AbstractInputValidator;
@@ -29,6 +27,8 @@ import se.idsec.signservice.integration.document.impl.VisiblePdfSignatureRequire
 import se.idsec.signservice.integration.document.pdf.PdfSignatureImageTemplate;
 import se.idsec.signservice.integration.document.pdf.PdfSignaturePage;
 import se.idsec.signservice.integration.security.EncryptionParameters;
+
+import java.lang.reflect.Constructor;
 
 /**
  * Validator for {@link IntegrationServiceConfiguration} objects.
@@ -44,18 +44,18 @@ class IntegrationServiceConfigurationValidator extends
     AbstractInputValidator<IntegrationServiceConfiguration, Void> {
 
   /** Validator for EncryptionParameters. */
-  private EncryptionParametersValidator encryptionParametersValidator = new EncryptionParametersValidator();
+  private final EncryptionParametersValidator encryptionParametersValidator = new EncryptionParametersValidator();
 
   /** Validator for SigningCertificateRequirements. */
-  private SigningCertificateRequirementsValidator defaultCertificateRequirementsValidator =
+  private final SigningCertificateRequirementsValidator defaultCertificateRequirementsValidator =
       new SigningCertificateRequirementsValidator();
 
   /** Validator for VisiblePdfSignatureRequirement. */
-  private VisiblePdfSignatureRequirementValidator defaultVisiblePdfSignatureRequirementValidator =
+  private final VisiblePdfSignatureRequirementValidator defaultVisiblePdfSignatureRequirementValidator =
       new VisiblePdfSignatureRequirementValidator();
 
   /** Validator for FileResource objects. */
-  private FileResourceValidator fileResourceValidator = new FileResourceValidator();
+  private final FileResourceValidator fileResourceValidator = new FileResourceValidator();
 
   /** Validator for PdfSignaturePage objects. */
   private PdfSignaturePageValidator pdfSignaturePageValidator;
@@ -68,11 +68,12 @@ class IntegrationServiceConfigurationValidator extends
       // If we have the pdf jar in the classpath we want to use the extended PDF validator that also
       // loads the PDF signature page and ensures that it is a valid PDF document ...
       //
-      Class<?> clazz = Class.forName("se.idsec.signservice.integration.document.pdf.signpage.impl.ExtendedPdfSignaturePageValidator");
-      Constructor<?> ctor = clazz.getConstructor();
+      final Class<?> clazz = Class.forName(
+          "se.idsec.signservice.integration.document.pdf.signpage.impl.ExtendedPdfSignaturePageValidator");
+      final Constructor<?> ctor = clazz.getConstructor();
       this.pdfSignaturePageValidator = (PdfSignaturePageValidator) ctor.newInstance();
     }
-    catch (Exception e) {
+    catch (final Exception e) {
       // We don't have the extended validator in the classpath, so we'll use the standard one that does
       // now have support for loaded PDF documents.
       this.pdfSignaturePageValidator = new PdfSignaturePageValidator();
@@ -81,7 +82,8 @@ class IntegrationServiceConfigurationValidator extends
 
   /** {@inheritDoc} */
   @Override
-  public ValidationResult validate(final IntegrationServiceConfiguration object, final String objectName, final Void hint) {
+  public ValidationResult validate(final IntegrationServiceConfiguration object, @Nullable final String objectName,
+      final Void hint) {
     if (object == null) {
       throw new IllegalArgumentException("IntegrationServiceConfiguration object must not be null");
     }
@@ -122,45 +124,52 @@ class IntegrationServiceConfigurationValidator extends
       result.rejectValue("defaultCertificateRequirements", "Missing defaultCertificateRequirements");
     }
     else if (object.getDefaultCertificateRequirements().getCertificateType() == null) {
-      result.rejectValue("defaultCertificateRequirements.certificateType", "Missing certificateType in defaultCertificateRequirements");
+      result.rejectValue("defaultCertificateRequirements.certificateType",
+          "Missing certificateType in defaultCertificateRequirements");
     }
     else if (object.getDefaultCertificateRequirements().getAttributeMappings() == null
         || object.getDefaultCertificateRequirements().getAttributeMappings().isEmpty()) {
-      result.rejectValue("defaultCertificateRequirements.attributeMappings", "Missing attributeMappings in defaultCertificateRequirements");
+      result.rejectValue("defaultCertificateRequirements.attributeMappings",
+          "Missing attributeMappings in defaultCertificateRequirements");
     }
     else {
       result.setFieldErrors(this.defaultCertificateRequirementsValidator.validate(
-        object.getDefaultCertificateRequirements(), "defaultCertificateRequirements", null));
+          object.getDefaultCertificateRequirements(), "defaultCertificateRequirements", null));
     }
 
     // PdfSignatureImageTemplates
     if (object.getPdfSignatureImageTemplates() != null && !object.getPdfSignatureImageTemplates().isEmpty()) {
       int pos = 0;
-      for (PdfSignatureImageTemplate pdfTemplate : object.getPdfSignatureImageTemplates()) {
+      for (final PdfSignatureImageTemplate pdfTemplate : object.getPdfSignatureImageTemplates()) {
         if (pdfTemplate.getReference() == null) {
-          result.rejectValue("pdfSignatureImageTemplates[" + pos + "].reference", "Missing reference ID for PdfSignatureImageTemplate");
+          result.rejectValue("pdfSignatureImageTemplates[" + pos + "].reference",
+              "Missing reference ID for PdfSignatureImageTemplate");
         }
         if (pdfTemplate.getSvgImageFile() == null) {
-          result.rejectValue("pdfSignatureImageTemplates[" + pos + "].svgImageFile", "Missing svgImageFile for PdfSignatureImageTemplate");
+          result.rejectValue("pdfSignatureImageTemplates[" + pos + "].svgImageFile",
+              "Missing svgImageFile for PdfSignatureImageTemplate");
         }
         else {
           result.setFieldErrors(
-            this.fileResourceValidator.validate(pdfTemplate.getSvgImageFile(), "pdfSignatureImageTemplates[" + pos + "].svgImageFile",
-              null));
+              this.fileResourceValidator.validate(pdfTemplate.getSvgImageFile(),
+                  "pdfSignatureImageTemplates[" + pos + "].svgImageFile",
+                  null));
         }
         if (pdfTemplate.getHeight() == null) {
-          result.rejectValue("pdfSignatureImageTemplates[" + pos + "].height", "Missing height property for PdfSignatureImageTemplate");
+          result.rejectValue("pdfSignatureImageTemplates[" + pos + "].height",
+              "Missing height property for PdfSignatureImageTemplate");
         }
         else if (pdfTemplate.getHeight() < 0) {
           result.rejectValue("pdfSignatureImageTemplates[" + pos + "].height",
-            "Illegal value for height property for PdfSignatureImageTemplate");
+              "Illegal value for height property for PdfSignatureImageTemplate");
         }
         if (pdfTemplate.getWidth() == null) {
-          result.rejectValue("pdfSignatureImageTemplates[" + pos + "].width", "Missing width property for PdfSignatureImageTemplate");
+          result.rejectValue("pdfSignatureImageTemplates[" + pos + "].width",
+              "Missing width property for PdfSignatureImageTemplate");
         }
         else if (pdfTemplate.getWidth() < 0) {
           result.rejectValue("pdfSignatureImageTemplates[" + pos + "].width",
-            "Illegal value for width property for PdfSignatureImageTemplate");
+              "Illegal value for width property for PdfSignatureImageTemplate");
         }
         pos++;
       }
@@ -170,15 +179,15 @@ class IntegrationServiceConfigurationValidator extends
     // Also checks the field values for PdfSignatureImageTemplates
     if (object.getDefaultVisiblePdfSignatureRequirement() != null) {
       result.setFieldErrors(this.defaultVisiblePdfSignatureRequirementValidator.validate(
-        object.getDefaultVisiblePdfSignatureRequirement(), "defaultVisiblePdfSignatureRequirement", object));
+          object.getDefaultVisiblePdfSignatureRequirement(), "defaultVisiblePdfSignatureRequirement", object));
     }
 
     // PdfSignaturePages
     if (object.getPdfSignaturePages() != null && !object.getPdfSignaturePages().isEmpty()) {
-      int pos = 0;
-      for (PdfSignaturePage page : object.getPdfSignaturePages()) {
+      final int pos = 0;
+      for (final PdfSignaturePage page : object.getPdfSignaturePages()) {
         result.setFieldErrors(this.pdfSignaturePageValidator.validate(
-          page, "pdfSignaturePages[" + pos + "]", object.getPdfSignatureImageTemplates()));
+            page, "pdfSignaturePages[" + pos + "]", object.getPdfSignatureImageTemplates()));
       }
     }
 
@@ -188,7 +197,7 @@ class IntegrationServiceConfigurationValidator extends
     }
     else {
       result.setFieldErrors(this.encryptionParametersValidator.validate(
-        object.getDefaultEncryptionParameters(), "defaultEncryptionParameters", null));
+          object.getDefaultEncryptionParameters(), "defaultEncryptionParameters", null));
     }
 
     // SignatureCertificate
@@ -209,7 +218,8 @@ class IntegrationServiceConfigurationValidator extends
       result.rejectValue("signingCredential.privateKey", "No private key available in signingCredential");
     }
     else if (object.getSigningCredential().getCertificate() == null) {
-      result.rejectValue("signingCredential.signingCertificate", "No signing certificate available in signingCredential");
+      result.rejectValue("signingCredential.signingCertificate",
+          "No signing certificate available in signingCredential");
     }
 
     return result;
@@ -225,7 +235,8 @@ class IntegrationServiceConfigurationValidator extends
 
     /** {@inheritDoc} */
     @Override
-    public ValidationResult validate(final EncryptionParameters object, final String objectName, final Void hint) {
+    public ValidationResult validate(final EncryptionParameters object, @Nullable final String objectName,
+        final Void hint) {
       final ValidationResult result = new ValidationResult(objectName);
 
       if (StringUtils.isBlank(object.getDataEncryptionAlgorithm())) {

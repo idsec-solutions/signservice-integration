@@ -1,0 +1,14 @@
+signservice:
+  config:
+    default-destination-url: http://localhost:8080/sign/request
+    default-sign-requester-id: ${sp.entity-id}
+    default-signature-algorithm: http://www.w3.org/2001/04/xmldsig-more#rsa-sha256
+    policy: default
+    sign-service-certificates:
+      - classpath:mock-signservice.crt
+    sign-service-id: https://eid2csig.konki.se/sign
+    trust-anchors:
+      - classpath:mock-ca.crt
+  response:
+    config:
+      require-assertion: false

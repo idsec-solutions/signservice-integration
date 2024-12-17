@@ -1,0 +1,107 @@
+logging:
+  level:
+    se:
+      idsec: DEBUG
+
+signservice:
+  rest:
+    enabled: false
+    client-password: secret
+    client-username: testmyeid
+    server-url: https://sig.idsec.se/signint
+  credential:
+    resource: classpath:test-my-signature.jks
+    alias: test-sign
+    key-password: secret
+    password: secret
+    type: JKS
+  sign:
+    type: application/xml
+  default-policy-name: sandbox
+  config:
+    default-certificate-requirements:
+      attribute-mappings:
+        - destination:
+            friendly-name: serialNumber
+            name: 2.5.4.5
+            required: true
+            type: rdn
+          sources:
+            - name: urn:oid:1.2.752.29.4.13
+            - name: urn:oid:1.2.752.201.3.4
+            - name: urn:oid:1.2.752.201.3.7
+        - destination:
+            friendly-name: GN
+            name: 2.5.4.42
+            required: true
+            type: rdn
+          sources:
+            - name: urn:oid:2.5.4.42
+        - destination:
+            friendly-name: SN
+            name: 2.5.4.4
+            required: true
+            type: rdn
+          sources:
+            - name: urn:oid:2.5.4.4
+        - destination:
+            friendly-name: CN
+            name: 2.5.4.3
+            required: false
+            type: rdn
+          sources:
+            - name: urn:oid:2.16.840.1.113730.3.1.241
+            - name: urn:oid:2.5.4.3
+        - destination:
+            default-value: SE
+            friendly-name: C
+            name: 2.5.4.6
+            required: false
+            type: rdn
+          sources:
+            - name: urn:oid:2.5.4.6
+      certificateType: PKC
+    default-destination-url: https://sig.sandbox.swedenconnect.se/sigservice/request
+    default-sign-requester-id: ${sp.entity-id}
+    default-signature-algorithm: http://www.w3.org/2001/04/xmldsig-more#rsa-sha256
+    pdf-signature-image-templates:
+      - fields:
+          idp: IdP EntityID
+        height: 351
+        include-signer-name: true
+        include-signing-time: true
+        reference: idsec-image
+        svg-image-file:
+          eagerly-load-contents: true
+          resource: classpath:pdf/idsec-image.svg
+        width: 967
+    pdf-signature-pages:
+      - columns: 2
+        id: idsec-sign-page
+        image-placement-configuration:
+          scale: -74
+          x-increment: 268
+          x-position: 37
+          y-increment: 105
+          y-position: 165
+        pdf-document:
+          eagerly-load-contents: true
+          resource: classpath:pdf/idsec-page.pdf
+        rows: 6
+        signature-image-reference: idsec-image
+    policy: sandbox
+    sign-service-certificates:
+      - classpath:refsignservice-sign.crt
+    sign-service-id: https://sig.sandbox.swedenconnect.se/sigservice/test
+    stateless: true
+    trust-anchors:
+      - classpath:refsignservice-ca-root.crt
+  response:
+    config:
+      allow-sig-message-uris: true
+      allowed-clock-skew: 60000
+      maximum-allowed-response-age: 180000
+      require-assertion: true
+      strict-processing: true
+sp:
+  sign-path: /sign/request

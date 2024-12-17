@@ -15,21 +15,14 @@
  */
 package se.idsec.signservice.integration.document.xml;
 
-import java.security.SignatureException;
-import java.security.cert.CertificateEncodingException;
-import java.security.cert.X509Certificate;
-import java.util.Base64;
-import java.util.List;
-
-import javax.xml.xpath.XPathExpressionException;
-
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.xml.security.signature.XMLSignature;
 import org.apache.xml.security.utils.Constants;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-
-import lombok.extern.slf4j.Slf4j;
 import se.idsec.signservice.integration.SignResponseProcessingParameters;
 import se.idsec.signservice.integration.core.error.ErrorCode;
 import se.idsec.signservice.integration.core.error.InputValidationException;
@@ -52,6 +45,13 @@ import se.idsec.signservice.security.sign.xml.impl.DefaultXMLSignatureValidator;
 import se.idsec.signservice.xml.DOMUtils;
 import se.swedenconnect.schemas.csig.dssext_1_1.SignTaskData;
 
+import javax.xml.xpath.XPathExpressionException;
+import java.security.SignatureException;
+import java.security.cert.CertificateEncodingException;
+import java.security.cert.X509Certificate;
+import java.util.Base64;
+import java.util.List;
+
 /**
  * Signed document processor for XML documents.
  *
@@ -69,17 +69,17 @@ public class XmlSignedDocumentProcessor extends AbstractSignedDocumentProcessor<
 
   /** {@inheritDoc} */
   @Override
-  public boolean supports(final SignTaskData signData) {
+  public boolean supports(@Nonnull final SignTaskData signData) {
     return "XML".equalsIgnoreCase(signData.getSigType());
   }
 
   /** {@inheritDoc} */
   @Override
   public CompiledSignedDocument<Document, XadesQualifyingProperties> buildSignedDocument(
-      final TbsDocument tbsDocument,
-      final SignTaskData signedData,
-      final List<X509Certificate> signerCertificateChain,
-      final SignRequestWrapper signRequest,
+      @Nonnull final TbsDocument tbsDocument,
+      @Nonnull final SignTaskData signedData,
+      @Nonnull final List<X509Certificate> signerCertificateChain,
+      @Nonnull final SignRequestWrapper signRequest,
       final SignResponseProcessingParameters parameters) throws SignServiceIntegrationException {
 
     log.debug("{}: Compiling signed XML document for Sign task '{}' ... [request-id='{}']",
@@ -90,7 +90,7 @@ public class XmlSignedDocumentProcessor extends AbstractSignedDocumentProcessor<
     final Document document = this.getDocumentDecoder().decodeDocument(tbsDocument.getContent());
 
     // We need to figure out where in the document the signature should be installed.
-    // By default it is added as the last child element of the document root, but the parameters
+    // By default, it is added as the last child element of the document root, but the parameters
     // may override this ...
     //
     final se.idsec.signservice.security.sign.xml.XMLSignatureLocation signatureLocation =
@@ -182,11 +182,11 @@ public class XmlSignedDocumentProcessor extends AbstractSignedDocumentProcessor<
 
   /** {@inheritDoc} */
   @Override
-  public void validateSignedDocument(final Document signedDocument,
-      final X509Certificate signerCertificate,
-      final SignTaskData signTaskData,
-      final SignResponseProcessingParameters parameters,
-      final String requestID) throws SignServiceIntegrationException {
+  public void validateSignedDocument(@Nonnull final Document signedDocument,
+      @Nonnull final X509Certificate signerCertificate,
+      @Nonnull final SignTaskData signTaskData,
+      @Nullable final SignResponseProcessingParameters parameters,
+      @Nonnull final String requestID) throws SignServiceIntegrationException {
 
     log.debug("{}: Validating signed XML document for Sign task '{}' ... [request-id='{}']",
         CorrelationID.id(), signTaskData.getSignTaskId(), requestID);
@@ -203,10 +203,10 @@ public class XmlSignedDocumentProcessor extends AbstractSignedDocumentProcessor<
       if (!result.isSuccess()) {
         final String msg = String.format("Signature validation failed for sign task '%s' - %s - %s [request-id='%s']",
             signTaskData.getSignTaskId(), result.getStatus(), result.getStatusMessage(), requestID);
-        log.error("{}: {}", CorrelationID.id());
+        log.error("{}: {}", CorrelationID.id(), msg);
         throw new DocumentProcessingException(new ErrorCode.Code("invalid-signature"), msg, result.getException());
       }
-      log.debug("{}: Signature validation for sign task '%s' succeeded", CorrelationID.id(),
+      log.debug("{}: Signature validation for sign task '{}' succeeded", CorrelationID.id(),
           signTaskData.getSignTaskId());
     }
     catch (final SignatureException e) {
@@ -264,7 +264,7 @@ public class XmlSignedDocumentProcessor extends AbstractSignedDocumentProcessor<
         throw new DocumentProcessingException(new ErrorCode.Code("invalid-ades-object"), msg);
       }
 
-      log.debug("{}: Successfully validated SigningTime in XAdES object for sign task '%s' [request-id='%s']",
+      log.debug("{}: Successfully validated SigningTime in XAdES object for sign task '{}' [request-id='{}']",
           CorrelationID.id(), signTaskData.getSignTaskId(), signRequest.getRequestID());
     }
     catch (final SignServiceProtocolException e) {
@@ -298,7 +298,7 @@ public class XmlSignedDocumentProcessor extends AbstractSignedDocumentProcessor<
         final String msg = String.format(
             "Invalid ToBeSignedBytes of sign task '%s' - Expected SignedInfo but was %s [request-id='%s']",
             signedData.getSignTaskId(), signedInfo.getLocalName(), requestID);
-        log.error("{}: {}", msg);
+        log.error("{}: {}", CorrelationID.id(), msg);
         throw new SignResponseProcessingException(new ErrorCode.Code("invalid-response"), msg);
       }
       return signedInfo;
@@ -307,7 +307,7 @@ public class XmlSignedDocumentProcessor extends AbstractSignedDocumentProcessor<
       final String msg =
           String.format("Invalid ToBeSignedBytes of sign task '%s' - Failed to unmarshall - %s [request-id='%s']",
               signedData.getSignTaskId(), e.getMessage(), requestID);
-      log.error("{}: {}", msg);
+      log.error("{}: {}", CorrelationID.id(), msg);
       throw new SignResponseProcessingException(new ErrorCode.Code("invalid-response"), msg, e);
     }
   }
@@ -330,7 +330,7 @@ public class XmlSignedDocumentProcessor extends AbstractSignedDocumentProcessor<
         final String msg =
             String.format("Invalid AdESObjectBytes of sign task '%s' - Expected ds:Object but was %s [request-id='%s']",
                 signedData.getSignTaskId(), dsObjectElement.getLocalName(), requestID);
-        log.error("{}: {}", msg);
+        log.error("{}: {}", CorrelationID.id(), msg);
         throw new SignResponseProcessingException(new ErrorCode.Code("invalid-response"), msg);
       }
       return dsObjectElement;
@@ -339,7 +339,7 @@ public class XmlSignedDocumentProcessor extends AbstractSignedDocumentProcessor<
       final String msg =
           String.format("Invalid AdESObjectBytes of sign task '%s' - Failed to unmarshall - %s [request-id='%s']",
               signedData.getSignTaskId(), e.getMessage(), requestID);
-      log.error("{}: {}", msg);
+      log.error("{}: {}", CorrelationID.id(), msg);
       throw new SignResponseProcessingException(new ErrorCode.Code("invalid-response"), msg, e);
     }
   }
@@ -350,7 +350,7 @@ public class XmlSignedDocumentProcessor extends AbstractSignedDocumentProcessor<
    *
    * @param parameters processing parameters
    * @return signature location object
-   * @throws InputValidationException for invalid expressions
+   * @throws IllegalArgumentException for invalid expressions
    */
   private se.idsec.signservice.security.sign.xml.XMLSignatureLocation getXMLSignatureLocation(
       final SignResponseProcessingParameters parameters) throws IllegalArgumentException {
@@ -368,13 +368,10 @@ public class XmlSignedDocumentProcessor extends AbstractSignedDocumentProcessor<
               ? se.idsec.signservice.security.sign.xml.XMLSignatureLocation.ChildPosition.FIRST
               : se.idsec.signservice.security.sign.xml.XMLSignatureLocation.ChildPosition.LAST;
 
-      final se.idsec.signservice.security.sign.xml.XMLSignatureLocation sigLoc =
-          StringUtils.isNotBlank(parameters.getXmlSignatureLocation().getxPath())
-              ? new se.idsec.signservice.security.sign.xml.XMLSignatureLocation(
-                  parameters.getXmlSignatureLocation().getxPath(), _child)
-              : new se.idsec.signservice.security.sign.xml.XMLSignatureLocation(_child);
-
-      return sigLoc;
+      return StringUtils.isNotBlank(parameters.getXmlSignatureLocation().getxPath())
+          ? new se.idsec.signservice.security.sign.xml.XMLSignatureLocation(
+          parameters.getXmlSignatureLocation().getxPath(), _child)
+          : new se.idsec.signservice.security.sign.xml.XMLSignatureLocation(_child);
     }
     catch (final Exception e) {
       final String msg =

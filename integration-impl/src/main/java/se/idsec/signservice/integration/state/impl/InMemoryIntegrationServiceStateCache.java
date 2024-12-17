@@ -25,7 +25,8 @@ import se.idsec.signservice.integration.state.IntegrationServiceStateCache;
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
-public class InMemoryIntegrationServiceStateCache extends AbstractInMemoryIntegrationServiceCache<CacheableSignatureState>
-  implements IntegrationServiceStateCache {
+public class InMemoryIntegrationServiceStateCache
+    extends AbstractInMemoryIntegrationServiceCache<CacheableSignatureState>
+    implements IntegrationServiceStateCache {
 
 }

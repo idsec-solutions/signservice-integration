@@ -15,13 +15,13 @@
  */
 package se.idsec.signservice.integration.process;
 
-import java.util.List;
-
 import se.idsec.signservice.integration.SignRequestInput;
 import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
 import se.idsec.signservice.integration.core.error.InputValidationException;
 import se.idsec.signservice.integration.core.error.SignServiceIntegrationException;
 import se.idsec.signservice.integration.document.TbsDocumentProcessor;
+
+import java.util.List;
 
 /**
  * An interface that defines the operations for a SignRequest processor.
@@ -35,32 +35,26 @@ public interface SignRequestProcessor {
    * Performs validation of the supplied sign request input against the supplied configuration. The returned
    * {@code SignRequestInput} object is the supplied input updated with default values from the configuration.
    *
-   * @param signRequestInput
-   *          the sign request input
-   * @param config
-   *          the configuration under which we are processing the request
+   * @param signRequestInput the sign request input
+   * @param config the configuration under which we are processing the request
+   * @param callerId optional ID for the calling entity
    * @return an updated sign request input object where all required fields are filled in
-   * @throws InputValidationException
-   *           if validation of the input fails
+   * @throws InputValidationException if validation of the input fails
    */
-  SignRequestInput preProcess(final SignRequestInput signRequestInput, final IntegrationServiceConfiguration config)
-      throws InputValidationException;
+  SignRequestInput preProcess(final SignRequestInput signRequestInput, final IntegrationServiceConfiguration config,
+      final String callerId) throws InputValidationException;
 
   /**
    * Processes that sign request input and produces a {@code dss:SignRequest} message.
    *
-   * @param signRequestInput
-   *          the validated input
-   * @param requestID
-   *          the unique ID for this request
-   * @param config
-   *          configuration
+   * @param signRequestInput the validated input
+   * @param requestID the unique ID for this request
+   * @param config configuration
    * @return the SignRequest
-   * @throws SignServiceIntegrationException
-   *           for processing errors
+   * @throws SignServiceIntegrationException for processing errors
    */
-  SignRequestProcessingResult process(final SignRequestInput signRequestInput, final String requestID, final IntegrationServiceConfiguration config)
-      throws SignServiceIntegrationException;
+  SignRequestProcessingResult process(final SignRequestInput signRequestInput, final String requestID,
+      final IntegrationServiceConfiguration config) throws SignServiceIntegrationException;
 
   /**
    * Gets an unmutable list of installed processors for "to be signed" documents.

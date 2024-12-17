@@ -15,11 +15,8 @@
  */
 package se.idsec.signservice.integration.security.impl;
 
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-
+import com.google.common.collect.ImmutableList;
+import jakarta.annotation.Nonnull;
 import org.opensaml.security.credential.Credential;
 import org.opensaml.xmlsec.EncryptionConfiguration;
 import org.opensaml.xmlsec.KeyTransportAlgorithmPredicate;
@@ -27,10 +24,12 @@ import org.opensaml.xmlsec.SecurityConfigurationSupport;
 import org.opensaml.xmlsec.encryption.support.KeyAgreementEncryptionConfiguration;
 import org.opensaml.xmlsec.encryption.support.RSAOAEPParameters;
 import org.opensaml.xmlsec.keyinfo.NamedKeyInfoGeneratorManager;
-
-import com.google.common.collect.ImmutableList;
-
 import se.idsec.signservice.integration.security.EncryptionParameters;
+
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * A wrapper for OpenSAML's system configuration for encryption parameters that puts the policy default configuration
@@ -56,7 +55,8 @@ public class EncryptionConfigurationWrapper implements EncryptionConfiguration {
   /**
    * Constructor.
    *
-   * @param defaultEncryptionParameters the default encryption parameters for a given SignService Integration policy
+   * @param defaultEncryptionParameters the default encryption parameters for a given SignService Integration
+   *     policy
    */
   public EncryptionConfigurationWrapper(final EncryptionParameters defaultEncryptionParameters) {
     this.defaultEncryptionParameters = defaultEncryptionParameters;
@@ -64,12 +64,14 @@ public class EncryptionConfigurationWrapper implements EncryptionConfiguration {
   }
 
   /** {@inheritDoc} */
+  @Nonnull
   @Override
   public List<Credential> getDataEncryptionCredentials() {
     return this.systemConfiguration.getDataEncryptionCredentials();
   }
 
   /** {@inheritDoc} */
+  @Nonnull
   @Override
   public List<String> getDataEncryptionAlgorithms() {
     if (this.dataEncryptionAlgorithms == null) {
@@ -90,12 +92,14 @@ public class EncryptionConfigurationWrapper implements EncryptionConfiguration {
   }
 
   /** {@inheritDoc} */
+  @Nonnull
   @Override
   public List<Credential> getKeyTransportEncryptionCredentials() {
     return this.systemConfiguration.getKeyTransportEncryptionCredentials();
   }
 
   /** {@inheritDoc} */
+  @Nonnull
   @Override
   public List<String> getKeyTransportEncryptionAlgorithms() {
     if (this.keyTransportEncryptionAlgorithms == null) {
@@ -104,13 +108,15 @@ public class EncryptionConfigurationWrapper implements EncryptionConfiguration {
       final int index = _keyTransportEncryptionAlgorithms
           .indexOf(this.defaultEncryptionParameters.getKeyTransportEncryptionAlgorithm());
       if (index < 0) {
-        _keyTransportEncryptionAlgorithms.add(0, this.defaultEncryptionParameters.getKeyTransportEncryptionAlgorithm());
+        _keyTransportEncryptionAlgorithms.add(
+            0, this.defaultEncryptionParameters.getKeyTransportEncryptionAlgorithm());
       }
       else if (index > 0) {
         _keyTransportEncryptionAlgorithms.remove(index);
-        _keyTransportEncryptionAlgorithms.add(0, this.defaultEncryptionParameters.getKeyTransportEncryptionAlgorithm());
+        _keyTransportEncryptionAlgorithms.add(
+            0, this.defaultEncryptionParameters.getKeyTransportEncryptionAlgorithm());
       }
-      this.dataEncryptionAlgorithms = _keyTransportEncryptionAlgorithms;
+      this.keyTransportEncryptionAlgorithms = _keyTransportEncryptionAlgorithms;
     }
     return ImmutableList.copyOf(this.keyTransportEncryptionAlgorithms);
   }
@@ -149,12 +155,14 @@ public class EncryptionConfigurationWrapper implements EncryptionConfiguration {
   }
 
   /** {@inheritDoc} */
+  @Nonnull
   @Override
   public Map<String, KeyAgreementEncryptionConfiguration> getKeyAgreementConfigurations() {
     return this.systemConfiguration.getKeyAgreementConfigurations();
   }
 
   /** {@inheritDoc} */
+  @Nonnull
   @Override
   public Collection<String> getIncludedAlgorithms() {
     return this.systemConfiguration.getIncludedAlgorithms();
@@ -167,6 +175,7 @@ public class EncryptionConfigurationWrapper implements EncryptionConfiguration {
   }
 
   /** {@inheritDoc} */
+  @Nonnull
   @Override
   public Collection<String> getExcludedAlgorithms() {
     return this.systemConfiguration.getExcludedAlgorithms();
@@ -179,9 +188,10 @@ public class EncryptionConfigurationWrapper implements EncryptionConfiguration {
   }
 
   /** {@inheritDoc} */
+  @Nonnull
   @Override
   public org.opensaml.xmlsec.AlgorithmPolicyConfiguration.Precedence getIncludeExcludePrecedence() {
-    return this.getIncludeExcludePrecedence();
+    return this.systemConfiguration.getIncludeExcludePrecedence();
   }
 
 }

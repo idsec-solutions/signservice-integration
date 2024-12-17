@@ -15,8 +15,8 @@
  */
 package se.idsec.signservice.integration.certificate.impl;
 
+import jakarta.annotation.Nullable;
 import org.apache.commons.lang3.StringUtils;
-
 import se.idsec.signservice.integration.authentication.SignerIdentityAttribute;
 import se.idsec.signservice.integration.certificate.CertificateAttributeMapping;
 import se.idsec.signservice.integration.certificate.RequestedCertificateAttributeType;
@@ -39,7 +39,7 @@ public class SigningCertificateRequirementsValidator extends
 
   /** {@inheritDoc} */
   @Override
-  public ValidationResult validate(final SigningCertificateRequirements object, final String objectName,
+  public ValidationResult validate(final SigningCertificateRequirements object, @Nullable final String objectName,
       final IntegrationServiceConfiguration hint) {
 
     final ValidationResult result = new ValidationResult(objectName);
@@ -68,7 +68,7 @@ public class SigningCertificateRequirementsValidator extends
     }
 
     int pos = 0;
-    for (CertificateAttributeMapping mapping : object.getAttributeMappings()) {
+    for (final CertificateAttributeMapping mapping : object.getAttributeMappings()) {
       if (mapping.getDestination() == null) {
         result.rejectValue("attributeMappings[" + pos + "].destination", "Missing destination for mapping");
       }
@@ -81,7 +81,7 @@ public class SigningCertificateRequirementsValidator extends
           try {
             RequestedCertificateAttributeType.fromType(mapping.getDestination().getType());
           }
-          catch (IllegalArgumentException e) {
+          catch (final IllegalArgumentException e) {
             result.rejectValue("attributeMappings[" + pos + "].destination.type", e.getMessage());
           }
         }
@@ -100,7 +100,7 @@ public class SigningCertificateRequirementsValidator extends
       }
       else {
         int spos = 0;
-        for (SignerIdentityAttribute source : mapping.getSources()) {
+        for (final SignerIdentityAttribute source : mapping.getSources()) {
           if (source.getType() != null && !SignerIdentityAttribute.SAML_TYPE.equalsIgnoreCase(source.getType())) {
             result.rejectValue("attributeMappings[" + pos + "].sources[" + spos + "].type",
                 String.format("Unsupported attribute type - %s", source.getType()));

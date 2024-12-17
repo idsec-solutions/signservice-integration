@@ -46,9 +46,6 @@ public class SignResponseProcessingConfig {
    * Flag that tells whether the processing and validation steps should be "extra" strict and look for every little
    * thing that deviates from the specifications. The default is {@code false}. Turning on this setting is mainly
    * intended for testing of a SignService, and should not be active in a production setup.
-   *
-   * @param strictProcessing whether to use strict processing or not
-   * @return whether to use strict processing or not
    */
   @Getter
   @Setter
@@ -57,9 +54,6 @@ public class SignResponseProcessingConfig {
   /**
    * The maximum allowed age for a response given in milliseconds. The default is
    * {@value #DEFAULT_MAXIMUM_ALLOWED_RESPONSE_AGE}.
-   *
-   * @param maximumAllowedResponseAge maximum allowed age for a response
-   * @return maximum allowed age for a response
    */
   @Getter
   @Setter
@@ -68,9 +62,6 @@ public class SignResponseProcessingConfig {
   /**
    * The allowed number of milliseconds that we allow our clock to differ from the SignService clock. The default is
    * {@value #DEFAULT_ALLOWED_CLOCK_SKEW}.
-   *
-   * @param allowedClockSkew maximum allowed clock skew
-   * @return maximum allowed clock skew
    */
   @Getter
   @Setter
@@ -79,9 +70,6 @@ public class SignResponseProcessingConfig {
   /**
    * The allowed number of milliseconds that we allow processing at the server side to go on, that is, the time from
    * when we sent the request until we received the response.
-   *
-   * @param maximumAllowedProcessingTime maximum allowed server processing time
-   * @return maximum allowed server processing time
    */
   @Getter
   @Setter
@@ -90,10 +78,6 @@ public class SignResponseProcessingConfig {
   /**
    * Flag telling whether we require the assertion from where the user authenticated for signature to be present in the
    * sign response. The default is {@code false}.
-   *
-   * @param requireAssertion
-   *          whether user assertion is required in the sign response
-   * @return whether user assertion is required in the sign response
    */
   @Getter
   @Setter

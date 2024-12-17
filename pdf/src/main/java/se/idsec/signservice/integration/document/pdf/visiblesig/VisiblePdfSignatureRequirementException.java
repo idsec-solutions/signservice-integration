@@ -15,6 +15,8 @@
  */
 package se.idsec.signservice.integration.document.pdf.visiblesig;
 
+import java.io.Serial;
+
 /**
  * Exception used to report errors in visible PDF signature requirements (that is not found by its validator).
  *
@@ -24,6 +26,7 @@ package se.idsec.signservice.integration.document.pdf.visiblesig;
 public class VisiblePdfSignatureRequirementException extends Exception {
 
   /** For serializing. */
+  @Serial
   private static final long serialVersionUID = 7153928242064492958L;
 
   /**

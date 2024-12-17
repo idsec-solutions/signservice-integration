@@ -15,6 +15,14 @@
  */
 package se.idsec.signservice.integration.signmessage.impl;
 
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.PostConstruct;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBException;
+import lombok.extern.slf4j.Slf4j;
+import net.shibboleth.shared.component.ComponentInitializationException;
+import net.shibboleth.shared.resolver.CriteriaSet;
+import net.shibboleth.shared.resolver.ResolverException;
 import org.opensaml.core.xml.io.MarshallingException;
 import org.opensaml.core.xml.util.XMLObjectSupport;
 import org.opensaml.saml.criterion.RoleDescriptorCriterion;
@@ -34,14 +42,6 @@ import org.opensaml.xmlsec.encryption.support.Encrypter;
 import org.opensaml.xmlsec.encryption.support.EncryptionException;
 import org.opensaml.xmlsec.encryption.support.KeyEncryptionParameters;
 import org.w3c.dom.Element;
-
-import jakarta.annotation.PostConstruct;
-import jakarta.xml.bind.JAXBContext;
-import jakarta.xml.bind.JAXBException;
-import lombok.extern.slf4j.Slf4j;
-import net.shibboleth.shared.component.ComponentInitializationException;
-import net.shibboleth.shared.resolver.CriteriaSet;
-import net.shibboleth.shared.resolver.ResolverException;
 import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
 import se.idsec.signservice.integration.core.error.ErrorCode;
 import se.idsec.signservice.integration.core.error.SignServiceIntegrationException;
@@ -100,8 +100,8 @@ public class DefaultSignMessageProcessor implements SignMessageProcessor {
 
   /** {@inheritDoc} */
   @Override
-  public SignMessage create(final SignMessageParameters input, final IntegrationServiceConfiguration config)
-      throws SignServiceIntegrationException {
+  public SignMessage create(@Nonnull final SignMessageParameters input,
+      @Nonnull final IntegrationServiceConfiguration config) throws SignServiceIntegrationException {
 
     final se.swedenconnect.opensaml.sweid.saml2.signservice.dss.SignMessage signMessage = SignMessageBuilder.builder()
         .message(input.getSignMessage())
@@ -124,11 +124,9 @@ public class DefaultSignMessageProcessor implements SignMessageProcessor {
         throw new MetadataException(msg);
       }
 
-      EncryptionConfiguration econfig = null;
-      if (OpenSAMLEncryptionParameters.class.isInstance(config.getDefaultEncryptionParameters())
-          && EncryptionConfiguration.class
-              .isInstance(
-                  ((OpenSAMLEncryptionParameters) config.getDefaultEncryptionParameters()).getSystemConfiguration())) {
+      final EncryptionConfiguration econfig;
+      if (config.getDefaultEncryptionParameters() instanceof OpenSAMLEncryptionParameters
+          && ((OpenSAMLEncryptionParameters) config.getDefaultEncryptionParameters()).getSystemConfiguration() instanceof EncryptionConfiguration) {
 
         econfig = ((OpenSAMLEncryptionParameters) config.getDefaultEncryptionParameters())
             .getSystemConfiguration();
@@ -181,9 +179,9 @@ public class DefaultSignMessageProcessor implements SignMessageProcessor {
       final Element element = XMLObjectSupport.marshall(signMessage);
       final JAXBContext context = JAXBContextUtils.createJAXBContext(SignMessage.class);
       final Object jaxb = context.createUnmarshaller().unmarshal(element);
-      return SignMessage.class.cast(jaxb);
+      return (SignMessage) jaxb;
     }
-    catch (MarshallingException | JAXBException e) {
+    catch (final MarshallingException | JAXBException e) {
       throw new SignServiceProtocolException("Failed to marshall DSS protocol object", e);
     }
   }

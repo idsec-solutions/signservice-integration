@@ -17,6 +17,8 @@ package se.idsec.signservice.integration.security;
 
 import se.idsec.signservice.integration.core.error.ErrorCode;
 
+import java.io.Serial;
+
 /**
  * Exception class for errors during metadata processing.
  *
@@ -25,17 +27,17 @@ import se.idsec.signservice.integration.core.error.ErrorCode;
  */
 public class MetadataException extends SignServiceEncryptException {
 
+  /** For serializing. */
+  @Serial
+  private static final long serialVersionUID = -5064259813044502880L;
+
   /** The error code for metadata errors. */
   public static final ErrorCode.Code METADATA_ERROR = new ErrorCode.Code("metadata-error");
-
-  /** For serializing. */
-  private static final long serialVersionUID = -5064259813044502880L;
 
   /**
    * Constructor.
    *
-   * @param message
-   *          the error message
+   * @param message the error message
    */
   public MetadataException(final String message) {
     super(METADATA_ERROR, message);
@@ -44,10 +46,8 @@ public class MetadataException extends SignServiceEncryptException {
   /**
    * Constructor.
    *
-   * @param message
-   *          the error message
-   * @param cause
-   *          the cause of the error
+   * @param message the error message
+   * @param cause the cause of the error
    */
   public MetadataException(final String message, final Throwable cause) {
     super(METADATA_ERROR, message, cause);

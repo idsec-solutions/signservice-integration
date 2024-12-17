@@ -15,9 +15,6 @@
  */
 package se.idsec.signservice.integration.document;
 
-import java.security.cert.X509Certificate;
-import java.util.List;
-
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
 import se.idsec.signservice.integration.SignResponseProcessingParameters;
@@ -28,14 +25,14 @@ import se.idsec.signservice.integration.dss.SignResponseWrapper;
 import se.idsec.signservice.integration.process.SignResponseProcessingConfig;
 import se.swedenconnect.schemas.csig.dssext_1_1.SignTaskData;
 
+import java.security.cert.X509Certificate;
+import java.util.List;
+
 /**
  * Interface for a processor of a signed document.
  *
- * @param <T>
- *          the type of documents that this processor handles
- * @param <X>
- *          the type of AdES objects used for this document type
- *
+ * @param <T> the type of documents that this processor handles
+ * @param <X> the type of AdES objects used for this document type
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
@@ -44,8 +41,7 @@ public interface SignedDocumentProcessor<T, X extends AdesObject> extends Docume
   /**
    * Predicate that tells if the supplied sign data can be handled by this processor.
    *
-   * @param signData
-   *          the signed data
+   * @param signData the signed data
    * @return if the data can be processed by this instance true is returned, otherwise false
    */
   boolean supports(@Nonnull final SignTaskData signData);
@@ -54,19 +50,14 @@ public interface SignedDocumentProcessor<T, X extends AdesObject> extends Docume
    * Given a {@code SignTaskData} received in a sign response containing a signature and a {@code TbsDocument} from the
    * corresponding sign request the method compiles a complete signed document.
    *
-   * @param tbsDocument
-   *          the to-be-signed document
-   * @param signedData
-   *          the signed data (signature)
-   * @param signerCertificateChain
-   *          the certificate chain for the signer (starting with the signer certificate and ending with the root)
-   * @param signRequest
-   *          the corresponding sign request
-   * @param parameters
-   *          processing parameters received from the caller
+   * @param tbsDocument the to-be-signed document
+   * @param signedData the signed data (signature)
+   * @param signerCertificateChain the certificate chain for the signer (starting with the signer certificate and
+   *     ending with the root)
+   * @param signRequest the corresponding sign request
+   * @param parameters processing parameters received from the caller
    * @return a compiled signed document
-   * @throws SignServiceIntegrationException
-   *           for processing errors
+   * @throws SignServiceIntegrationException for processing errors
    */
   CompiledSignedDocument<T, X> buildSignedDocument(@Nonnull final TbsDocument tbsDocument,
       @Nonnull final SignTaskData signedData,
@@ -80,18 +71,12 @@ public interface SignedDocumentProcessor<T, X extends AdesObject> extends Docume
    * The signer certificate has already been validated so explicit validation of the signer certificate is not needed.
    * </p>
    *
-   * @param signedDocument
-   *          the document to validate
-   * @param signerCertificate
-   *          the signer certificate
-   * @param signTaskData
-   *          the sign task data
-   * @param parameters
-   *          processing parameters received from the caller
-   * @param requestID
-   *          the ID for this operation (for logging)
-   * @throws SignServiceIntegrationException
-   *           for validation errors
+   * @param signedDocument the document to validate
+   * @param signerCertificate the signer certificate
+   * @param signTaskData the sign task data
+   * @param parameters processing parameters received from the caller
+   * @param requestID the ID for this operation (for logging)
+   * @throws SignServiceIntegrationException for validation errors
    */
   void validateSignedDocument(@Nonnull final T signedDocument,
       @Nonnull final X509Certificate signerCertificate,
@@ -102,20 +87,13 @@ public interface SignedDocumentProcessor<T, X extends AdesObject> extends Docume
   /**
    * Given a AdES object from the signature the method validates that it is valid.
    *
-   * @param adesObject
-   *          the AdES object
-   * @param signingCertificate
-   *          the signing certificate
-   * @param signTaskData
-   *          the sign task data
-   * @param signRequest
-   *          the sign request
-   * @param signResponse
-   *          the sign response
-   * @param parameters
-   *          processing parameters received from the caller
-   * @throws SignServiceIntegrationException
-   *           for validation errors
+   * @param adesObject the AdES object
+   * @param signingCertificate the signing certificate
+   * @param signTaskData the sign task data
+   * @param signRequest the sign request
+   * @param signResponse the sign response
+   * @param parameters processing parameters received from the caller
+   * @throws SignServiceIntegrationException for validation errors
    */
   void validateAdesObject(@Nonnull final X adesObject,
       @Nonnull final X509Certificate signingCertificate,

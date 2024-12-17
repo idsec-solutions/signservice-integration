@@ -15,6 +15,7 @@
  */
 package se.idsec.signservice.integration.document.pdf.signpage.impl;
 
+import jakarta.annotation.Nullable;
 import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
 import se.idsec.signservice.integration.core.validation.AbstractInputValidator;
 import se.idsec.signservice.integration.core.validation.ValidationResult;
@@ -34,16 +35,17 @@ public class PdfSignaturePagePreferencesValidator
     extends AbstractInputValidator<PdfSignaturePagePreferences, IntegrationServiceConfiguration> {
 
   /** Validator for sign pages. */
-  private PdfSignaturePageValidator pdfSignaturePageValidator = new ExtendedPdfSignaturePageValidator();
+  private final PdfSignaturePageValidator pdfSignaturePageValidator = new ExtendedPdfSignaturePageValidator();
 
   /** Validator for VisiblePdfSignatureUserInformation objects. */
-  private VisiblePdfSignatureUserInformationValidator visiblePdfSignatureUserInformationValidator =
+  private final VisiblePdfSignatureUserInformationValidator visiblePdfSignatureUserInformationValidator =
       new VisiblePdfSignatureUserInformationValidator();
 
   /** {@inheritDoc} */
   @Override
   public ValidationResult validate(
-      final PdfSignaturePagePreferences object, final String objectName, final IntegrationServiceConfiguration hint) {
+      final PdfSignaturePagePreferences object, @Nullable final String objectName,
+      final IntegrationServiceConfiguration hint) {
 
     final ValidationResult result = new ValidationResult(objectName);
     if (object == null) {

@@ -15,17 +15,14 @@
  */
 package se.idsec.signservice.integration.document.xml;
 
-import java.security.NoSuchAlgorithmException;
-import java.security.SignatureException;
-import java.util.Base64;
-
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
+import jakarta.xml.bind.JAXBException;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.xml.security.utils.Constants;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-
-import jakarta.xml.bind.JAXBException;
-import lombok.extern.slf4j.Slf4j;
 import se.idsec.signservice.integration.SignRequestInput;
 import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
 import se.idsec.signservice.integration.core.DocumentCache;
@@ -50,6 +47,10 @@ import se.idsec.signservice.security.sign.xml.impl.DefaultXMLSigner;
 import se.idsec.signservice.xml.DOMUtils;
 import se.swedenconnect.schemas.etsi.xades_1_3_2.SignaturePolicyIdentifier;
 
+import java.security.NoSuchAlgorithmException;
+import java.security.SignatureException;
+import java.util.Base64;
+
 /**
  * Implementation of the XML TBS document processor.
  *
@@ -73,7 +74,7 @@ public class XmlTbsDocumentProcessor extends AbstractTbsDocumentProcessor<Docume
 
   /** {@inheritDoc} */
   @Override
-  public boolean supports(final TbsDocument document) {
+  public boolean supports(@Nonnull final TbsDocument document) {
     try {
       return DocumentType.fromMimeType(document.getMimeType()) == DocumentType.XML;
     }
@@ -85,26 +86,28 @@ public class XmlTbsDocumentProcessor extends AbstractTbsDocumentProcessor<Docume
   /** {@inheritDoc} */
   @Override
   public ProcessedTbsDocument preProcess(final TbsDocument document, final SignRequestInput signRequestInput,
-      final IntegrationServiceConfiguration config, final DocumentCache documentCache, final String fieldName)
-      throws InputValidationException {
+      final IntegrationServiceConfiguration config, final DocumentCache documentCache, final String callerId,
+      final String fieldName) throws InputValidationException {
 
-    final ProcessedTbsDocument processedTbsDocument = super.preProcess(document, signRequestInput, config, documentCache, fieldName);
+    final ProcessedTbsDocument processedTbsDocument =
+        super.preProcess(document, signRequestInput, config, documentCache, callerId, fieldName);
     final TbsDocument tbsDocument = processedTbsDocument.getTbsDocument();
 
     if (tbsDocument.getAdesRequirement() != null) {
-      if (TbsDocument.AdesType.EPES.equals(tbsDocument.getAdesRequirement().getAdesFormat())) {
+      if (TbsDocument.AdesType.EPES == tbsDocument.getAdesRequirement().getAdesFormat()) {
 
         try {
           if (tbsDocument.getAdesRequirement().getSignaturePolicy() != null) {
             // If the signature policy was given in the signaturePolicy parameter we need to create a
             // SignaturePolicyIdentifier element and add that to the AdES object.
             //
-            XadesQualifyingProperties xadesObject = null;
+            final XadesQualifyingProperties xadesObject;
             if (tbsDocument.getAdesRequirement().getAdesObject() == null) {
               xadesObject = XadesQualifyingProperties.createXadesQualifyingProperties();
             }
             else {
-              final Element elm = DOMUtils.base64ToDocument(tbsDocument.getAdesRequirement().getAdesObject()).getDocumentElement();
+              final Element elm =
+                  DOMUtils.base64ToDocument(tbsDocument.getAdesRequirement().getAdesObject()).getDocumentElement();
               xadesObject = XadesQualifyingProperties.createXadesQualifyingProperties(elm);
             }
             // Assign the signature policy
@@ -116,9 +119,9 @@ public class XmlTbsDocumentProcessor extends AbstractTbsDocumentProcessor<Docume
             tbsDocument.getAdesRequirement().setSignaturePolicy(null);
           }
         }
-        catch (DocumentProcessingException | JAXBException e) {
+        catch (final DocumentProcessingException | JAXBException e) {
           // All errors should have been detected by the XAdesRequirementValidator ...
-          log.error("{}: Error during update of XAdES object - {}", e.getMessage(), e);
+          log.error("{}: Error during update of XAdES object - {}", CorrelationID.id(), e.getMessage(), e);
         }
       }
     }
@@ -128,7 +131,8 @@ public class XmlTbsDocumentProcessor extends AbstractTbsDocumentProcessor<Docume
 
   /** {@inheritDoc} */
   @Override
-  protected TbsCalculationResult calculateToBeSigned(final ProcessedTbsDocument document, final String signatureAlgorithm,
+  protected TbsCalculationResult calculateToBeSigned(final ProcessedTbsDocument document,
+      final String signatureAlgorithm,
       final IntegrationServiceConfiguration config) throws DocumentProcessingException {
 
     final TbsDocument tbsDocument = document.getTbsDocument();
@@ -144,9 +148,9 @@ public class XmlTbsDocumentProcessor extends AbstractTbsDocumentProcessor<Docume
     try {
 
       final XMLSigner signer = DefaultXMLSigner.builder(this.staticKeys.getSigningCredential(signatureAlgorithm))
-        .signatureAlgorithm(signatureAlgorithm)
-        .includeSignatureId(requireXadesSignature)
-        .build();
+          .signatureAlgorithm(signatureAlgorithm)
+          .includeSignatureId(requireXadesSignature)
+          .build();
 
       final XMLSignerResult preSignResult = signer.sign(domDocument);
 
@@ -161,7 +165,7 @@ public class XmlTbsDocumentProcessor extends AbstractTbsDocumentProcessor<Docume
       if (log.isDebugEnabled()) {
         final Element signedInfo = preSignResult.getSignedInfo();
         log.debug("{}: Calculated SignedInfo for document '{}': {}", CorrelationID.id(), tbsDocument.getId(),
-          DOMUtils.prettyPrint(signedInfo));
+            DOMUtils.prettyPrint(signedInfo));
       }
 
       if (tbsDocument.getAdesRequirement() != null) {
@@ -173,8 +177,9 @@ public class XmlTbsDocumentProcessor extends AbstractTbsDocumentProcessor<Docume
 
       return result;
     }
-    catch (SignatureException | NoSuchAlgorithmException e) {
-      final String msg = String.format("Error while calculating SignedInfo for document '%s' - %s", tbsDocument.getId(), e.getMessage());
+    catch (final SignatureException | NoSuchAlgorithmException e) {
+      final String msg = String.format("Error while calculating SignedInfo for document '%s' - %s", tbsDocument.getId(),
+          e.getMessage());
       log.error("{}: {}", CorrelationID.id(), msg, e);
       throw new DocumentProcessingException(new ErrorCode.Code("sign"), msg, e);
     }
@@ -205,7 +210,8 @@ public class XmlTbsDocumentProcessor extends AbstractTbsDocumentProcessor<Docume
 
     /** {@inheritDoc} */
     @Override
-    public ValidationResult validate(final EtsiAdesRequirement object, final String objectName, final Void hint) {
+    public ValidationResult validate(final EtsiAdesRequirement object, @Nullable final String objectName,
+        final Void hint) {
       final ValidationResult result = new ValidationResult(objectName);
       if (object == null) {
         return result;
@@ -217,7 +223,7 @@ public class XmlTbsDocumentProcessor extends AbstractTbsDocumentProcessor<Docume
       if (object.getAdesObject() != null) {
         try {
           xadesObject = XadesQualifyingProperties.createXadesQualifyingProperties(
-            DOMUtils.base64ToDocument(object.getAdesObject()).getDocumentElement());
+              DOMUtils.base64ToDocument(object.getAdesObject()).getDocumentElement());
         }
         catch (final DocumentProcessingException e) {
           result.rejectValue("adesObject", e.getMessage());
@@ -227,19 +233,19 @@ public class XmlTbsDocumentProcessor extends AbstractTbsDocumentProcessor<Docume
         }
       }
 
-      if (TbsDocument.AdesType.EPES.equals(object.getAdesFormat())) {
+      if (TbsDocument.AdesType.EPES == object.getAdesFormat()) {
         // The signature policy must be given. Either directly or as an element in the AdES object.
         //
         if (StringUtils.isBlank(object.getSignaturePolicy()) || xadesObject == null) {
           result.rejectValue("signaturePolicy",
-            "AdES requirement states Extended Policy Electronic Signature but no signature policy has been given");
+              "AdES requirement states Extended Policy Electronic Signature but no signature policy has been given");
         }
         else if (StringUtils.isBlank(object.getSignaturePolicy())) {
           // Ensure that the SignaturePolicyIdentifier element is present.
           //
           if (xadesObject.getSignaturePolicyIdentifier() == null) {
             result.rejectValue("adesObject",
-              "AdES requirement states Extended Policy Electronic Signature but no signature policy has been given");
+                "AdES requirement states Extended Policy Electronic Signature but no signature policy has been given");
           }
         }
         else if (StringUtils.isNotBlank(object.getSignaturePolicy()) && xadesObject != null) {
@@ -251,11 +257,13 @@ public class XmlTbsDocumentProcessor extends AbstractTbsDocumentProcessor<Docume
                 && signaturePolicyIdentifier.getSignaturePolicyId().getSigPolicyId() != null
                 && signaturePolicyIdentifier.getSignaturePolicyId().getSigPolicyId().getIdentifier() != null) {
 
-              final String value = signaturePolicyIdentifier.getSignaturePolicyId().getSigPolicyId().getIdentifier().getValue();
+              final String value =
+                  signaturePolicyIdentifier.getSignaturePolicyId().getSigPolicyId().getIdentifier().getValue();
               if (value != null && !value.equals(object.getSignaturePolicy())) {
                 result.rejectValue("signaturePolicy",
-                  String.format("Invalid signature policy given in AdES requirement - object states '%s', but signaturePolicy is '%s'",
-                    value, object.getSignaturePolicy()));
+                    String.format(
+                        "Invalid signature policy given in AdES requirement - object states '%s', but signaturePolicy is '%s'",
+                        value, object.getSignaturePolicy()));
               }
 
             }

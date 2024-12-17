@@ -1,15 +1,15 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
   <modelVersion>4.0.0</modelVersion>
 
-  <artifactId>signservice-integration-impl</artifactId>    
+  <artifactId>signservice-integration-impl</artifactId>
   <packaging>jar</packaging>
 
   <parent>
     <groupId>se.idsec.signservice.integration</groupId>
     <artifactId>signservice-integration-parent</artifactId>
-    <version>2.0.0</version>
+    <version>2.3.0-SNAPSHOT</version>
   </parent>
 
   <name>IDsec Solutions :: SignService :: Integration :: API Implementation</name>
@@ -55,49 +55,49 @@
   </properties>
 
   <dependencies>
-    
+
     <dependency>
       <groupId>jakarta.annotation</groupId>
       <artifactId>jakarta.annotation-api</artifactId>
     </dependency>
-  
+
     <!-- The API -->
     <dependency>
       <groupId>se.idsec.signservice.integration</groupId>
       <artifactId>signservice-integration-api</artifactId>
     </dependency>
-    
-    <!-- SignService commons -->      
+
+    <!-- SignService commons -->
     <dependency>
       <groupId>se.idsec.signservice.commons</groupId>
       <artifactId>signservice-commons</artifactId>
     </dependency>
-    
+
     <dependency>
       <groupId>se.idsec.signservice.commons</groupId>
       <artifactId>signservice-xml-commons</artifactId>
     </dependency>
-    
+
     <dependency>
       <groupId>se.swedenconnect.security</groupId>
       <artifactId>algorithm-registry</artifactId>
     </dependency>
-    
+
     <dependency>
       <groupId>se.swedenconnect.opensaml</groupId>
       <artifactId>opensaml-security-ext</artifactId>
     </dependency>
-    
+
     <dependency>
       <groupId>se.swedenconnect.opensaml</groupId>
       <artifactId>opensaml-addons</artifactId>
-    </dependency>    
-        
+    </dependency>
+
     <dependency>
       <groupId>se.swedenconnect.opensaml</groupId>
       <artifactId>opensaml-swedish-eid</artifactId>
     </dependency>
-    
+
     <!-- Jackson -->
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
@@ -114,24 +114,24 @@
       <groupId>se.swedenconnect.schemas</groupId>
       <artifactId>swedenconnect-jaxb</artifactId>
     </dependency>
-    
+
     <dependency>
       <groupId>jakarta.activation</groupId>
       <artifactId>jakarta.activation-api</artifactId>
     </dependency>
-    
+
     <dependency>
       <groupId>org.glassfish.jaxb</groupId>
       <artifactId>jaxb-runtime</artifactId>
-    </dependency>    
+    </dependency>
 
-    <!-- Misc -->    
+    <!-- Misc -->
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-simple</artifactId>
       <scope>test</scope>
     </dependency>
-    
+
   </dependencies>
 
   <build>

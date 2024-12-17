@@ -18,6 +18,8 @@ package se.idsec.signservice.integration.security;
 import se.idsec.signservice.integration.core.error.ErrorCode;
 import se.idsec.signservice.integration.core.error.SignServiceIntegrationCategoryException;
 
+import java.io.Serial;
+
 /**
  * Exceptions for encryption errors.
  *
@@ -27,31 +29,27 @@ import se.idsec.signservice.integration.core.error.SignServiceIntegrationCategor
 public class SignServiceEncryptException extends SignServiceIntegrationCategoryException {
 
   /** For serializing. */
+  @Serial
   private static final long serialVersionUID = -494734085678963259L;
 
   /**
    * Constructor.
    *
-   * @param code
-   *          the error code (within the given category)
-   * @param message
-   *          the error message
+   * @param code the error code (within the given category)
+   * @param message the error message
    */
-  public SignServiceEncryptException(ErrorCode.Code code, String message) {
+  public SignServiceEncryptException(final ErrorCode.Code code, final String message) {
     super(code, message);
   }
 
   /**
    * Constructor.
    *
-   * @param code
-   *          the error code (within the given category)
-   * @param message
-   *          the error message
-   * @param cause
-   *          the cause of the error
+   * @param code the error code (within the given category)
+   * @param message the error message
+   * @param cause the cause of the error
    */
-  public SignServiceEncryptException(ErrorCode.Code code, String message, Throwable cause) {
+  public SignServiceEncryptException(final ErrorCode.Code code, final String message, final Throwable cause) {
     super(code, message, cause);
   }
 

@@ -15,22 +15,21 @@
  */
 package se.idsec.signservice.integration.document.pdf.visiblesig;
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.stream.Collectors;
-
-import org.apache.commons.lang3.StringUtils;
-
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import se.idsec.signservice.integration.authentication.SignerIdentityAttribute;
 import se.idsec.signservice.integration.authentication.SignerIdentityAttributeValue;
 import se.idsec.signservice.integration.core.impl.CorrelationID;
 import se.idsec.signservice.integration.document.pdf.PdfSignatureImageTemplate;
 import se.idsec.signservice.integration.document.pdf.VisiblePdfSignatureRequirement;
 import se.idsec.signservice.security.sign.pdf.document.VisibleSignatureImage;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * Factory for creating instances of {@link VisibleSignatureImage} as input to a PDF sign process.
@@ -47,8 +46,7 @@ public class VisibleSignatureImageFactory {
   /**
    * Constructor.
    *
-   * @param pdfSignatureImageTemplates
-   *          list of available PDF signature image templates
+   * @param pdfSignatureImageTemplates list of available PDF signature image templates
    */
   public VisibleSignatureImageFactory(final List<? extends PdfSignatureImageTemplate> pdfSignatureImageTemplates) {
     this.pdfSignatureImageTemplates = pdfSignatureImageTemplates;
@@ -57,13 +55,10 @@ public class VisibleSignatureImageFactory {
   /**
    * Obtain an instance of {@link VisibleSignatureImage}.
    *
-   * @param visiblePdfSignatureRequirement
-   *          the requirements for a visible sign image
-   * @param signerAttributes
-   *          the list of attributes that shall be used to form the signers name in the sign image
+   * @param visiblePdfSignatureRequirement the requirements for a visible sign image
+   * @param signerAttributes the list of attributes that shall be used to form the signers name in the sign image
    * @return a VisibleSigImage
-   * @throws VisiblePdfSignatureRequirementException
-   *           for errors
+   * @throws VisiblePdfSignatureRequirementException for errors
    */
   public VisibleSignatureImage getVisibleSignImage(
       final VisiblePdfSignatureRequirement visiblePdfSignatureRequirement,
@@ -85,61 +80,57 @@ public class VisibleSignatureImageFactory {
       //
       if (signerAttributes == null || signerAttributes.isEmpty()) {
         final String msg = String.format("The VisiblePdfSignatureRequirement for template '%s' requires "
-            + "signer name info, but no requested signer attributes are available",
-          template.getReference());
+                + "signer name info, but no requested signer attributes are available",
+            template.getReference());
         throw new VisiblePdfSignatureRequirementException(msg);
       }
       for (final SignerIdentityAttribute attrName : signerAttributeNames) {
-        if (!signerAttributes.stream().filter(a -> Objects.equals(a.getName(), attrName.getName())).findFirst().isPresent()) {
+        if (signerAttributes.stream().noneMatch(a -> Objects.equals(a.getName(), attrName.getName()))) {
           final String msg = String.format("The VisiblePdfSignatureRequirement for template '%s' requires "
-              + "signer name info for attribute '%s', but this has not been provied among the requested signer attributes",
-            template.getReference(), attrName.getName());
+                  + "signer name info for attribute '%s', but this has not been provied among the requested signer attributes",
+              template.getReference(), attrName.getName());
           throw new VisiblePdfSignatureRequirementException(msg);
         }
       }
-      final String formatString = signerName.getFormatting();
-      String name = formatString;
+      String name = signerName.getFormatting();
 
       if (StringUtils.isBlank(name)) {
         // If we don't have a format string we just concatenate all values in order ...
-        name = String.join(" ", signerAttributeNames.stream()
-          .map(a -> getAttributeValue(a.getName(), signerAttributes))
-          .collect(Collectors.toList()));
+        name = signerAttributeNames.stream()
+            .map(a -> getAttributeValue(a.getName(), signerAttributes))
+            .collect(Collectors.joining(" "));
       }
       else {
         // Otherwise format the signer name according to format string ...
         //
         for (int i = 0; i < signerAttributeNames.size(); i++) {
-          name = name.replaceAll("%" + String.valueOf(i + 1),
-            getAttributeValue(signerAttributeNames.get(i).getName(), signerAttributes));
+          name = name.replaceAll("%" + (i + 1),
+              getAttributeValue(signerAttributeNames.get(i).getName(), signerAttributes));
         }
       }
       imageParams.put(PdfSignatureImageTemplate.SIGNER_NAME_FIELD_NAME, name);
     }
 
     return VisibleSignatureImage.builder()
-      .page(visiblePdfSignatureRequirement.getPage())
-      .xOffset(visiblePdfSignatureRequirement.getXPosition())
-      .yOffset(visiblePdfSignatureRequirement.getYPosition())
-      .zoomPercent(visiblePdfSignatureRequirement.getScale())
-      .personalizationParams(imageParams)
-      .pixelImageWidth(template.getWidth())
-      .pixelImageHeight(template.getHeight())
-      .includeDate(template.isIncludeSigningTime())
-      .svgImage(template.getImage())
-      .build();
+        .page(visiblePdfSignatureRequirement.getPage())
+        .xOffset(visiblePdfSignatureRequirement.getXPosition())
+        .yOffset(visiblePdfSignatureRequirement.getYPosition())
+        .zoomPercent(visiblePdfSignatureRequirement.getScale())
+        .personalizationParams(imageParams)
+        .pixelImageWidth(template.getWidth())
+        .pixelImageHeight(template.getHeight())
+        .includeDate(template.isIncludeSigningTime())
+        .svgImage(template.getImage())
+        .build();
   }
 
   /**
    * Obtain an instance of {@link VisibleSignatureImage} and return its encoding.
    *
-   * @param visiblePdfSignatureRequirement
-   *          the requirements for a visible sign image
-   * @param signerAttributes
-   *          the list of attributes that shall be used to form the signers name in the sign image
+   * @param visiblePdfSignatureRequirement the requirements for a visible sign image
+   * @param signerAttributes the list of attributes that shall be used to form the signers name in the sign image
    * @return the encoding of a VisibleSigImage
-   * @throws VisiblePdfSignatureRequirementException
-   *           for errors
+   * @throws VisiblePdfSignatureRequirementException for errors
    */
   public String getEncodedVisibleSignImage(
       final VisiblePdfSignatureRequirement visiblePdfSignatureRequirement,
@@ -147,7 +138,7 @@ public class VisibleSignatureImageFactory {
 
     try {
       return VisibleSignatureImageSerializer.serializeVisibleSignatureObject(
-        this.getVisibleSignImage(visiblePdfSignatureRequirement, signerAttributes));
+          this.getVisibleSignImage(visiblePdfSignatureRequirement, signerAttributes));
     }
     catch (final IOException e) {
       final String msg = String.format("Failed to serialize the PDF signature image - %s", e.getMessage());
@@ -159,25 +150,25 @@ public class VisibleSignatureImageFactory {
   /**
    * Gets a PDF signature image template based on its reference.
    *
-   * @param reference
-   *          the reference
+   * @param reference the reference
    * @return a PdfSignatureImageTemplate object
    */
   PdfSignatureImageTemplate getTemplate(final String reference) {
     return this.pdfSignatureImageTemplates.stream()
-      .filter(t -> t.getReference().equals(reference))
-      .findFirst()
-      // We have already asserted (in the validator) that the template exists ...
-      .orElseThrow(() -> new RuntimeException("Internal error - PDF Image template not found - " + reference));
+        .filter(t -> t.getReference().equals(reference))
+        .findFirst()
+        // We have already asserted (in the validator) that the template exists ...
+        .orElseThrow(() -> new RuntimeException("Internal error - PDF Image template not found - " + reference));
   }
 
-  private static String getAttributeValue(final String attributeName, final List<SignerIdentityAttributeValue> signerAttributes) {
+  private static String getAttributeValue(final String attributeName,
+      final List<SignerIdentityAttributeValue> signerAttributes) {
     return signerAttributes.stream()
-      .filter(a -> attributeName.equals(a.getName()))
-      .map(SignerIdentityAttributeValue::getValue)
-      .findFirst()
-      // We have already asserted that the attribute name is there ...
-      .orElseThrow(() -> new RuntimeException("Internal error - missing attribute"));
+        .filter(a -> attributeName.equals(a.getName()))
+        .map(SignerIdentityAttributeValue::getValue)
+        .findFirst()
+        // We have already asserted that the attribute name is there ...
+        .orElseThrow(() -> new RuntimeException("Internal error - missing attribute"));
   }
 
 }

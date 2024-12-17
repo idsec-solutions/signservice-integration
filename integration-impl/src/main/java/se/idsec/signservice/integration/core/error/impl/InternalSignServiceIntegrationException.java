@@ -19,6 +19,8 @@ import jakarta.annotation.Nonnull;
 import se.idsec.signservice.integration.core.error.ErrorCode;
 import se.idsec.signservice.integration.core.error.SignServiceIntegrationCategoryException;
 
+import java.io.Serial;
+
 /**
  * Base exception class for internal errors.
  *
@@ -28,15 +30,14 @@ import se.idsec.signservice.integration.core.error.SignServiceIntegrationCategor
 public class InternalSignServiceIntegrationException extends SignServiceIntegrationCategoryException {
 
   /** For serializing. */
+  @Serial
   private static final long serialVersionUID = 6741232250952543045L;
 
   /**
    * Constructor.
    *
-   * @param code
-   *          the error code (within the given category)
-   * @param message
-   *          the error message
+   * @param code the error code (within the given category)
+   * @param message the error message
    */
   public InternalSignServiceIntegrationException(@Nonnull final ErrorCode.Code code, final String message) {
     super(code, message);
@@ -45,14 +46,12 @@ public class InternalSignServiceIntegrationException extends SignServiceIntegrat
   /**
    * Constructor.
    *
-   * @param code
-   *          the error code (within the given category)
-   * @param message
-   *          the error message
-   * @param cause
-   *          the cause of the error
+   * @param code the error code (within the given category)
+   * @param message the error message
+   * @param cause the cause of the error
    */
-  public InternalSignServiceIntegrationException(@Nonnull final ErrorCode.Code code, final String message, final Throwable cause) {
+  public InternalSignServiceIntegrationException(@Nonnull final ErrorCode.Code code, final String message,
+      final Throwable cause) {
     super(code, message, cause);
   }
 

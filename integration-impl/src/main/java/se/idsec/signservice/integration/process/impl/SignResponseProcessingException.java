@@ -18,6 +18,8 @@ package se.idsec.signservice.integration.process.impl;
 import se.idsec.signservice.integration.core.error.ErrorCode;
 import se.idsec.signservice.integration.core.error.SignServiceIntegrationCategoryException;
 
+import java.io.Serial;
+
 /**
  * Exception class for processing errors of a SignResponse message.
  *
@@ -27,15 +29,14 @@ import se.idsec.signservice.integration.core.error.SignServiceIntegrationCategor
 public class SignResponseProcessingException extends SignServiceIntegrationCategoryException {
 
   /** For serializing. */
+  @Serial
   private static final long serialVersionUID = -2040288962905696105L;
 
   /**
    * Constructor.
    *
-   * @param code
-   *          the error code (within the given category)
-   * @param message
-   *          the error message
+   * @param code the error code (within the given category)
+   * @param message the error message
    */
   public SignResponseProcessingException(final ErrorCode.Code code, final String message) {
     super(code, message);
@@ -44,12 +45,9 @@ public class SignResponseProcessingException extends SignServiceIntegrationCateg
   /**
    * Constructor.
    *
-   * @param code
-   *          the error code (within the given category)
-   * @param message
-   *          the error message
-   * @param cause
-   *          the cause of the error
+   * @param code the error code (within the given category)
+   * @param message the error message
+   * @param cause the cause of the error
    */
   public SignResponseProcessingException(final ErrorCode.Code code, final String message, final Throwable cause) {
     super(code, message, cause);

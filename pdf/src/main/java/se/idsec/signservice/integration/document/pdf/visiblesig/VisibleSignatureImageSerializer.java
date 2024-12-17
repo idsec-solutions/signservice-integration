@@ -43,7 +43,7 @@ import se.idsec.signservice.security.sign.pdf.document.VisibleSignatureImage;
 public class VisibleSignatureImageSerializer {
 
   /** JSON object mapper. */
-  private static ObjectMapper objectMapper = new ObjectMapper();
+  private static final ObjectMapper objectMapper = new ObjectMapper();
 
   static {
     VisibleSignatureImageSerializer.objectMapper.setSerializationInclusion(Include.NON_NULL);

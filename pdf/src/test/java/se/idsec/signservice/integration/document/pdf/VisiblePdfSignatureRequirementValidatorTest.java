@@ -15,17 +15,16 @@
  */
 package se.idsec.signservice.integration.document.pdf;
 
-import java.util.Base64;
-
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-
 import se.idsec.signservice.integration.authentication.SignerIdentityAttribute;
 import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
 import se.idsec.signservice.integration.config.impl.DefaultIntegrationServiceConfiguration;
 import se.idsec.signservice.integration.core.FileResource;
 import se.idsec.signservice.integration.core.validation.ValidationResult;
 import se.idsec.signservice.integration.document.impl.VisiblePdfSignatureRequirementValidator;
+
+import java.util.Base64;
 
 /**
  * Test cases for VisiblePdfSignatureRequirementValidator.
@@ -38,61 +37,61 @@ public class VisiblePdfSignatureRequirementValidatorTest {
   private final static String OBJECT_NAME = "visiblePdfSignatureRequirement";
 
   // The validator that we are testing
-  private VisiblePdfSignatureRequirementValidator validator = new VisiblePdfSignatureRequirementValidator();
+  private final VisiblePdfSignatureRequirementValidator validator = new VisiblePdfSignatureRequirementValidator();
 
   // The test configuration
-  private IntegrationServiceConfiguration configuration;
+  private final IntegrationServiceConfiguration configuration;
 
   public VisiblePdfSignatureRequirementValidatorTest() {
     this.configuration =
         DefaultIntegrationServiceConfiguration.builder()
-          .defaultVisiblePdfSignatureRequirement(null)
-          .pdfSignatureImageTemplate(
-            PdfSignatureImageTemplate.builder()
-              .reference("ref1")
-              .svgImageFile(
-                FileResource.builder().contents(
-                  Base64.getEncoder().encodeToString("<svg>DUMMY</svg>".getBytes())).build())
-              .height(100)
-              .width(100)
-              .includeSignerName(false)
-              .includeSigningTime(false)
-              .build())
-          .pdfSignatureImageTemplate(
-            PdfSignatureImageTemplate.builder()
-            .reference("ref2")
-            .svgImageFile(
-              FileResource.builder().contents(
-                Base64.getEncoder().encodeToString("<svg>DUMMY</svg>".getBytes())).build())
-            .height(100)
-            .width(100)
-            .includeSignerName(true)
-            .includeSigningTime(false)
-            .build())
-          .pdfSignatureImageTemplate(
-            PdfSignatureImageTemplate.builder()
-            .reference("ref3")
-            .svgImageFile(
-              FileResource.builder().contents(
-                Base64.getEncoder().encodeToString("<svg>DUMMY</svg>".getBytes())).build())
-            .height(100)
-            .width(100)
-            .includeSignerName(false)
-            .includeSigningTime(false)
-            .field("abc", "abc decription")
-            .build())
-          .build();
+            .defaultVisiblePdfSignatureRequirement(null)
+            .pdfSignatureImageTemplate(
+                PdfSignatureImageTemplate.builder()
+                    .reference("ref1")
+                    .svgImageFile(
+                        FileResource.builder().contents(
+                            Base64.getEncoder().encodeToString("<svg>DUMMY</svg>".getBytes())).build())
+                    .height(100)
+                    .width(100)
+                    .includeSignerName(false)
+                    .includeSigningTime(false)
+                    .build())
+            .pdfSignatureImageTemplate(
+                PdfSignatureImageTemplate.builder()
+                    .reference("ref2")
+                    .svgImageFile(
+                        FileResource.builder().contents(
+                            Base64.getEncoder().encodeToString("<svg>DUMMY</svg>".getBytes())).build())
+                    .height(100)
+                    .width(100)
+                    .includeSignerName(true)
+                    .includeSigningTime(false)
+                    .build())
+            .pdfSignatureImageTemplate(
+                PdfSignatureImageTemplate.builder()
+                    .reference("ref3")
+                    .svgImageFile(
+                        FileResource.builder().contents(
+                            Base64.getEncoder().encodeToString("<svg>DUMMY</svg>".getBytes())).build())
+                    .height(100)
+                    .width(100)
+                    .includeSignerName(false)
+                    .includeSigningTime(false)
+                    .field("abc", "abc decription")
+                    .build())
+            .build();
   }
 
   @Test
-  public void testEmpty() throws Exception {
-    ValidationResult result = this.validator.validate(null, OBJECT_NAME, this.configuration);
+  public void testEmpty() {
+    final ValidationResult result = this.validator.validate(null, OBJECT_NAME, this.configuration);
     Assertions.assertFalse(result.hasErrors());
     Assertions.assertEquals(OBJECT_NAME, result.getObjectName());
   }
 
   @Test
-  public void testTemplateImageRef() throws Exception {
+  public void testTemplateImageRef() {
 
     // Missing template reference
     //
@@ -134,7 +133,7 @@ public class VisiblePdfSignatureRequirementValidatorTest {
   }
 
   @Test
-  public void testPositions() throws Exception {
+  public void testPositions() {
 
     // Missing position
     //
@@ -179,7 +178,7 @@ public class VisiblePdfSignatureRequirementValidatorTest {
   }
 
   @Test
-  public void testSignerName() throws Exception {
+  public void testSignerName() {
 
     // No signer name
     //
@@ -224,9 +223,9 @@ public class VisiblePdfSignatureRequirementValidatorTest {
         .xPosition(100)
         .yPosition(100)
         .signerName(VisiblePdfSignatureRequirement.SignerName.builder()
-          .signerAttribute(
-            SignerIdentityAttribute.createBuilder().name("urn:oid:2.16.840.1.113730.3.1.241").build())
-          .build())
+            .signerAttribute(
+                SignerIdentityAttribute.createBuilder().name("urn:oid:2.16.840.1.113730.3.1.241").build())
+            .build())
         .build();
 
     result = this.validator.validate(req, OBJECT_NAME, this.configuration);
@@ -234,7 +233,7 @@ public class VisiblePdfSignatureRequirementValidatorTest {
   }
 
   @Test
-  public void testFields() throws Exception {
+  public void testFields() {
 
     // Template ref3 requires the field "abc" to be supplied
     //

@@ -15,18 +15,8 @@
  */
 package se.idsec.signservice.integration.dss;
 
-import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-
-import javax.xml.datatype.DatatypeConfigurationException;
-import javax.xml.datatype.DatatypeFactory;
-import javax.xml.datatype.XMLGregorianCalendar;
-
-import org.apache.commons.lang3.StringUtils;
-
 import jakarta.annotation.Nonnull;
+import org.apache.commons.lang3.StringUtils;
 import se.idsec.signservice.integration.authentication.SignerIdentityAttribute;
 import se.idsec.signservice.integration.authentication.SignerIdentityAttributeValue;
 import se.idsec.signservice.integration.certificate.CertificateAttributeMapping;
@@ -40,6 +30,14 @@ import se.swedenconnect.schemas.saml_2_0.assertion.Assertion;
 import se.swedenconnect.schemas.saml_2_0.assertion.Attribute;
 import se.swedenconnect.schemas.saml_2_0.assertion.AttributeStatement;
 import se.swedenconnect.schemas.saml_2_0.assertion.NameIDType;
+
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.XMLGregorianCalendar;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * Utilities for creating DSS elements.
@@ -58,12 +56,11 @@ public class DssUtils {
   /**
    * Creates a NameID object.
    *
-   * @param name
-   *          the name
+   * @param name the name
    * @return the NameID object
    */
   public static NameIDType toEntity(final String name) {
-    NameIDType entity = new NameIDType();
+    final NameIDType entity = new NameIDType();
     entity.setValue(name);
     entity.setFormat("urn:oasis:names:tc:SAML:2.0:nameid-format:entity");
     return entity;
@@ -72,25 +69,22 @@ public class DssUtils {
   /**
    * Given an assertion the {@code AttributeStatement} is extracted.
    *
-   * @param assertion
-   *          the assertion
+   * @param assertion the assertion
    * @return an AttributeStatement
    */
   public static AttributeStatement getAttributeStatement(final Assertion assertion) {
     return assertion.getStatementsAndAuthnStatementsAndAuthzDecisionStatements().stream()
-      .filter(AttributeStatement.class::isInstance)
-      .map(AttributeStatement.class::cast)
-      .findFirst()
-      .orElse(null);
+        .filter(AttributeStatement.class::isInstance)
+        .map(AttributeStatement.class::cast)
+        .findFirst()
+        .orElse(null);
   }
 
   /**
    * Gets a String-attribute value from the given statement.
    *
-   * @param statement
-   *          the statement
-   * @param name
-   *          the attribute name
+   * @param statement the statement
+   * @param name the attribute name
    * @return the value or null if no value is found
    */
   public static String getAttributeValue(final AttributeStatement statement, final String name) {
@@ -100,35 +94,30 @@ public class DssUtils {
   /**
    * Gets an attribute value from the given statement having the given type.
    *
-   * @param statement
-   *          the statement
-   * @param name
-   *          the attribute name
-   * @param type
-   *          the type of the attribute value
+   * @param statement the statement
+   * @param name the attribute name
+   * @param type the type of the attribute value
    * @return the value or null if no value is found
    */
   public static <T> T getAttributeValue(final AttributeStatement statement, final String name, final Class<T> type) {
     return statement.getAttributesAndEncryptedAttributes().stream()
-      .filter(Attribute.class::isInstance)
-      .map(Attribute.class::cast)
-      .filter(a -> Objects.equals(a.getName(), name))
-      .filter(Attribute::isSetAttributeValues)
-      .map(a -> a.getAttributeValues().get(0))
-      .filter(type::isInstance)
-      .map(type::cast)
-      .findFirst()
-      .orElse(null);
+        .filter(Attribute.class::isInstance)
+        .map(Attribute.class::cast)
+        .filter(a -> Objects.equals(a.getName(), name))
+        .filter(Attribute::isSetAttributeValues)
+        .map(a -> a.getAttributeValues().get(0))
+        .filter(type::isInstance)
+        .map(type::cast)
+        .findFirst()
+        .orElse(null);
   }
 
   /**
    * Converts a list of {@link SignerIdentityAttributeValue} objects into a {@code AttributeStatement} element.
    *
-   * @param attributes
-   *          list of attributes
+   * @param attributes list of attributes
    * @return an AttributeStatement element
-   * @throws SignServiceProtocolException
-   *           for encoding/decoding errors
+   * @throws SignServiceProtocolException for encoding/decoding errors
    */
   public static AttributeStatement toAttributeStatement(@Nonnull final List<SignerIdentityAttributeValue> attributes)
       throws SignServiceProtocolException {
@@ -138,13 +127,13 @@ public class DssUtils {
 
       final Attribute attribute = toAttribute(siav);
 
-      // We want to handle multi-valued attributes in both directions ...
+      // We want to handle multivalued attributes in both directions ...
       final Attribute existing = attributeStatement.getAttributesAndEncryptedAttributes().stream()
-        .filter(Attribute.class::isInstance)
-        .map(Attribute.class::cast)
-        .filter(a -> Objects.equals(a.getName(), siav.getName()))
-        .findFirst()
-        .orElse(null);
+          .filter(Attribute.class::isInstance)
+          .map(Attribute.class::cast)
+          .filter(a -> Objects.equals(a.getName(), siav.getName()))
+          .findFirst()
+          .orElse(null);
 
       if (existing != null) {
         existing.getAttributeValues().add(attribute.getAttributeValues().get(0));
@@ -160,22 +149,19 @@ public class DssUtils {
   /**
    * Converts from an {@code AttributeStatement} object to a list of {@code SignerIdentityAttributeValue} objects.
    *
-   * @param attributeStatement
-   *          the statement to convert
+   * @param attributeStatement the statement to convert
    * @return a list of SignerIdentityAttributeValue objects
-   * @throws SignServiceProtocolException
-   *           for unmarshalling errors
    */
-  public static List<SignerIdentityAttributeValue> fromAttributeStatement(@Nonnull final AttributeStatement attributeStatement)
-      throws SignServiceProtocolException {
+  public static List<SignerIdentityAttributeValue> fromAttributeStatement(
+      @Nonnull final AttributeStatement attributeStatement) {
 
     final List<SignerIdentityAttributeValue> list = new ArrayList<>();
 
     attributeStatement.getAttributesAndEncryptedAttributes().stream()
-      .filter(Attribute.class::isInstance)
-      .map(Attribute.class::cast)
-      .map(a -> toSignerIdentityAttributeValue(a))
-      .forEach(av -> list.addAll(av));
+        .filter(Attribute.class::isInstance)
+        .map(Attribute.class::cast)
+        .map(DssUtils::toSignerIdentityAttributeValue)
+        .forEach(list::addAll);
 
     return list;
   }
@@ -183,25 +169,22 @@ public class DssUtils {
   /**
    * Converts a {@link SigningCertificateRequirements} object into a {@code CertRequestProperties} element.
    *
-   * @param certReqs
-   *          signing certificate requirements
-   * @param authnContextClassRefs
-   *          the level of assurance(s)
+   * @param certReqs signing certificate requirements
+   * @param authnContextClassRefs the level of assurance(s)
    * @return a CertRequestProperties elements
-   * @throws SignServiceProtocolException
-   *           for protocol errors
    */
   public static CertRequestProperties toCertRequestProperties(final SigningCertificateRequirements certReqs,
-      final List<String> authnContextClassRefs) throws SignServiceProtocolException {
+      final List<String> authnContextClassRefs) {
 
-    CertRequestProperties crp = (new se.swedenconnect.schemas.csig.dssext_1_1.ObjectFactory()).createCertRequestProperties();
+    final CertRequestProperties crp =
+        (new se.swedenconnect.schemas.csig.dssext_1_1.ObjectFactory()).createCertRequestProperties();
     crp.setCertType(certReqs.getCertificateType().getType());
     crp.getAuthnContextClassRefs().addAll(authnContextClassRefs);
 
     if (certReqs.getAttributeMappings() != null) {
-      RequestedCertAttributes certAttributes = new RequestedCertAttributes();
-      for (CertificateAttributeMapping mapping : certReqs.getAttributeMappings()) {
-        MappedAttributeType certAttr = new MappedAttributeType();
+      final RequestedCertAttributes certAttributes = new RequestedCertAttributes();
+      for (final CertificateAttributeMapping mapping : certReqs.getAttributeMappings()) {
+        final MappedAttributeType certAttr = new MappedAttributeType();
         certAttr.setCertAttributeRef(mapping.getDestination().getName());
         certAttr.setCertNameType(mapping.getDestination().getType());
         if (StringUtils.isNotBlank(mapping.getDestination().getFriendlyName())) {
@@ -210,14 +193,13 @@ public class DssUtils {
         if (StringUtils.isNotBlank(mapping.getDestination().getDefaultValue())) {
           certAttr.setDefaultValue(mapping.getDestination().getDefaultValue());
         }
-        certAttr.setRequired(mapping.getDestination().getRequired() != null
-            ? mapping.getDestination().getRequired().booleanValue()
-            : false);
+        certAttr.setRequired(
+            mapping.getDestination().getRequired() != null && mapping.getDestination().getRequired());
 
         if (mapping.getSources() != null) {
           int order = 0;
-          for (SignerIdentityAttribute sia : mapping.getSources()) {
-            PreferredSAMLAttributeNameType samlAttribute = new PreferredSAMLAttributeNameType();
+          for (final SignerIdentityAttribute sia : mapping.getSources()) {
+            final PreferredSAMLAttributeNameType samlAttribute = new PreferredSAMLAttributeNameType();
             if (mapping.getSources().size() > 1) {
               samlAttribute.setOrder(order++);
             }
@@ -236,17 +218,15 @@ public class DssUtils {
   /**
    * Creates a SAML {@link Attribute} given a {@link SignerIdentityAttributeValue}.
    *
-   * @param value
-   *          the value to transform into an Attribute
+   * @param value the value to transform into an Attribute
    * @return an Attribute
-   * @throws SignServiceProtocolException
-   *           for protocol errors
+   * @throws SignServiceProtocolException for protocol errors
    */
   public static Attribute toAttribute(final SignerIdentityAttributeValue value) throws SignServiceProtocolException {
     if (value.getType() != null && !SignerIdentityAttribute.SAML_TYPE.equalsIgnoreCase(value.getType())) {
       throw new SignServiceProtocolException(
-        String.format("Unsupported attribute type '%s' - Only '%s' is supported",
-          value.getType(), SignerIdentityAttribute.SAML_TYPE));
+          String.format("Unsupported attribute type '%s' - Only '%s' is supported",
+              value.getType(), SignerIdentityAttribute.SAML_TYPE));
     }
     final Attribute attribute = new Attribute();
     attribute.setName(value.getName());
@@ -258,11 +238,9 @@ public class DssUtils {
   /**
    * Given a {@link SignerIdentityAttributeValue} the method extracts its value and converts it to the correct type.
    *
-   * @param siav
-   *          the object to convert
+   * @param siav the object to convert
    * @return the attribute value
-   * @throws SignServiceProtocolException
-   *           for non supported values
+   * @throws SignServiceProtocolException for non supported values
    */
   public static Object toAttributeValue(final SignerIdentityAttributeValue siav) throws SignServiceProtocolException {
     try {
@@ -290,12 +268,12 @@ public class DssUtils {
       }
       else {
         throw new SignServiceProtocolException(String.format("Attribute '%s' has type '%s' - Not supported",
-          siav.getName(), siav.getAttributeValueType()));
+            siav.getName(), siav.getAttributeValueType()));
       }
     }
     catch (final IllegalArgumentException | DatatypeConfigurationException e) {
       throw new SignServiceProtocolException(String.format("Attribute '%s' has type '%s' - could not parse value",
-        siav.getName(), siav.getAttributeValueType()), e);
+          siav.getName(), siav.getAttributeValueType()), e);
     }
   }
 
@@ -305,31 +283,29 @@ public class DssUtils {
    * Note: If the attribute is multi-valued, several {@link SignerIdentityAttributeValue} instances will be created.
    * </p>
    *
-   * @param attribute
-   *          the attribute to convert
+   * @param attribute the attribute to convert
    * @return a list of SignerIdentityAttributeValue objects
    */
   public static List<SignerIdentityAttributeValue> toSignerIdentityAttributeValue(final Attribute attribute) {
-    List<SignerIdentityAttributeValue> result = new ArrayList<>();
+    final List<SignerIdentityAttributeValue> result = new ArrayList<>();
     for (final Object v : attribute.getAttributeValues()) {
       final SignerIdentityAttributeValue siav = new SignerIdentityAttributeValue();
       siav.setType(SignerIdentityAttribute.SAML_TYPE);
       siav.setName(attribute.getName());
       siav.setNameFormat(attribute.getNameFormat());
-      if (String.class.isInstance(v)) {
+      if (v instanceof final String s) {
         siav.setAttributeValueType("string");
-        siav.setValue(String.class.cast(v));
+        siav.setValue(s);
       }
-      else if (Boolean.class.isInstance(v)) {
+      else if (v instanceof final Boolean b) {
         siav.setAttributeValueType("boolean");
-        siav.setValue(Boolean.class.cast(v).toString());
+        siav.setValue(b.toString());
       }
-      else if (BigInteger.class.isInstance(v)) {
+      else if (v instanceof final BigInteger bigInteger) {
         siav.setAttributeValueType("integer");
-        siav.setValue(BigInteger.class.cast(v).toString());
+        siav.setValue(bigInteger.toString());
       }
-      else if (XMLGregorianCalendar.class.isInstance(v)) {
-        final XMLGregorianCalendar t = XMLGregorianCalendar.class.cast(v);
+      else if (v instanceof final XMLGregorianCalendar t) {
         siav.setAttributeValueType(t.getXMLSchemaType().getLocalPart());
         siav.setValue(t.toXMLFormat());
       }

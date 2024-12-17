@@ -15,8 +15,8 @@
  */
 package se.idsec.signservice.integration.authentication.impl;
 
+import jakarta.annotation.Nullable;
 import org.apache.commons.lang3.StringUtils;
-
 import se.idsec.signservice.integration.authentication.AuthnRequirements;
 import se.idsec.signservice.integration.authentication.SignerIdentityAttribute;
 import se.idsec.signservice.integration.authentication.SignerIdentityAttributeValue;
@@ -30,11 +30,12 @@ import se.idsec.signservice.integration.core.validation.ValidationResult;
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
-public class AuthnRequirementsValidator extends AbstractInputValidator<AuthnRequirements, IntegrationServiceConfiguration> {
+public class AuthnRequirementsValidator
+    extends AbstractInputValidator<AuthnRequirements, IntegrationServiceConfiguration> {
 
   /** {@inheritDoc} */
   @Override
-  public ValidationResult validate(final AuthnRequirements object, final String objectName,
+  public ValidationResult validate(final AuthnRequirements object, @Nullable final String objectName,
       final IntegrationServiceConfiguration hint) {
 
     final ValidationResult result = new ValidationResult(objectName);
@@ -42,18 +43,19 @@ public class AuthnRequirementsValidator extends AbstractInputValidator<AuthnRequ
     if ((object == null || StringUtils.isBlank(object.getAuthnServiceID()))
         && StringUtils.isBlank(hint.getDefaultAuthnServiceID())) {
       result.rejectValue("authnServiceID", String.format(
-        "Request does not contain an authnServiceID and policy '%s' has no default value", hint.getPolicy()));
+          "Request does not contain an authnServiceID and policy '%s' has no default value", hint.getPolicy()));
     }
     if ((object == null || object.getAuthnContextClassRefs() == null || object.getAuthnContextClassRefs().isEmpty())
         && StringUtils.isBlank(hint.getDefaultAuthnContextRef())) {
       result.rejectValue("authnContextClassRefs", String.format(
-        "Request does not contain an authnContextClassRef and policy '%s' has no default value", hint.getPolicy()));
+          "Request does not contain an authnContextClassRef and policy '%s' has no default value", hint.getPolicy()));
     }
     if (object != null && object.getRequestedSignerAttributes() != null) {
       int pos = 0;
-      for (SignerIdentityAttributeValue a : object.getRequestedSignerAttributes()) {
+      for (final SignerIdentityAttributeValue a : object.getRequestedSignerAttributes()) {
         if (a.getType() != null && !SignerIdentityAttribute.SAML_TYPE.equalsIgnoreCase(a.getType())) {
-          result.rejectValue("requestedSignerAttributes[" + pos + "].type", "The only supported attribute type is 'saml'");
+          result.rejectValue("requestedSignerAttributes[" + pos + "].type",
+              "The only supported attribute type is 'saml'");
         }
         if (StringUtils.isBlank(a.getName())) {
           result.rejectValue("requestedSignerAttributes[" + pos + "].name", "Missing attribute name");

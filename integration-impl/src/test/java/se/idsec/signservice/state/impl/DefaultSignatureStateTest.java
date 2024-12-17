@@ -15,25 +15,22 @@
  */
 package se.idsec.signservice.state.impl;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
-import java.lang.reflect.Field;
-import java.util.Arrays;
-import java.util.List;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.junit.jupiter.api.Test;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import se.idsec.signservice.integration.SignRequestInput;
-import se.idsec.signservice.integration.SignServiceIntegrationService;
 import se.idsec.signservice.integration.authentication.AuthnRequirements;
 import se.idsec.signservice.integration.certificate.SigningCertificateRequirements;
 import se.idsec.signservice.integration.core.Extension;
 import se.idsec.signservice.integration.signmessage.SignMessageParameters;
 import se.idsec.signservice.integration.state.SignatureSessionState;
 import se.idsec.signservice.integration.state.impl.DefaultSignatureState;
+
+import java.lang.reflect.Field;
+import java.util.Arrays;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class DefaultSignatureStateTest {
 
@@ -48,7 +45,6 @@ public class DefaultSignatureStateTest {
     final DefaultSignatureState deserializedSignatureState = this.objectMapper.readValue(jsonString,
         DefaultSignatureState.class);
     assertEquals(signatureState.getId(), deserializedSignatureState.getId());
-    assertEquals(signatureState.getOwnerId(), deserializedSignatureState.getOwnerId());
 
     // Why no an simple assertEquals - all objects in the SignatureSessionState graph
     // would then have to implement equals, hashcode, and currently, they don't
@@ -57,29 +53,29 @@ public class DefaultSignatureStateTest {
     // (not expanding on this reflection test, but aim to remove any such need)
     final Field[] allFields = FieldUtils.getAllFields(SignatureSessionState.class);
     Arrays.stream(allFields).forEach(field -> {
-      field.setAccessible(true);
-      switch (field.getName()) {
-      case "correlationId":
-        break;
-      case "policy":
-        this.assertField(field, deserializedSignatureState, signatureState);
-        break;
-      case "expectedReturnUrl":
-        this.assertField(field, deserializedSignatureState, signatureState);
-        break;
-      case "tbsDocuments":
-        this.assertField(field, deserializedSignatureState, signatureState);
-        break;
-      case "signRequest":
-        this.assertField(field, deserializedSignatureState, signatureState);
-        break;
-      case "encodedSignRequest":
-        this.assertField(field, deserializedSignatureState, signatureState);
-        break;
-      default:
-        System.out.println("unknown");
-      }
-    }
+          field.setAccessible(true);
+          switch (field.getName()) {
+          case "correlationId":
+            break;
+          case "policy":
+            this.assertField(field, deserializedSignatureState, signatureState);
+            break;
+          case "expectedReturnUrl":
+            this.assertField(field, deserializedSignatureState, signatureState);
+            break;
+          case "tbsDocuments":
+            this.assertField(field, deserializedSignatureState, signatureState);
+            break;
+          case "signRequest":
+            this.assertField(field, deserializedSignatureState, signatureState);
+            break;
+          case "encodedSignRequest":
+            this.assertField(field, deserializedSignatureState, signatureState);
+            break;
+          default:
+            System.out.println("unknown");
+          }
+        }
 
     );
   }
@@ -114,7 +110,7 @@ public class DefaultSignatureStateTest {
     requestInput.setTbsDocuments(List.of());
 
     final SignatureSessionState sessionState = SignatureSessionState.builder()
-        .ownerId(requestInput.getExtensionValue(SignServiceIntegrationService.OWNER_ID_EXTENSION_KEY))
+        .ownerId("owner")
         .correlationId(requestInput.getCorrelationId())
         .policy(requestInput.getPolicy())
         .expectedReturnUrl(requestInput.getReturnUrl())

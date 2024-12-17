@@ -15,8 +15,8 @@
  */
 package se.idsec.signservice.integration.process.impl;
 
+import jakarta.annotation.Nullable;
 import org.apache.commons.lang3.StringUtils;
-
 import se.idsec.signservice.integration.SignRequestInput;
 import se.idsec.signservice.integration.authentication.impl.AuthnRequirementsValidator;
 import se.idsec.signservice.integration.certificate.impl.SigningCertificateRequirementsValidator;
@@ -47,7 +47,7 @@ public class SignRequestInputValidator
   /** {@inheritDoc} */
   @Override
   public ValidationResult validate(
-      final SignRequestInput object, final String objectName, final IntegrationServiceConfiguration hint) {
+      final SignRequestInput object, @Nullable final String objectName, final IntegrationServiceConfiguration hint) {
 
     final ValidationResult result = new ValidationResult("signRequestInput");
     if (object == null) {

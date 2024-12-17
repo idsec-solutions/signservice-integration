@@ -15,25 +15,25 @@
  */
 package se.idsec.signservice.integration.app.rest;
 
-import java.util.Base64;
-import java.util.List;
-
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.http.HttpEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
-
-import lombok.Setter;
-import lombok.extern.slf4j.Slf4j;
 import se.idsec.signservice.integration.ExtendedSignServiceIntegrationService;
 import se.idsec.signservice.integration.ProcessSignResponseInput;
 import se.idsec.signservice.integration.SignRequestData;
 import se.idsec.signservice.integration.SignRequestInput;
-import se.idsec.signservice.integration.SignResponseCancelStatusException;
 import se.idsec.signservice.integration.SignResponseErrorStatusException;
 import se.idsec.signservice.integration.SignResponseProcessingParameters;
 import se.idsec.signservice.integration.SignServiceIntegrationService;
@@ -41,13 +41,14 @@ import se.idsec.signservice.integration.SignatureResult;
 import se.idsec.signservice.integration.config.IntegrationServiceDefaultConfiguration;
 import se.idsec.signservice.integration.config.PolicyNotFoundException;
 import se.idsec.signservice.integration.core.SignatureState;
-import se.idsec.signservice.integration.core.error.InputValidationException;
 import se.idsec.signservice.integration.core.error.SignServiceIntegrationException;
 import se.idsec.signservice.integration.core.error.impl.SignServiceIntegrationErrorUtils;
-import se.idsec.signservice.integration.document.pdf.PdfSignaturePageFullException;
 import se.idsec.signservice.integration.document.pdf.PdfSignaturePagePreferences;
 import se.idsec.signservice.integration.document.pdf.PreparePdfSignaturePageInput;
 import se.idsec.signservice.integration.document.pdf.PreparedPdfDocument;
+
+import java.util.Base64;
+import java.util.List;
 
 /**
  * An implementation of the {@link SignServiceIntegrationService} that implements its methods by invoking the
@@ -75,123 +76,115 @@ public class RestClientSignServiceIntegrationService implements ExtendedSignServ
   private String policyName;
 
   /** {@inheritDoc} */
+  @Nonnull
   @Override
-  public SignRequestData createSignRequest(final SignRequestInput signRequestInput)
-      throws InputValidationException, SignServiceIntegrationException {
+  public SignRequestData createSignRequest(@Nonnull final SignRequestInput signRequestInput,
+      @Nullable final String callerId) throws SignServiceIntegrationException {
 
     final String policy = signRequestInput.getPolicy() != null ? signRequestInput.getPolicy() : this.policyName;
 
     try {
       final SignRequestData signRequestData =
-          this.restTemplate.postForObject(this.restServerUrl + "/v1/create/{policy}", signRequestInput, SignRequestData.class, policy);
+          this.restTemplate.postForObject(this.restServerUrl + "/v1/create/{policy}", signRequestInput,
+              SignRequestData.class, policy);
 
       log.debug("SignRequestData: {}", signRequestData);
 
       return signRequestData;
     }
-    catch (RestClientException e) {
-      if (e instanceof HttpClientErrorException) {
-        final String errorBody = ((HttpClientErrorException) e).getResponseBodyAsString();
-        final Exception ex = SignServiceIntegrationErrorUtils.toException(errorBody);
-        log.error("Error creating sign request", e);
-        if (InputValidationException.class.isInstance(ex)) {
-          throw InputValidationException.class.cast(ex);
+    catch (final RestClientException e) {
+      log.error("Error creating sign request", e);
+      if (e instanceof final HttpClientErrorException httpClientErrorException) {
+        try {
+          SignServiceIntegrationErrorUtils.throwSignServiceException(
+              httpClientErrorException.getResponseBodyAsString());
         }
-        else if (SignServiceIntegrationException.class.isInstance(ex)) {
-          throw SignServiceIntegrationException.class.cast(ex);
+        catch (final SignResponseErrorStatusException impossible) {
+          throw new RuntimeException(impossible);
         }
       }
-      log.error("Error creating sign request", e);
       throw e;
     }
   }
 
   /** {@inheritDoc} */
+  @Nonnull
   @Override
-  public SignatureResult processSignResponse(final String signResponse, final String relayState,
-      final SignatureState state, final SignResponseProcessingParameters parameters)
-      throws SignResponseCancelStatusException, SignResponseErrorStatusException, SignServiceIntegrationException {
+  public SignatureResult processSignResponse(@Nonnull final String signResponse, @Nonnull final String relayState,
+      @Nonnull final SignatureState state, @Nullable final SignResponseProcessingParameters parameters,
+      @Nullable final String callerId) throws SignResponseErrorStatusException, SignServiceIntegrationException {
 
     final ProcessSignResponseInput input = ProcessSignResponseInput.builder()
-      .signResponse(signResponse)
-      .relayState(relayState)
-      .state(state)
-      .parameters(parameters)
-      .build();
+        .signResponse(signResponse)
+        .relayState(relayState)
+        .state(state)
+        .parameters(parameters)
+        .build();
 
     try {
-      final SignatureResult result =
-          this.restTemplate.postForObject(this.restServerUrl + "/v1/process", input, SignatureResult.class);
-      return result;
+      return this.restTemplate.postForObject(this.restServerUrl + "/v1/process", input, SignatureResult.class);
     }
-    catch (RestClientException e) {
-      if (e instanceof HttpClientErrorException) {
-        final String errorBody = ((HttpClientErrorException) e).getResponseBodyAsString();
-        final Exception ex = SignServiceIntegrationErrorUtils.toException(errorBody);
-        if (InputValidationException.class.isInstance(ex)) {
-          throw InputValidationException.class.cast(ex);
-        }
-        else if (SignResponseCancelStatusException.class.isInstance(ex)) {
-          throw SignResponseCancelStatusException.class.cast(ex);
-        }
-        else if (SignResponseErrorStatusException.class.isInstance(ex)) {
-          throw SignResponseErrorStatusException.class.cast(ex);
-        }
-        else if (SignServiceIntegrationException.class.isInstance(ex)) {
-          throw SignServiceIntegrationException.class.cast(ex);
-        }
+    catch (final RestClientException e) {
+      if (e instanceof final HttpClientErrorException httpClientErrorException) {
+        SignServiceIntegrationErrorUtils.throwSignServiceException(httpClientErrorException.getResponseBodyAsString());
       }
       throw e;
     }
   }
 
   @Override
-  public PreparedPdfDocument preparePdfSignaturePage(final String policy, final byte[] pdfDocument,
-      final PdfSignaturePagePreferences signaturePagePreferences)
-      throws InputValidationException, PdfSignaturePageFullException, SignServiceIntegrationException {
+  public PreparedPdfDocument preparePdfDocument(@Nullable final String policy, @Nonnull final byte[] pdfDocument,
+      @Nullable final PdfSignaturePagePreferences signaturePagePreferences,
+      @Nullable final Boolean returnDocumentReference, @Nullable final String callerId)
+      throws SignServiceIntegrationException {
 
     final PreparePdfSignaturePageInput input = PreparePdfSignaturePageInput.builder()
-      .pdfDocument(Base64.getEncoder().encodeToString(pdfDocument))
-      .signaturePagePreferences(signaturePagePreferences)
-      .build();
+        .pdfDocument(Base64.getEncoder().encodeToString(pdfDocument))
+        .signaturePagePreferences(signaturePagePreferences)
+        .build();
 
     try {
-      final PreparedPdfDocument result = this.restTemplate.postForObject(
-        this.restServerUrl + "/v1/prepare/{policy}", input, PreparedPdfDocument.class, policy);
-      return result;
+      final MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+      if (returnDocumentReference != null) {
+        headers.add("returnDocReference", returnDocumentReference.toString());
+      }
+      final HttpEntity<PreparePdfSignaturePageInput> request = new HttpEntity<>(input, headers);
+      return this.restTemplate.postForObject(
+          this.restServerUrl + "/v1/prepare/{policy}", request, PreparedPdfDocument.class, policy);
     }
-    catch (RestClientException e) {
-      if (e instanceof HttpClientErrorException) {
-        final String errorBody = ((HttpClientErrorException) e).getResponseBodyAsString();
-        final Exception ex = SignServiceIntegrationErrorUtils.toException(errorBody);
-        if (InputValidationException.class.isInstance(ex)) {
-          throw InputValidationException.class.cast(ex);
+    catch (final RestClientException e) {
+      if (e instanceof final HttpClientErrorException httpClientErrorException) {
+        try {
+          SignServiceIntegrationErrorUtils.throwSignServiceException(
+              httpClientErrorException.getResponseBodyAsString());
         }
-        else if (PdfSignaturePageFullException.class.isInstance(ex)) {
-          throw PdfSignaturePageFullException.class.cast(ex);
-        }
-        else if (SignServiceIntegrationException.class.isInstance(ex)) {
-          throw SignServiceIntegrationException.class.cast(ex);
+        catch (final SignResponseErrorStatusException statusException) {
+          // Should never happen ...
+          throw new RuntimeException(statusException);
         }
       }
       throw e;
     }
   }
 
+  @Nonnull
   @Override
-  public IntegrationServiceDefaultConfiguration getConfiguration(final String policy) throws PolicyNotFoundException {
-    return null;
+  public IntegrationServiceDefaultConfiguration getConfiguration(@Nullable final String policy)
+      throws PolicyNotFoundException {
+    throw new RuntimeException("Not implemented yet");
   }
 
+  @Nonnull
   @Override
   public List<String> getPolicies() {
-    return null;
+    throw new RuntimeException("Not implemented yet");
   }
 
   /** {@inheritDoc} */
+  @Nonnull
   @Override
   public String getVersion() {
-    return null;
+    throw new RuntimeException("Not implemented yet");
   }
 
 }

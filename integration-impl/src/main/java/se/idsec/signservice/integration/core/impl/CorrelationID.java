@@ -15,11 +15,11 @@
  */
 package se.idsec.signservice.integration.core.impl;
 
-import java.util.UUID;
-
 import jakarta.annotation.Nullable;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.util.UUID;
 
 /**
  * Singleton that holds a correlation ID in TLS.
@@ -35,12 +35,7 @@ public class CorrelationID {
   private String correlationID;
 
   /** The ThreadLocal ... */
-  private final static ThreadLocal<CorrelationID> THREAD_LOCAL = new ThreadLocal<CorrelationID>() {
-    @Override
-    protected CorrelationID initialValue() {
-      return new CorrelationID();
-    }
-  };
+  private final static ThreadLocal<CorrelationID> THREAD_LOCAL = ThreadLocal.withInitial(CorrelationID::new);
 
   /**
    * Is called to initialize the correlation ID. If no correlation ID is assigned, a random value will be inserted.
