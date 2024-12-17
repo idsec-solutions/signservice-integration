@@ -228,8 +228,4 @@ illustrates how our application processes a SignResponse message being received.
 
 ---
 
-Copyright &copy; 2019-2022, [IDsec Solutions AB](http://www.idsec.se). Licensed under version 2.0 of the [Apache License](http://www.apache.org/licenses/LICENSE-2.0).
-
-
-
-
+Copyright &copy; 2019-2024, [IDsec Solutions AB](http://www.idsec.se). Licensed under version 2.0 of the [Apache License](http://www.apache.org/licenses/LICENSE-2.0).
