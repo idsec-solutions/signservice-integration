@@ -179,18 +179,18 @@ public class XadesQualifyingProperties implements AdesObject {
           != null) {
         final SigningCertificateV2 signingCert =
             this.qualifyingProperties.getSignedProperties().getSignedSignatureProperties().getSigningCertificateV2();
-        if (!signingCert.getCerts().isEmpty() && signingCert.getCerts().getFirst().getCertDigest() != null) {
-          digest = signingCert.getCerts().getFirst().getCertDigest();
+        if (!signingCert.getCerts().isEmpty() && signingCert.getCerts().get(0).getCertDigest() != null) {
+          digest = signingCert.getCerts().get(0).getCertDigest();
         }
       }
       else if (this.qualifyingProperties.getSignedProperties().getSignedSignatureProperties().getSigningCertificate()
           != null) {
         final SigningCertificate signingCert =
             this.qualifyingProperties.getSignedProperties().getSignedSignatureProperties().getSigningCertificate();
-        if (!signingCert.getCerts().isEmpty() && signingCert.getCerts().getFirst().getCertDigest() != null) {
+        if (!signingCert.getCerts().isEmpty() && signingCert.getCerts().get(0).getCertDigest() != null) {
           log.warn("{}: XAdES object contains <xades:SigningCertificate>. Should be <xades:SigningCertificateV2>",
               CorrelationID.id());
-          digest = signingCert.getCerts().getFirst().getCertDigest();
+          digest = signingCert.getCerts().get(0).getCertDigest();
         }
       }
       if (digest != null) {

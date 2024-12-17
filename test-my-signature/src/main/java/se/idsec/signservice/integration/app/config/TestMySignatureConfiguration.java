@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 IDsec Solutions AB
+ * Copyright 2019-2024 IDsec Solutions AB
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import org.springframework.context.annotation.Configuration;
 
 /**
  * Configuration class for app settings.
- * 
+ *
  * @author Martin Lindström (martin@idsec.se)
  * @author Stefan Santesson (stefan@idsec.se)
  */
@@ -30,22 +30,19 @@ public class TestMySignatureConfiguration {
 
   /**
    * Gets the bean representing the base URL for the signature integration client.
-   * 
-   * @param contextPath
-   *          the context path
-   * @param baseUri
-   *          the base URI for the application
-   * @param serverPort
-   *          the server port
+   *
+   * @param contextPath the context path
+   * @param baseUri the base URI for the application
+   * @param serverPort the server port
    * @return the base URL
    */
   @Bean("signIntegrationBaseUrl")
   public String signIntegrationBaseUrl(
-      @Value("${server.servlet.context-path}") String contextPath,
-      @Value("${sp.base-uri}") String baseUri,
-      @Value("${server.port}") int serverPort) {
+      @Value("${server.servlet.context-path}") final String contextPath,
+      @Value("${sp.base-uri}") final String baseUri,
+      @Value("${server.port}") final int serverPort) {
 
-    StringBuffer sb = new StringBuffer(baseUri);
+    final StringBuilder sb = new StringBuilder(baseUri);
     if (serverPort != 443) {
       sb.append(":").append(serverPort);
     }
@@ -54,17 +51,16 @@ public class TestMySignatureConfiguration {
     }
     return sb.toString();
   }
-  
+
   @Bean("debugReturnUrl")
-  public String debugReturnUrl(@Value("${server.servlet.context-path}") final String contextPath, 
+  public String debugReturnUrl(@Value("${server.servlet.context-path}") final String contextPath,
       @Value("${sp.debug-base-uri:}") final String debugBaseUri) {
     return String.format("%s%s/sign/response", debugBaseUri.trim(), contextPath.equals("/") ? "" : contextPath);
   }
-  
+
   @Bean("signRequesterId")
   public String signRequesterId(@Value("${sp.entity-id}") final String signRequesterId) {
     return signRequesterId;
   }
-
 
 }

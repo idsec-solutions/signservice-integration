@@ -215,7 +215,7 @@ public class BasicMetadataPDFAConformanceChecker implements PDFAConformanceCheck
 
   private ElementData getFirstContent(final String fullElementName, final String data) {
     final List<ElementData> contentList = this.getContent(fullElementName, data);
-    return contentList.isEmpty() ? null : contentList.getFirst();
+    return contentList.isEmpty() ? null : contentList.get(0);
   }
 
   private List<ElementData> getContent(final String fullElementName, final String dataFragment) {

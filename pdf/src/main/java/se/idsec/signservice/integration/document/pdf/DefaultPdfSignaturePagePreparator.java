@@ -330,7 +330,7 @@ public class DefaultPdfSignaturePagePreparator implements PdfSignaturePagePrepar
       //
       if (signaturePagePreferences.getSignaturePageReference() == null
           && signaturePagePreferences.getSignaturePage() == null) {
-        signaturePagePreferences.setSignaturePage(policyConfiguration.getPdfSignaturePages().getFirst());
+        signaturePagePreferences.setSignaturePage(policyConfiguration.getPdfSignaturePages().get(0));
         log.debug("Using default PdfSignaturePage ({}) for policy '{}'",
             signaturePagePreferences.getSignaturePage().getId(), policyConfiguration.getPolicy());
       }

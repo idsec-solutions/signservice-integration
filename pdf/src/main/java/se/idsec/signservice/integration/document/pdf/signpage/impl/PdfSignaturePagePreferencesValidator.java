@@ -56,7 +56,7 @@ public class PdfSignaturePagePreferencesValidator
     if (object.getSignaturePageReference() == null && object.getSignaturePage() == null) {
       // OK, see if we have one in the configuration.
       if (hint.getPdfSignaturePages() != null && !hint.getPdfSignaturePages().isEmpty()) {
-        page = hint.getPdfSignaturePages().getFirst();
+        page = hint.getPdfSignaturePages().get(0);
       }
       if (page == null) {
         result.reject("No signaturePageReference or signaturePage given, and no default page found in config.");

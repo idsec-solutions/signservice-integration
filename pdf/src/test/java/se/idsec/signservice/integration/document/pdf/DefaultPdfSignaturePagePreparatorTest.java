@@ -191,8 +191,8 @@ public class DefaultPdfSignaturePagePreparatorTest {
     Assertions.assertEquals(prefs.getVisiblePdfSignatureUserInformation().getSignerName().getSignerAttributes().size(),
         reqs.getSignerName().getSignerAttributes().size());
     Assertions.assertEquals(
-        prefs.getVisiblePdfSignatureUserInformation().getSignerName().getSignerAttributes().getFirst().getName(),
-        reqs.getSignerName().getSignerAttributes().getFirst().getName());
+        prefs.getVisiblePdfSignatureUserInformation().getSignerName().getSignerAttributes().get(0).getName(),
+        reqs.getSignerName().getSignerAttributes().get(0).getName());
     Assertions.assertEquals(prefs.getVisiblePdfSignatureUserInformation().getSignerName().getFormatting(),
         reqs.getSignerName()
             .getFormatting());
@@ -230,8 +230,8 @@ public class DefaultPdfSignaturePagePreparatorTest {
     Assertions.assertEquals(prefs.getVisiblePdfSignatureUserInformation().getSignerName().getSignerAttributes().size(),
         reqs.getSignerName().getSignerAttributes().size());
     Assertions.assertEquals(
-        prefs.getVisiblePdfSignatureUserInformation().getSignerName().getSignerAttributes().getFirst().getName(),
-        reqs.getSignerName().getSignerAttributes().getFirst().getName());
+        prefs.getVisiblePdfSignatureUserInformation().getSignerName().getSignerAttributes().get(0).getName(),
+        reqs.getSignerName().getSignerAttributes().get(0).getName());
     Assertions.assertEquals(prefs.getVisiblePdfSignatureUserInformation().getSignerName().getFormatting(),
         reqs.getSignerName()
             .getFormatting());
@@ -268,8 +268,8 @@ public class DefaultPdfSignaturePagePreparatorTest {
     Assertions.assertEquals(prefs.getVisiblePdfSignatureUserInformation().getSignerName().getSignerAttributes().size(),
         reqs.getSignerName().getSignerAttributes().size());
     Assertions.assertEquals(
-        prefs.getVisiblePdfSignatureUserInformation().getSignerName().getSignerAttributes().getFirst().getName(),
-        reqs.getSignerName().getSignerAttributes().getFirst().getName());
+        prefs.getVisiblePdfSignatureUserInformation().getSignerName().getSignerAttributes().get(0).getName(),
+        reqs.getSignerName().getSignerAttributes().get(0).getName());
     Assertions.assertEquals(prefs.getVisiblePdfSignatureUserInformation().getSignerName().getFormatting(),
         reqs.getSignerName()
             .getFormatting());
@@ -295,8 +295,8 @@ public class DefaultPdfSignaturePagePreparatorTest {
     Assertions.assertEquals(prefs.getVisiblePdfSignatureUserInformation().getSignerName().getSignerAttributes().size(),
         reqs.getSignerName().getSignerAttributes().size());
     Assertions.assertEquals(
-        prefs.getVisiblePdfSignatureUserInformation().getSignerName().getSignerAttributes().getFirst().getName(),
-        reqs.getSignerName().getSignerAttributes().getFirst().getName());
+        prefs.getVisiblePdfSignatureUserInformation().getSignerName().getSignerAttributes().get(0).getName(),
+        reqs.getSignerName().getSignerAttributes().get(0).getName());
     Assertions.assertEquals(prefs.getVisiblePdfSignatureUserInformation().getSignerName().getFormatting(),
         reqs.getSignerName()
             .getFormatting());

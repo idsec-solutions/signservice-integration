@@ -80,11 +80,11 @@ public class EncryptionConfigurationWrapper implements EncryptionConfiguration {
       final int index =
           _dataEncryptionAlgorithms.indexOf(this.defaultEncryptionParameters.getDataEncryptionAlgorithm());
       if (index < 0) {
-        _dataEncryptionAlgorithms.addFirst(this.defaultEncryptionParameters.getDataEncryptionAlgorithm());
+        _dataEncryptionAlgorithms.add(0, this.defaultEncryptionParameters.getDataEncryptionAlgorithm());
       }
       else if (index > 0) {
         _dataEncryptionAlgorithms.remove(index);
-        _dataEncryptionAlgorithms.addFirst(this.defaultEncryptionParameters.getDataEncryptionAlgorithm());
+        _dataEncryptionAlgorithms.add(0, this.defaultEncryptionParameters.getDataEncryptionAlgorithm());
       }
       this.dataEncryptionAlgorithms = _dataEncryptionAlgorithms;
     }
@@ -108,13 +108,13 @@ public class EncryptionConfigurationWrapper implements EncryptionConfiguration {
       final int index = _keyTransportEncryptionAlgorithms
           .indexOf(this.defaultEncryptionParameters.getKeyTransportEncryptionAlgorithm());
       if (index < 0) {
-        _keyTransportEncryptionAlgorithms.addFirst(
-            this.defaultEncryptionParameters.getKeyTransportEncryptionAlgorithm());
+        _keyTransportEncryptionAlgorithms.add(
+            0, this.defaultEncryptionParameters.getKeyTransportEncryptionAlgorithm());
       }
       else if (index > 0) {
         _keyTransportEncryptionAlgorithms.remove(index);
-        _keyTransportEncryptionAlgorithms.addFirst(
-            this.defaultEncryptionParameters.getKeyTransportEncryptionAlgorithm());
+        _keyTransportEncryptionAlgorithms.add(
+            0, this.defaultEncryptionParameters.getKeyTransportEncryptionAlgorithm());
       }
       this.keyTransportEncryptionAlgorithms = _keyTransportEncryptionAlgorithms;
     }

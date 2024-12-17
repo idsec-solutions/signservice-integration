@@ -105,7 +105,7 @@ public class DssUtils {
         .map(Attribute.class::cast)
         .filter(a -> Objects.equals(a.getName(), name))
         .filter(Attribute::isSetAttributeValues)
-        .map(a -> a.getAttributeValues().getFirst())
+        .map(a -> a.getAttributeValues().get(0))
         .filter(type::isInstance)
         .map(type::cast)
         .findFirst()
@@ -136,7 +136,7 @@ public class DssUtils {
           .orElse(null);
 
       if (existing != null) {
-        existing.getAttributeValues().add(attribute.getAttributeValues().getFirst());
+        existing.getAttributeValues().add(attribute.getAttributeValues().get(0));
       }
       else {
         attributeStatement.getAttributesAndEncryptedAttributes().add(attribute);
@@ -293,26 +293,25 @@ public class DssUtils {
       siav.setType(SignerIdentityAttribute.SAML_TYPE);
       siav.setName(attribute.getName());
       siav.setNameFormat(attribute.getNameFormat());
-      switch (v) {
-      case final String s -> {
+      if (v instanceof final String s) {
         siav.setAttributeValueType("string");
         siav.setValue(s);
       }
-      case final Boolean b -> {
+      else if (v instanceof final Boolean b) {
         siav.setAttributeValueType("boolean");
         siav.setValue(b.toString());
       }
-      case final BigInteger bigInteger -> {
+      else if (v instanceof final BigInteger bigInteger) {
         siav.setAttributeValueType("integer");
         siav.setValue(bigInteger.toString());
       }
-      case final XMLGregorianCalendar t -> {
+      else if (v instanceof final XMLGregorianCalendar t) {
         siav.setAttributeValueType(t.getXMLSchemaType().getLocalPart());
         siav.setValue(t.toXMLFormat());
       }
-      case null, default ->
+      else {
         // Hmm ...
-          siav.setValue(v.toString());
+        siav.setValue(v.toString());
       }
       result.add(siav);
     }

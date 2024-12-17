@@ -151,7 +151,7 @@ public class DefaultSignerAssertionInfoProcessor implements SignerAssertionInfoP
         // If strict processing is turned off, and we only got one assertion we trust that the SignService
         // included the assertion that corresponds to AssertionRef.
         //
-        idpAssertion = signerAssertionInfo.getSamlAssertions().getAssertions().getFirst();
+        idpAssertion = signerAssertionInfo.getSamlAssertions().getAssertions().get(0);
         builder.assertion(Base64.getEncoder().encodeToString(idpAssertion));
       }
       // Find the assertion matching the AssertionRef ...

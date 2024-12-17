@@ -1,0 +1,22 @@
+server:
+  port: 9445
+  servlet:
+    context-path: /testmyeid
+    session:
+      cookie:
+        domain: localhost
+signservice:
+  config:
+    default-destination-url: https://localhost:8443/sign/testmysignature/signreq
+    default-sign-requester-id: ${sp.entity-id}
+    default-signature-algorithm: http://www.w3.org/2001/04/xmldsig-more#rsa-sha256
+    policy: localhost
+    sign-service-certificates:
+      - classpath:localhost-signservice/signservice.crt
+    sign-service-id: https://localhost.swedenconnect.se/signservice
+    trust-anchors:
+      - classpath:localhost-signservice/test-ca.crt
+  default-policy-name: localhost
+sp:
+  base-uri: https://eid.idsec.se
+  debug-base-uri: https://localhost:9445

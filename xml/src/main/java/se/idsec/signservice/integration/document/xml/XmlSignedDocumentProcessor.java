@@ -199,7 +199,7 @@ public class XmlSignedDocumentProcessor extends AbstractSignedDocumentProcessor<
     final DefaultXMLSignatureValidator validator = new DefaultXMLSignatureValidator(signerCertificate);
 
     try {
-      final SignatureValidationResult result = validator.validate(signedDocument, signatureLocation).getFirst();
+      final SignatureValidationResult result = validator.validate(signedDocument, signatureLocation).get(0);
       if (!result.isSuccess()) {
         final String msg = String.format("Signature validation failed for sign task '%s' - %s - %s [request-id='%s']",
             signTaskData.getSignTaskId(), result.getStatus(), result.getStatusMessage(), requestID);

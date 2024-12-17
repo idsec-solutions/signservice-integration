@@ -226,7 +226,7 @@ public class PdfSignedDocumentProcessor extends AbstractSignedDocumentProcessor<
 
       // We are mainly interested in the last signature (since that is the signature we actually verify) ...
       //
-      final SignatureValidationResult result = allResults.getLast();
+      final SignatureValidationResult result = allResults.get(allResults.size() - 1);
 
       if (!result.isSuccess()) {
         final String msg = String.format("Signature validation failed for sign task '%s' - %s - %s [request-id='%s']",

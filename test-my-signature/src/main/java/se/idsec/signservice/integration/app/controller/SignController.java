@@ -15,14 +15,11 @@
  */
 package se.idsec.signservice.integration.app.controller;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.Comparator;
-import java.util.List;
-import java.util.UUID;
-import java.util.stream.Collectors;
-
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -35,12 +32,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
-
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
-import lombok.Setter;
-import lombok.extern.slf4j.Slf4j;
 import se.idsec.signservice.integration.ExtendedSignServiceIntegrationService;
 import se.idsec.signservice.integration.SignRequestData;
 import se.idsec.signservice.integration.SignRequestInput;
@@ -73,6 +64,14 @@ import se.swedenconnect.eid.sp.model.LastAuthentication;
 import se.swedenconnect.eid.sp.saml.TestMyEidAuthnRequestGeneratorContext;
 import se.swedenconnect.opensaml.sweid.saml2.attribute.AttributeConstants;
 import se.swedenconnect.opensaml.sweid.saml2.authn.LevelOfAssuranceUris;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.Comparator;
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * Controller for sign service integration.
@@ -122,7 +121,8 @@ public class SignController extends BaseController {
   private String policyName;
 
   @RequestMapping("/request")
-  public ModelAndView sendSignRequest(final HttpServletRequest request, final HttpServletResponse response) throws ApplicationException {
+  public ModelAndView sendSignRequest(final HttpServletRequest request, final HttpServletResponse response)
+      throws ApplicationException {
 
     log.debug("Request for generating an SignRequest [client-ip-address='{}']", request.getRemoteAddr());
 
@@ -140,7 +140,8 @@ public class SignController extends BaseController {
 
       final List<SignerIdentityAttributeValue> requestedAttributes = new ArrayList<>();
       final String[][] attrs = new String[][] {
-          { AttributeConstants.ATTRIBUTE_NAME_PERSONAL_IDENTITY_NUMBER, lastAuthentication.getPersonalIdentityNumber() },
+          { AttributeConstants.ATTRIBUTE_NAME_PERSONAL_IDENTITY_NUMBER,
+              lastAuthentication.getPersonalIdentityNumber() },
           { AttributeConstants.ATTRIBUTE_NAME_PRID, lastAuthentication.getPrid() },
           { AttributeConstants.ATTRIBUTE_NAME_GIVEN_NAME, givenName },
           { AttributeConstants.ATTRIBUTE_NAME_SN, lastAuthentication.getSurName() },
@@ -154,62 +155,64 @@ public class SignController extends BaseController {
       }
 
       final PreparedPdfDocument preparedPdfDocument = DocumentType.PDF.getMimeType().equals(this.signType)
-          ? this.integrationService.preparePdfSignaturePage(this.policyName,
-            getSamplePdf(),
-            PdfSignaturePagePreferences.builder()
+          ? this.integrationService.preparePdfDocument(this.policyName,
+          getSamplePdf(),
+          PdfSignaturePagePreferences.builder()
               .visiblePdfSignatureUserInformation(
-                VisiblePdfSignatureUserInformation.toBuilder()
-                  .fieldValue("idp", lastAuthentication.getIdp())
-                  .signerName(SignerName.builder()
-                    .signerAttribute(SignerIdentityAttribute.createBuilder().name(AttributeConstants.ATTRIBUTE_NAME_DISPLAY_NAME).build())
-                    .build())
-                  .build())
-              .returnDocumentReference(true)
-              .build())
+                  VisiblePdfSignatureUserInformation.toBuilder()
+                      .fieldValue("idp", lastAuthentication.getIdp())
+                      .signerName(SignerName.builder()
+                          .signerAttribute(SignerIdentityAttribute.createBuilder()
+                              .name(AttributeConstants.ATTRIBUTE_NAME_DISPLAY_NAME).build())
+                          .build())
+                      .build())
+              .build(), Boolean.TRUE, null)
           : null;
 
       final SignMessageParameters signMessageParameters = SignMessageParameters.builder()
-        .signMessage(givenName != null
-            ? this.messageSource.getMessage("sp.msg.sign-message", new Object[] { givenName }, LocaleContextHolder.getLocale())
-            : this.messageSource.getMessage("sp.msg.sigm-message-noname", null, LocaleContextHolder.getLocale()))
-        .performEncryption(true)
-        .mimeType(SignMessageMimeType.TEXT)
-        .mustShow(true)
-        .build();
+          .signMessage(givenName != null
+              ? this.messageSource.getMessage("sp.msg.sign-message", new Object[] { givenName },
+              LocaleContextHolder.getLocale())
+              : this.messageSource.getMessage("sp.msg.sigm-message-noname", null, LocaleContextHolder.getLocale()))
+          .performEncryption(true)
+          .mimeType(SignMessageMimeType.TEXT)
+          .mustShow(true)
+          .build();
 
       session.setAttribute("sign-message", signMessageParameters.getSignMessage());
 
       final TbsDocumentBuilder tbsDocumentBuilder = TbsDocument.builder()
-        .id(UUID.randomUUID().toString())
-        .adesRequirement(EtsiAdesRequirement.builder().adesFormat(AdesType.BES).build());
+          .id(UUID.randomUUID().toString())
+          .adesRequirement(EtsiAdesRequirement.builder().adesFormat(AdesType.BES).build());
 
       final TbsDocument tbsDocument = DocumentType.PDF.getMimeType().equals(this.signType)
           ? tbsDocumentBuilder
-            .content(preparedPdfDocument.getUpdatedPdfDocument())
-            .contentReference(preparedPdfDocument.getUpdatedPdfDocumentReference())
-            .mimeType(DocumentType.PDF)
-            .visiblePdfSignatureRequirement(preparedPdfDocument.getVisiblePdfSignatureRequirement())
-            .build()
+          .content(preparedPdfDocument.getUpdatedPdfDocument())
+          .contentReference(preparedPdfDocument.getUpdatedPdfDocumentReference())
+          .mimeType(DocumentType.PDF)
+          .visiblePdfSignatureRequirement(preparedPdfDocument.getVisiblePdfSignatureRequirement())
+          .build()
           : tbsDocumentBuilder
-            .content(Base64.getEncoder().encodeToString(createSampleXml(signMessageParameters.getSignMessage()).getBytes()))
-            .mimeType(DocumentType.XML)
-            .build();
+              .content(Base64.getEncoder()
+                  .encodeToString(createSampleXml(signMessageParameters.getSignMessage()).getBytes()))
+              .mimeType(DocumentType.XML)
+              .build();
 
       final String returnUrl = this.debugFlag ? this.debugReturnUrl : null;
 
       final SignRequestInput input = SignRequestInput.builder()
-        .correlationId(correlationId)
-        .signRequesterID(this.signRequesterId)
-        .returnUrl(returnUrl)
-        .authnRequirements(
-          AuthnRequirements.builder()
-            .authnContextClassRef(lastAuthentication.getAuthnContextUri())
-            .authnServiceID(lastAuthentication.getIdp())
-            .requestedSignerAttributes(requestedAttributes)
-            .build())
-        .tbsDocument(tbsDocument)
-        .signMessageParameters(signMessageParameters)
-        .build();
+          .correlationId(correlationId)
+          .signRequesterID(this.signRequesterId)
+          .returnUrl(returnUrl)
+          .authnRequirements(
+              AuthnRequirements.builder()
+                  .authnContextClassRef(lastAuthentication.getAuthnContextUri())
+                  .authnServiceID(lastAuthentication.getIdp())
+                  .requestedSignerAttributes(requestedAttributes)
+                  .build())
+          .tbsDocument(tbsDocument)
+          .signMessageParameters(signMessageParameters)
+          .build();
 
       log.debug("SignRequestInput: {}", input);
 
@@ -287,8 +290,8 @@ public class SignController extends BaseController {
 
   private static String createSampleXml(final String message) {
     return String.format("<?xml version=\"1.0\" encoding=\"UTF-8\"?>%s"
-        + "<SampleDocument>%s  <Message>%s</Message>%s</SampleDocument>",
-      System.lineSeparator(), System.lineSeparator(), message, System.lineSeparator());
+            + "<SampleDocument>%s  <Message>%s</Message>%s</SampleDocument>",
+        System.lineSeparator(), System.lineSeparator(), message, System.lineSeparator());
   }
 
   private static byte[] getSamplePdf() {
@@ -303,8 +306,7 @@ public class SignController extends BaseController {
   /**
    * Creates an authentication info model object based on the response result.
    *
-   * @param result
-   *          the result from the signature service
+   * @param result the result from the signature service
    * @return the model
    */
   private AuthenticationInfo createAuthenticationInfo(final SignatureResult result) {
@@ -441,14 +443,14 @@ public class SignController extends BaseController {
     }
 
     authenticationInfo.setAttributes(authenticationInfo.getAttributes()
-      .stream()
-      .sorted(Comparator.comparing(AttributeInfo::getSortOrder))
-      .collect(Collectors.toList()));
+        .stream()
+        .sorted(Comparator.comparing(AttributeInfo::getSortOrder))
+        .collect(Collectors.toList()));
 
     authenticationInfo.setAdvancedAttributes(authenticationInfo.getAdvancedAttributes()
-      .stream()
-      .sorted(Comparator.comparing(AttributeInfo::getSortOrder))
-      .collect(Collectors.toList()));
+        .stream()
+        .sorted(Comparator.comparing(AttributeInfo::getSortOrder))
+        .collect(Collectors.toList()));
 
     return authenticationInfo;
   }

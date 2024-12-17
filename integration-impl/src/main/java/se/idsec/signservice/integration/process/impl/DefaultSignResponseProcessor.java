@@ -256,12 +256,12 @@ public class DefaultSignResponseProcessor implements SignResponseProcessor {
     //
     final CertificateValidator certificateValidator = this.getCertificateValidator(config.getPolicy());
     try {
-      certificateValidator.validate(signerCertificateChain.getFirst(),
+      certificateValidator.validate(signerCertificateChain.get(0),
           signerCertificateChain.size() > 1 ? signerCertificateChain.subList(1, signerCertificateChain.size()) : null,
           null, config.getTrustAnchorsInternal());
 
       log.info("{}: Signer certificate successfully validated - {} [request-id='{}']",
-          CorrelationID.id(), CertificateUtils.toLogString(signerCertificateChain.getFirst()),
+          CorrelationID.id(), CertificateUtils.toLogString(signerCertificateChain.get(0)),
           sessionState.getSignRequest().getRequestID());
     }
     catch (final GeneralSecurityException e) {
@@ -351,12 +351,12 @@ public class DefaultSignResponseProcessor implements SignResponseProcessor {
 
     // Validate the signature of the document ...
     processor.validateSignedDocument(
-        signedDocument.getDocument(), signerCertificateChain.getFirst(), signTaskData, parameters,
+        signedDocument.getDocument(), signerCertificateChain.get(0), signTaskData, parameters,
         state.getSignRequest().getRequestID());
 
     // Optionally, validate the XAdES object ...
     if (signedDocument.getAdesObject() != null) {
-      processor.validateAdesObject(signedDocument.getAdesObject(), signerCertificateChain.getFirst(), signTaskData,
+      processor.validateAdesObject(signedDocument.getAdesObject(), signerCertificateChain.get(0), signTaskData,
           state.getSignRequest(), signResponse, parameters);
     }
 

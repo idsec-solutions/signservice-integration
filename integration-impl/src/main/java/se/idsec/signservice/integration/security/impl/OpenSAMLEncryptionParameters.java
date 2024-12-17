@@ -46,13 +46,13 @@ public class OpenSAMLEncryptionParameters implements EncryptionParameters {
   /** {@inheritDoc} */
   @Override
   public String getDataEncryptionAlgorithm() {
-    return this.systemConfiguration.getDataEncryptionAlgorithms().getFirst();
+    return this.systemConfiguration.getDataEncryptionAlgorithms().get(0);
   }
 
   /** {@inheritDoc} */
   @Override
   public String getKeyTransportEncryptionAlgorithm() {
-    return this.systemConfiguration.getKeyTransportEncryptionAlgorithms().getFirst();
+    return this.systemConfiguration.getKeyTransportEncryptionAlgorithms().get(0);
   }
 
   /** {@inheritDoc} */
