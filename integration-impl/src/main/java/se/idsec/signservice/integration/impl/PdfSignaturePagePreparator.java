@@ -19,6 +19,7 @@ import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
 import se.idsec.signservice.integration.ExtendedSignServiceIntegrationService;
 import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
+import se.idsec.signservice.integration.config.IntegrationServiceDefaultConfiguration;
 import se.idsec.signservice.integration.core.error.InputValidationException;
 import se.idsec.signservice.integration.core.error.SignServiceIntegrationException;
 import se.idsec.signservice.integration.document.pdf.PdfAConsistencyCheckException;
@@ -63,7 +64,7 @@ public interface PdfSignaturePagePreparator {
    */
   PreparedPdfDocument preparePdfDocument(@Nonnull final byte[] pdfDocument,
       @Nullable final PdfSignaturePagePreferences signaturePagePreferences,
-      @Nonnull final IntegrationServiceConfiguration policyConfiguration,
+      @Nonnull final IntegrationServiceDefaultConfiguration policyConfiguration,
       @Nullable final Boolean returnDocumentReference, @Nullable final String callerId)
       throws InputValidationException, PdfSignaturePageFullException, PdfAConsistencyCheckException,
       PdfContainsAcroformException, PdfContainsEncryptionDictionaryException, SignServiceIntegrationException;

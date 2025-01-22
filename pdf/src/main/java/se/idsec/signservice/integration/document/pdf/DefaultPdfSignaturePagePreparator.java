@@ -22,6 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import se.idsec.signservice.integration.ExtendedSignServiceIntegrationService;
 import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
+import se.idsec.signservice.integration.config.IntegrationServiceDefaultConfiguration;
 import se.idsec.signservice.integration.core.DocumentCache;
 import se.idsec.signservice.integration.core.error.ErrorCode;
 import se.idsec.signservice.integration.core.error.InputValidationException;
@@ -71,7 +72,7 @@ public class DefaultPdfSignaturePagePreparator implements PdfSignaturePagePrepar
   @Nonnull
   public PreparedPdfDocument preparePdfDocument(@Nonnull final byte[] pdfDocument,
       @Nullable final PdfSignaturePagePreferences signaturePagePreferences,
-      @Nonnull final IntegrationServiceConfiguration policyConfiguration,
+      @Nonnull final IntegrationServiceDefaultConfiguration policyConfiguration,
       @Nullable final Boolean returnDocumentReference, @Nullable final String callerId)
       throws SignServiceIntegrationException {
 
@@ -191,7 +192,7 @@ public class DefaultPdfSignaturePagePreparator implements PdfSignaturePagePrepar
    *     encryption dictionary is detected
    */
   private boolean checkAndUpdateDocument(@Nonnull final PDDocument document,
-      @Nonnull final IntegrationServiceConfiguration policyConfiguration, @Nonnull final PreparedPdfDocument result)
+      @Nonnull final IntegrationServiceDefaultConfiguration policyConfiguration, @Nonnull final PreparedPdfDocument result)
       throws DocumentProcessingException, PdfContainsAcroformException, PdfContainsEncryptionDictionaryException {
 
     final List<PdfPrepareReport.PrepareActions> prepareActions = this.issueHandler.fixIssues(document,
@@ -220,7 +221,7 @@ public class DefaultPdfSignaturePagePreparator implements PdfSignaturePagePrepar
    */
   private PDDocument processSignPageAndVisibleSignature(@Nonnull final PDDocument document,
       @Nonnull final PdfSignaturePagePreferences signPagePreferences,
-      @Nonnull final IntegrationServiceConfiguration configuration,
+      @Nonnull final IntegrationServiceDefaultConfiguration configuration,
       @Nonnull final PreparedPdfDocument result) throws SignServiceIntegrationException {
 
     // Check if the document already has signatures (we assume that there is a PDF signature page and that each
@@ -303,7 +304,7 @@ public class DefaultPdfSignaturePagePreparator implements PdfSignaturePagePrepar
 
   /**
    * Validates the input supplied to
-   * {@link #preparePdfDocument(byte[], PdfSignaturePagePreferences, IntegrationServiceConfiguration, Boolean, String)}
+   * {@link #preparePdfDocument(byte[], PdfSignaturePagePreferences, IntegrationServiceDefaultConfiguration, Boolean, String)}
    *
    * @param pdfDocument the PDF document
    * @param signaturePagePreferences the signature page preferences
@@ -312,7 +313,7 @@ public class DefaultPdfSignaturePagePreparator implements PdfSignaturePagePrepar
    */
   private void validateInput(final byte[] pdfDocument,
       final PdfSignaturePagePreferences signaturePagePreferences,
-      final IntegrationServiceConfiguration policyConfiguration)
+      final IntegrationServiceDefaultConfiguration policyConfiguration)
       throws InputValidationException {
 
     if (pdfDocument == null) {
