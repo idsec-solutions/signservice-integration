@@ -122,6 +122,7 @@ public class VisibleSignatureImageFactory {
         .includeDate(template.isIncludeSigningTime())
         .svgImage(template.getImage())
         .timeZoneId(template.getTimeZoneId())
+        .dateFormat(template.getDateFormat())
         .build();
   }
 
