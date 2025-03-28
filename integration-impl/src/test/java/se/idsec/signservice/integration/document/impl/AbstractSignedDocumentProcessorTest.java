@@ -15,22 +15,12 @@
  */
 package se.idsec.signservice.integration.document.impl;
 
-import java.io.IOException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
-import java.util.List;
-
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.opensaml.xmlsec.signature.support.SignatureConstants;
-import org.springframework.core.io.ClassPathResource;
-
 import se.idsec.signservice.integration.SignResponseProcessingParameters;
-import se.idsec.signservice.integration.core.error.SignServiceIntegrationException;
 import se.idsec.signservice.integration.core.error.impl.InternalSignServiceIntegrationException;
 import se.idsec.signservice.integration.document.CompiledSignedDocument;
 import se.idsec.signservice.integration.document.DocumentDecoder;
@@ -48,6 +38,14 @@ import se.idsec.signservice.integration.testbase.TestDocumentType;
 import se.idsec.signservice.security.certificate.CertificateUtils;
 import se.swedenconnect.schemas.csig.dssext_1_1.SignTaskData;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+import java.util.List;
+
 /**
  * Test cases for {@code AbstractSignedDocumentProcessor}.
  *
@@ -56,14 +54,15 @@ import se.swedenconnect.schemas.csig.dssext_1_1.SignTaskData;
  */
 public class AbstractSignedDocumentProcessorTest extends TestBase {
 
-  private static se.swedenconnect.schemas.csig.dssext_1_1.ObjectFactory dssExtFactory =
+  private static final se.swedenconnect.schemas.csig.dssext_1_1.ObjectFactory dssExtFactory =
       new se.swedenconnect.schemas.csig.dssext_1_1.ObjectFactory();
 
-  private X509Certificate cert;
+  private final X509Certificate cert;
 
   public AbstractSignedDocumentProcessorTest() throws CertificateException, IOException {
-    this.cert = CertificateUtils.decodeCertificate(
-      (new ClassPathResource("idsec.se.cer")).getInputStream());
+    try (final InputStream is = this.getClass().getClassLoader().getResourceAsStream("idsec.se.cer")) {
+      this.cert = CertificateUtils.decodeCertificate(is);
+    }
   }
 
   @Test
@@ -72,21 +71,21 @@ public class AbstractSignedDocumentProcessorTest extends TestBase {
     final byte[] digest = digest("SHA-256", certEncoding);
 
     final AdesSigningCertificateDigest adesCD = AdesSigningCertificateDigest.builder()
-      .digestValue(digest)
-      .digestMethod(SignatureConstants.ALGO_ID_DIGEST_SHA256)
-      .build();
+        .digestValue(digest)
+        .digestMethod(SignatureConstants.ALGO_ID_DIGEST_SHA256)
+        .build();
     final TestAdesObject adesObject = new TestAdesObject(adesCD);
 
-    SignTaskData signTaskData = dssExtFactory.createSignTaskData();
+    final SignTaskData signTaskData = dssExtFactory.createSignTaskData();
     signTaskData.setSignTaskId("STID-1");
 
-    SignRequestWrapper signRequest = new SignRequestWrapper();
+    final SignRequestWrapper signRequest = new SignRequestWrapper();
     signRequest.setRequestID("REQID-1");
 
-    SignedDocumentProcessor processor = new SignedDocumentProcessor();
+    final SignedDocumentProcessor processor = new SignedDocumentProcessor();
     processor.afterPropertiesSet();
     processor.validateAdesObject(adesObject, this.cert, signTaskData, signRequest, new SignResponseWrapper(),
-      new SignResponseProcessingParameters());
+        new SignResponseProcessingParameters());
   }
 
   @Test
@@ -96,26 +95,22 @@ public class AbstractSignedDocumentProcessorTest extends TestBase {
     digest[0] = (byte) ~digest[0];
 
     final AdesSigningCertificateDigest adesCD = AdesSigningCertificateDigest.builder()
-      .digestValue(digest)
-      .digestMethod(SignatureConstants.ALGO_ID_DIGEST_SHA256)
-      .build();
+        .digestValue(digest)
+        .digestMethod(SignatureConstants.ALGO_ID_DIGEST_SHA256)
+        .build();
     final TestAdesObject adesObject = new TestAdesObject(adesCD);
 
-    SignTaskData signTaskData = dssExtFactory.createSignTaskData();
+    final SignTaskData signTaskData = dssExtFactory.createSignTaskData();
     signTaskData.setSignTaskId("STID-1");
 
-    SignRequestWrapper signRequest = new SignRequestWrapper();
+    final SignRequestWrapper signRequest = new SignRequestWrapper();
     signRequest.setRequestID("REQID-1");
 
-    SignedDocumentProcessor processor = new SignedDocumentProcessor();
+    final SignedDocumentProcessor processor = new SignedDocumentProcessor();
     processor.afterPropertiesSet();
-    try {
-      processor.validateAdesObject(adesObject, this.cert, signTaskData, signRequest, new SignResponseWrapper(),
-        new SignResponseProcessingParameters());
-      Assertions.fail("Expected DocumentProcessingException");
-    }
-    catch (DocumentProcessingException e) {
-    }
+    Assertions.assertThrows(DocumentProcessingException.class, () ->
+        processor.validateAdesObject(adesObject, this.cert, signTaskData, signRequest, new SignResponseWrapper(),
+            new SignResponseProcessingParameters()));
   }
 
   @Test
@@ -124,62 +119,54 @@ public class AbstractSignedDocumentProcessorTest extends TestBase {
     final byte[] digest = digest("SHA-256", certEncoding);
 
     final AdesSigningCertificateDigest adesCD = AdesSigningCertificateDigest.builder()
-      .digestValue(digest)
-      .digestMethod("http://not.a.real.algo")
-      .build();
+        .digestValue(digest)
+        .digestMethod("http://not.a.real.algo")
+        .build();
     final TestAdesObject adesObject = new TestAdesObject(adesCD);
 
-    SignTaskData signTaskData = dssExtFactory.createSignTaskData();
+    final SignTaskData signTaskData = dssExtFactory.createSignTaskData();
     signTaskData.setSignTaskId("STID-1");
 
-    SignRequestWrapper signRequest = new SignRequestWrapper();
+    final SignRequestWrapper signRequest = new SignRequestWrapper();
     signRequest.setRequestID("REQID-1");
 
-    SignedDocumentProcessor processor = new SignedDocumentProcessor();
+    final SignedDocumentProcessor processor = new SignedDocumentProcessor();
     processor.afterPropertiesSet();
-    try {
-      processor.validateAdesObject(adesObject, this.cert, signTaskData, signRequest, new SignResponseWrapper(),
-        new SignResponseProcessingParameters());
-      Assertions.fail("Expected InternalSignServiceIntegrationException");
-    }
-    catch (InternalSignServiceIntegrationException e) {
-    }
+    Assertions.assertThrows(InternalSignServiceIntegrationException.class, () ->
+        processor.validateAdesObject(adesObject, this.cert, signTaskData, signRequest, new SignResponseWrapper(),
+            new SignResponseProcessingParameters()));
   }
 
   @Test
   public void testMissignDigest() throws Exception {
     final TestAdesObject adesObject = new TestAdesObject(null);
 
-    SignTaskData signTaskData = dssExtFactory.createSignTaskData();
+    final SignTaskData signTaskData = dssExtFactory.createSignTaskData();
     signTaskData.setSignTaskId("STID-1");
 
-    SignRequestWrapper signRequest = new SignRequestWrapper();
+    final SignRequestWrapper signRequest = new SignRequestWrapper();
     signRequest.setRequestID("REQID-1");
 
-    SignedDocumentProcessor processor = new SignedDocumentProcessor();
+    final SignedDocumentProcessor processor = new SignedDocumentProcessor();
     processor.afterPropertiesSet();
-    try {
-      processor.validateAdesObject(adesObject, this.cert, signTaskData, signRequest, new SignResponseWrapper(),
-        new SignResponseProcessingParameters());
-      Assertions.fail("Expected DocumentProcessingException");
-    }
-    catch (DocumentProcessingException e) {
-    }
+    Assertions.assertThrows(DocumentProcessingException.class, () ->
+        processor.validateAdesObject(adesObject, this.cert, signTaskData, signRequest, new SignResponseWrapper(),
+            new SignResponseProcessingParameters()));
   }
 
   @Test
   public void testInit() throws Exception {
-    SignedDocumentProcessor processor = new SignedDocumentProcessor();
+    final SignedDocumentProcessor processor = new SignedDocumentProcessor();
     processor.afterPropertiesSet();
     Assertions.assertNotNull(processor.getProcessingConfiguration());
   }
 
   @Test
   public void testSetProcessingConfig() throws Exception {
-    SignResponseProcessingConfig ownConfig = new SignResponseProcessingConfig();
+    final SignResponseProcessingConfig ownConfig = new SignResponseProcessingConfig();
     ownConfig.setMaximumAllowedProcessingTime(100L);
 
-    SignedDocumentProcessor processor = new SignedDocumentProcessor();
+    final SignedDocumentProcessor processor = new SignedDocumentProcessor();
     processor.setProcessingConfiguration(ownConfig);
     processor.afterPropertiesSet();
 
@@ -191,40 +178,42 @@ public class AbstractSignedDocumentProcessorTest extends TestBase {
   }
 
   @Test
-  public void testHelpfulGetProcessingConfig() throws Exception {
-    SignedDocumentProcessor processor = new SignedDocumentProcessor();
-    // No after properties set is called
+  public void testHelpfulGetProcessingConfig() {
+    final SignedDocumentProcessor processor = new SignedDocumentProcessor();
+    // After properties set is not called
 
     // Assert that get creates a default config if null
     Assertions.assertNotNull(processor.getProcessingConfiguration());
   }
 
   private static byte[] digest(final String jcaAlgorithm, final byte[] data) throws NoSuchAlgorithmException {
-    MessageDigest digest = MessageDigest.getInstance(jcaAlgorithm);
+    final MessageDigest digest = MessageDigest.getInstance(jcaAlgorithm);
     return digest.digest(data);
   }
 
-  public static class SignedDocumentProcessor extends AbstractSignedDocumentProcessor<TestDocumentType, TestAdesObject> {
+  public static class SignedDocumentProcessor
+      extends AbstractSignedDocumentProcessor<TestDocumentType, TestAdesObject> {
 
-    private TestDocumentEncoderDecoder encoderDecoder = new TestDocumentEncoderDecoder();
+    private final TestDocumentEncoderDecoder encoderDecoder = new TestDocumentEncoderDecoder();
 
     @Override
-    public boolean supports(@Nonnull SignTaskData signData) {
+    public boolean supports(@Nonnull final SignTaskData signData) {
       return "TEST".equalsIgnoreCase(signData.getSigType());
     }
 
     @Override
     public CompiledSignedDocument<TestDocumentType, TestAdesObject>
-        buildSignedDocument(@Nonnull TbsDocument tbsDocument, @Nonnull SignTaskData signedData,
-            @Nonnull List<X509Certificate> signerCertificateChain, @Nonnull SignRequestWrapper signRequest, SignResponseProcessingParameters parameters)
-            throws SignServiceIntegrationException {
+    buildSignedDocument(@Nonnull final TbsDocument tbsDocument, @Nonnull final SignTaskData signedData,
+        @Nonnull final List<X509Certificate> signerCertificateChain, @Nonnull final SignRequestWrapper signRequest,
+        final SignResponseProcessingParameters parameters) {
 
       return null;
     }
 
     @Override
-    public void validateSignedDocument(@Nonnull TestDocumentType signedDocument, @Nonnull X509Certificate signerCertificate, @Nonnull SignTaskData signTaskData,
-        @Nullable SignResponseProcessingParameters parameters, @Nonnull String requestID) throws SignServiceIntegrationException {
+    public void validateSignedDocument(@Nonnull final TestDocumentType signedDocument,
+        @Nonnull final X509Certificate signerCertificate, @Nonnull final SignTaskData signTaskData,
+        @Nullable final SignResponseProcessingParameters parameters, @Nonnull final String requestID) {
     }
 
     @Override
