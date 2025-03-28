@@ -15,19 +15,9 @@
  */
 package se.idsec.signservice.integration.dss;
 
-import java.math.BigInteger;
-import java.util.Arrays;
-import java.util.List;
-
-import javax.xml.datatype.DatatypeFactory;
-import javax.xml.datatype.XMLGregorianCalendar;
-
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
 import org.w3c.dom.Document;
-
 import se.idsec.signservice.integration.authentication.SignerIdentityAttribute;
 import se.idsec.signservice.integration.authentication.SignerIdentityAttributeValue;
 import se.idsec.signservice.integration.core.error.impl.SignServiceProtocolException;
@@ -38,6 +28,13 @@ import se.swedenconnect.schemas.saml_2_0.assertion.AttributeStatement;
 import se.swedenconnect.schemas.saml_2_0.assertion.NameIDType;
 import se.swedenconnect.xml.jaxb.JAXBUnmarshaller;
 
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.XMLGregorianCalendar;
+import java.io.InputStream;
+import java.math.BigInteger;
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * Test cases for DssUtils.
  *
@@ -46,12 +43,13 @@ import se.swedenconnect.xml.jaxb.JAXBUnmarshaller;
  */
 public class DssUtilsTest {
 
-  private Assertion assertion;
+  private final Assertion assertion;
 
   public DssUtilsTest() throws Exception {
-    final Resource resource = new ClassPathResource("assertion.xml");
-    final Document doc = DOMUtils.inputStreamToDocument(resource.getInputStream());
-    this.assertion = JAXBUnmarshaller.unmarshall(doc, Assertion.class);
+    try (final InputStream is = DssUtilsTest.class.getClassLoader().getResourceAsStream("assertion.xml")) {
+      final Document doc = DOMUtils.inputStreamToDocument(is);
+      this.assertion = JAXBUnmarshaller.unmarshall(doc, Assertion.class);
+    }
   }
 
   @Test
@@ -143,9 +141,9 @@ public class DssUtilsTest {
   }
 
   @Test
-  public void testFromAttributeStatement() throws Exception {
+  public void testFromAttributeStatement() {
     final AttributeStatement statement = DssUtils.getAttributeStatement(this.assertion);
-    List<SignerIdentityAttributeValue> result = DssUtils.fromAttributeStatement(statement);
+    final List<SignerIdentityAttributeValue> result = DssUtils.fromAttributeStatement(statement);
     Assertions.assertEquals(5, result.size());
   }
 
@@ -166,11 +164,10 @@ public class DssUtilsTest {
   }
 
   @Test
-  public void testToAttributeUnsupportedType() throws Exception {
-    Assertions.assertThrows(SignServiceProtocolException.class, () -> {
-      DssUtils.toAttribute(SignerIdentityAttributeValue.builder()
-          .type("oidc").name("http://claim.xx.yy").value("195207306886").build());
-    });
+  public void testToAttributeUnsupportedType() {
+    Assertions.assertThrows(SignServiceProtocolException.class,
+        () -> DssUtils.toAttribute(SignerIdentityAttributeValue.builder()
+            .type("oidc").name("http://claim.xx.yy").value("195207306886").build()));
   }
 
   @Test
@@ -184,7 +181,7 @@ public class DssUtilsTest {
         .build();
 
     Object value = DssUtils.toAttributeValue(siav);
-    Assertions.assertTrue(String.class.isInstance(value));
+    Assertions.assertTrue(value instanceof String);
     Assertions.assertEquals("195207306886", value);
 
     siav = SignerIdentityAttributeValue.builder()
@@ -193,7 +190,7 @@ public class DssUtilsTest {
         .build();
 
     value = DssUtils.toAttributeValue(siav);
-    Assertions.assertTrue(String.class.isInstance(value));
+    Assertions.assertTrue(value instanceof String);
     Assertions.assertEquals("195207306886", value);
 
     siav = SignerIdentityAttributeValue.builder()
@@ -205,7 +202,7 @@ public class DssUtilsTest {
         .build();
 
     value = DssUtils.toAttributeValue(siav);
-    Assertions.assertTrue(Boolean.class.isInstance(value));
+    Assertions.assertTrue(value instanceof Boolean);
     Assertions.assertEquals(Boolean.TRUE, value);
 
     siav = SignerIdentityAttributeValue.builder()
@@ -217,7 +214,7 @@ public class DssUtilsTest {
         .build();
 
     value = DssUtils.toAttributeValue(siav);
-    Assertions.assertTrue(Boolean.class.isInstance(value));
+    Assertions.assertTrue(value instanceof Boolean);
     Assertions.assertEquals(Boolean.FALSE, value);
 
     siav = SignerIdentityAttributeValue.builder()
@@ -229,8 +226,8 @@ public class DssUtilsTest {
         .build();
 
     value = DssUtils.toAttributeValue(siav);
-    Assertions.assertTrue(BigInteger.class.isInstance(value));
-    Assertions.assertEquals(123, BigInteger.class.cast(value).intValue());
+    Assertions.assertTrue(value instanceof BigInteger);
+    Assertions.assertEquals(123, ((BigInteger) value).intValue());
 
     siav = SignerIdentityAttributeValue.builder()
         .type(SignerIdentityAttribute.SAML_TYPE)
@@ -241,7 +238,7 @@ public class DssUtilsTest {
         .build();
 
     value = DssUtils.toAttributeValue(siav);
-    Assertions.assertTrue(XMLGregorianCalendar.class.isInstance(value));
+    Assertions.assertTrue(value instanceof XMLGregorianCalendar);
     Assertions.assertEquals(DatatypeFactory.newInstance().newXMLGregorianCalendar("1969-11-20"), value);
 
     siav = SignerIdentityAttributeValue.builder()
@@ -253,12 +250,12 @@ public class DssUtilsTest {
         .build();
 
     value = DssUtils.toAttributeValue(siav);
-    Assertions.assertTrue(XMLGregorianCalendar.class.isInstance(value));
+    Assertions.assertTrue(value instanceof XMLGregorianCalendar);
     Assertions.assertEquals(DatatypeFactory.newInstance().newXMLGregorianCalendar("2002-05-30T09:00:00"), value);
   }
 
   @Test
-  public void testToAttributeValueUnsupportedValue() throws Exception {
+  public void testToAttributeValueUnsupportedValue() {
     final SignerIdentityAttributeValue siav = SignerIdentityAttributeValue.builder()
         .type(SignerIdentityAttribute.SAML_TYPE)
         .name("urn:oid:1.2.752.29.4.13")
@@ -267,8 +264,6 @@ public class DssUtilsTest {
         .attributeValueType("weird-type")
         .build();
 
-    Assertions.assertThrows(SignServiceProtocolException.class, () -> {
-      DssUtils.toAttributeValue(siav);
-    });
+    Assertions.assertThrows(SignServiceProtocolException.class, () -> DssUtils.toAttributeValue(siav));
   }
 }

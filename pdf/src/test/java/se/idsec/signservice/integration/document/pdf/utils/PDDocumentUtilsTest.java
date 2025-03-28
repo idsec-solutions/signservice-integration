@@ -15,14 +15,15 @@
  */
 package se.idsec.signservice.integration.document.pdf.utils;
 
-import java.io.IOException;
-
 import org.apache.pdfbox.Loader;
+import org.apache.pdfbox.io.IOUtils;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
+import org.cryptacular.io.ClassPathResource;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.springframework.core.io.ClassPathResource;
+
+import java.io.IOException;
 
 /**
  * Test cases for PDDocumentUtils.
@@ -115,7 +116,7 @@ public class PDDocumentUtilsTest {
   }
 
   private static PDDocument load(final String resource) throws IOException {
-    return Loader.loadPDF((new ClassPathResource(resource)).getFile());
+    return Loader.loadPDF(IOUtils.toByteArray((new ClassPathResource(resource)).getInputStream()));
   }
 
   private static String getContents(final PDDocument doc, final int page) throws IOException {
