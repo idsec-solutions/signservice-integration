@@ -390,17 +390,21 @@ public class DefaultSignerAssertionInfoProcessor implements SignerAssertionInfoP
     final long responseTime =
         signResponse.getSignResponseExtension().getResponseTime().toGregorianCalendar().getTimeInMillis();
 
-    if (authnInstant + this.processingConfig.getAllowedClockSkew() < requestTime) {
+    if (authnInstant + this.processingConfig.getAllowedClockSkewDuration().toMillis() < requestTime) {
       final String msg = String.format(
-          "Invalid authentication instant (%d). It is before the SignRequest was sent (%d) [request-id='%s']",
-          authnInstant, requestTime, signRequest.getRequestID());
+          "Invalid authentication instant (%s). It is before the SignRequest was sent (%s) [request-id='%s']",
+          contextInfo.getAuthenticationInstant().toGregorianCalendar().toInstant(),
+          signRequest.getSignRequestExtension().getRequestTime().toGregorianCalendar().toInstant(),
+          signRequest.getRequestID());
       log.error("{}: {}", CorrelationID.id(), msg);
       throw new SignResponseProcessingException(new ErrorCode.Code("invalid-response"), msg);
     }
-    if (authnInstant - this.processingConfig.getAllowedClockSkew() > responseTime) {
+    if (authnInstant - this.processingConfig.getAllowedClockSkewDuration().toMillis() > responseTime) {
       final String msg =
-          String.format("Invalid authentication instant (%d). It is after the SignResponse time (%d) [request-id='%s']",
-              authnInstant, responseTime, signRequest.getRequestID());
+          String.format("Invalid authentication instant (%s). It is after the SignResponse time (%s) [request-id='%s']",
+              contextInfo.getAuthenticationInstant().toGregorianCalendar().toInstant(),
+              signResponse.getSignResponseExtension().getResponseTime().toGregorianCalendar().toInstant(),
+              signRequest.getRequestID());
       log.error("{}: {}", CorrelationID.id(), msg);
       throw new SignResponseProcessingException(new ErrorCode.Code("invalid-response"), msg);
     }

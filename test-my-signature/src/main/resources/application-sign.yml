@@ -98,7 +98,6 @@ signservice:
       - classpath:refsignservice-ca-root.crt
   response:
     config:
-      allow-sig-message-uris: true
       allowed-clock-skew: 60000
       maximum-allowed-response-age: 180000
       require-assertion: true

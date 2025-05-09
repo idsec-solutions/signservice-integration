@@ -50,12 +50,15 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <java.version>17</java.version>
+
+    <credentials-support.version>2.0.5</credentials-support.version>
   </properties>
 
   <modules>
     <module>integration-impl</module>
     <module>xml</module>
     <module>pdf</module>
+    <module>spring-boot-starter</module>
     <module>test-my-signature</module>
   </modules>
 

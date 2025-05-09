@@ -83,7 +83,8 @@ public class JavaApiSignServiceIntegrationConfiguration {
   }
 
   @Bean
-  ExtendedSignServiceIntegrationService signServiceIntegrationService(final IntegrationServiceConfiguration config)
+  ExtendedSignServiceIntegrationService signServiceIntegrationService(final IntegrationServiceConfiguration config,
+      final SignResponseProcessor signResponseProcessor)
       throws Exception {
 
     final DefaultSignServiceIntegrationService service = new DefaultSignServiceIntegrationService();
@@ -98,21 +99,8 @@ public class JavaApiSignServiceIntegrationConfiguration {
     stateProcessor.afterPropertiesSet();
     service.setSignatureStateProcessor(stateProcessor);
     service.setSignRequestProcessor(this.signRequestProcessor());
-    service.setSignResponseProcessor(this.signResponseProcessor());
+    service.setSignResponseProcessor(signResponseProcessor);
     return service;
-  }
-
-  @Bean
-  SignResponseProcessor signResponseProcessor() throws Exception {
-    final DefaultSignResponseProcessor processor = new DefaultSignResponseProcessor();
-    processor.setProcessingConfiguration(this.properties.getResponse().getConfig());
-    final XmlSignedDocumentProcessor xmlProcessor = new XmlSignedDocumentProcessor();
-    xmlProcessor.setProcessingConfiguration(this.properties.getResponse().getConfig());
-    final PdfSignedDocumentProcessor pdfProcessor = new PdfSignedDocumentProcessor();
-    pdfProcessor.setProcessingConfiguration(this.properties.getResponse().getConfig());
-    processor.setSignedDocumentProcessors(Arrays.asList(xmlProcessor, pdfProcessor));
-    processor.afterPropertiesSet();
-    return processor;
   }
 
   /**

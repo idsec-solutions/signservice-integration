@@ -1,0 +1,95 @@
+spring:
+  ssl:
+    bundle:
+      jks:
+        snakeoil:
+          keystore:
+            location: classpath:snakeoil-localhost.p12
+            password: secret
+            type: PKCS12
+          key:
+            alias: localhost
+            password: secret
+
+credential:
+  bundles:
+    keystore:
+      sp-keys-store:
+        location: classpath:sp-keys.jks
+        type: JKS
+        password: secret
+    jks:
+      sp-sign:
+        name: sp-sign-key
+        store-reference: sp-keys-store
+        key:
+          alias: sign
+          key-password: secret
+      sp-decrypt:
+        name: sp-decrypt-key
+        store-reference: sp-keys-store
+        key:
+          alias: encrypt
+          key-password: secret
+      sp-md-sign:
+        name: sp-metadata-sign
+        store:
+          location: classpath:metadata-sign.jks
+          type: JKS
+          password: secret
+        key:
+          alias: mdsign
+          key-password: secret
+
+server:
+  servlet:
+    context-path: /testmyeid
+    session:
+      cookie:
+        domain: idsec.se
+  ssl:
+    # We are running AJP
+    enabled: true
+    bundle: snakeoil
+
+tomcat:
+  ajp:
+    enabled: true
+    port: 8009
+    secret-required: false
+
+sp:
+  base-uri: https://eid.idsec.se
+  hok-base-uri: https://hok.idsec.se
+  entity-id: http://sandbox.swedenconnect.se/testmyeid
+  sign-entity-id: http://sandbox.swedenconnect.se/testmyeid-sign
+  credential:
+    sign:
+      bundle: sp-sign
+    decrypt:
+      bundle: sp-decrypt
+    md-sign:
+      bundle: sp-md-sign
+  discovery:
+    include-only-static: true
+    static-idp-configuration: classpath:idp-disco.yml
+  eidas-connector:
+    entity-id: https://dev.connector.swedenconnect.se/eidas
+  federation:
+    metadata:
+      url: https://eid.svelegtest.se/metadata/mdx/role/idp.xml
+      validation-certificate: classpath:sandbox-metadata.crt
+  mtls:
+    attribute-name: "jakarta.servlet.request.X509Certificate"
+
+logging:
+  level:
+    root: info
+    se:
+      swedenconnect:
+        eid:
+          sp:
+            config: warn
+          sweid:
+            saml2:
+              discovery: warn

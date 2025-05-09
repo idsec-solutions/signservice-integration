@@ -111,31 +111,14 @@
     </dependency>
 
     <dependency>
+      <artifactId>signservice-integration-spring-boot-starter</artifactId>
+      <groupId>se.idsec.signservice.integration</groupId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <dependency>
       <groupId>se.idsec.signservice.integration</groupId>
       <artifactId>signservice-integration-api</artifactId>
-    </dependency>
-
-    <dependency>
-      <artifactId>signservice-integration-impl</artifactId>
-      <groupId>se.idsec.signservice.integration</groupId>
-      <version>${project.version}</version>
-    </dependency>
-
-    <dependency>
-      <artifactId>signservice-integration-xml</artifactId>
-      <groupId>se.idsec.signservice.integration</groupId>
-      <version>${project.version}</version>
-    </dependency>
-
-    <dependency>
-      <artifactId>signservice-integration-pdf</artifactId>
-      <groupId>se.idsec.signservice.integration</groupId>
-      <version>${project.version}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>se.swedenconnect.security</groupId>
-      <artifactId>credentials-support</artifactId>
     </dependency>
 
     <dependency>

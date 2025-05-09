@@ -68,6 +68,7 @@ import java.security.GeneralSecurityException;
 import java.security.SignatureException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -382,28 +383,31 @@ public class DefaultSignResponseProcessor implements SignResponseProcessor {
       throw new SignServiceProtocolException(msg);
     }
     final long responseTimeMillis = responseTime.toGregorianCalendar().getTimeInMillis();
-    final long now = System.currentTimeMillis();
+    final Instant now = Instant.now();
 
     // Has the response expired?
     //
-    if (now - responseTimeMillis - this.processingConfiguration.getAllowedClockSkew() > this.processingConfiguration
-        .getMaximumAllowedResponseAge()) {
+    if (now.toEpochMilli() - responseTimeMillis - this.processingConfiguration.getAllowedClockSkewDuration().toMillis()
+        > this.processingConfiguration.getMaximumAllowedResponseAgeDuration().toMillis()) {
       final String msg = String.format(
-          "SignResponse is too old. response-time:%d - current-time:%d - max-allowed-age:%d - " +
-              "allowed-clock-skew:%d [request-id='%s']",
-          responseTimeMillis, now, this.processingConfiguration.getMaximumAllowedResponseAge(),
-          this.processingConfiguration.getAllowedClockSkew(), requestID);
+          "SignResponse is too old. response-time:'%s' - current-time:'%s' - max-allowed-age:'%s' - " +
+              "allowed-clock-skew:'%s' [request-id='%s']",
+          responseTime.toGregorianCalendar().toInstant(), now,
+          this.processingConfiguration.getMaximumAllowedResponseAgeDuration(),
+          this.processingConfiguration.getAllowedClockSkewDuration(), requestID);
       log.error("{}: {}", CorrelationID.id(), msg);
       throw new SignResponseProcessingException(new ErrorCode.Code("expired-response"), msg);
     }
 
     // Also check the "not yet valid" case...
     //
-    if (responseTimeMillis - this.processingConfiguration.getAllowedClockSkew() > now) {
+    if (responseTimeMillis - this.processingConfiguration.getAllowedClockSkewDuration().toMillis()
+        > now.toEpochMilli()) {
       final String msg = String.format(
-          "SignResponse is not yet valid according to ResponseTime. response-time:%d - current-time:%d - " +
-              "allowed-clock-skew:%d [request-id='%s']",
-          responseTimeMillis, now, this.processingConfiguration.getAllowedClockSkew(), requestID);
+          "SignResponse is not yet valid according to ResponseTime. response-time:'%s' - current-time:'%s' - " +
+              "allowed-clock-skew:'%s' [request-id='%s']",
+          responseTime.toGregorianCalendar().toInstant(), now,
+          this.processingConfiguration.getAllowedClockSkewDuration(), requestID);
       log.error("{}: {}", CorrelationID.id(), msg);
       throw new SignResponseProcessingException(new ErrorCode.Code("invalid-response"), msg);
     }
@@ -412,10 +416,12 @@ public class DefaultSignResponseProcessor implements SignResponseProcessor {
     // We don't have to care about clock skew since we were the ones that set the request time.
     //
     final long requestTimeMillis = requestTime.toGregorianCalendar().getTimeInMillis();
-    if (now - requestTimeMillis > this.processingConfiguration.getMaximumAllowedProcessingTime()) {
+    if (now.toEpochMilli() - requestTimeMillis
+        > this.processingConfiguration.getMaximumAllowedProcessingTimeDuration().toMillis()) {
       final String msg = String.format(
-          "Server processing time exceeded allowed limit. request-time:%d - current-time:%d - limit:%d [request-id='%s']",
-          requestTimeMillis, now, this.processingConfiguration.getMaximumAllowedProcessingTime(), requestID);
+          "Server processing time exceeded allowed limit. request-time:'%s' - current-time:'%s' - limit:'%s' [request-id='%s']",
+          requestTime.toGregorianCalendar().toInstant(), now,
+          this.processingConfiguration.getMaximumAllowedProcessingTimeDuration(), requestID);
       log.error("{}: {}", CorrelationID.id(), msg);
       throw new SignResponseProcessingException(new ErrorCode.Code("server-processing-time-exceeded-limit"), msg);
     }

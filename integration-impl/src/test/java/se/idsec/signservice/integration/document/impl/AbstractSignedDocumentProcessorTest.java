@@ -44,6 +44,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.time.Duration;
 import java.util.List;
 
 /**
@@ -164,17 +165,19 @@ public class AbstractSignedDocumentProcessorTest extends TestBase {
   @Test
   public void testSetProcessingConfig() throws Exception {
     final SignResponseProcessingConfig ownConfig = new SignResponseProcessingConfig();
-    ownConfig.setMaximumAllowedProcessingTime(100L);
+    ownConfig.setMaximumAllowedProcessingTimeDuration(Duration.ofMillis(100L));
 
     final SignedDocumentProcessor processor = new SignedDocumentProcessor();
     processor.setProcessingConfiguration(ownConfig);
     processor.afterPropertiesSet();
 
-    Assertions.assertEquals(100L, processor.getProcessingConfiguration().getMaximumAllowedProcessingTime());
+    Assertions.assertEquals(100L,
+        processor.getProcessingConfiguration().getMaximumAllowedProcessingTimeDuration().toMillis());
 
     // Assert that null is ignored
     processor.setProcessingConfiguration(null);
-    Assertions.assertEquals(100L, processor.getProcessingConfiguration().getMaximumAllowedProcessingTime());
+    Assertions.assertEquals(100L,
+        processor.getProcessingConfiguration().getMaximumAllowedProcessingTimeDuration().toMillis());
   }
 
   @Test

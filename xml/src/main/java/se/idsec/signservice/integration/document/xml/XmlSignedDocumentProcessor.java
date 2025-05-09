@@ -256,7 +256,7 @@ public class XmlSignedDocumentProcessor extends AbstractSignedDocumentProcessor<
       //
       final long requestTime =
           signRequest.getSignRequestExtension().getRequestTime().toGregorianCalendar().getTimeInMillis();
-      if (requestTime < signingTime - this.getProcessingConfiguration().getAllowedClockSkew()) {
+      if (requestTime < signingTime - this.getProcessingConfiguration().getAllowedClockSkewDuration().toMillis()) {
         final String msg = String.format(
             "Invalid SigningTime (%d) in XAdES object for sign task '%s' - it is before request time (%d) [request-id='%s']",
             signingTime, signTaskData.getSignTaskId(), requestTime, signRequest.getRequestID());
