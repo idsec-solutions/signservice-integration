@@ -3,13 +3,13 @@
 
   <modelVersion>4.0.0</modelVersion>
 
-  <artifactId>signservice-integration-impl</artifactId>  
+  <artifactId>signservice-integration-impl</artifactId>
   <packaging>jar</packaging>
 
   <parent>
     <groupId>se.idsec.signservice.integration</groupId>
     <artifactId>signservice-integration-parent</artifactId>
-    <version>1.3.4</version>
+    <version>1.3.5</version>
   </parent>
 
   <name>IDsec Solutions :: SignService :: Integration :: API Implementation</name>
@@ -55,39 +55,39 @@
   </properties>
 
   <dependencies>
-  
+
     <!-- The API -->
     <dependency>
       <groupId>se.idsec.signservice.integration</groupId>
       <artifactId>signservice-integration-api</artifactId>
     </dependency>
-    
-    <!-- SignService commons -->      
+
+    <!-- SignService commons -->
     <dependency>
       <groupId>se.idsec.signservice.commons</groupId>
       <artifactId>signservice-commons</artifactId>
     </dependency>
-    
+
     <dependency>
       <groupId>se.idsec.signservice.commons</groupId>
       <artifactId>signservice-xml-commons</artifactId>
     </dependency>
-    
+
     <dependency>
       <groupId>se.swedenconnect.security</groupId>
       <artifactId>algorithm-registry</artifactId>
     </dependency>
-    
+
     <dependency>
       <groupId>se.swedenconnect.opensaml</groupId>
       <artifactId>opensaml-security-ext</artifactId>
     </dependency>
-    
+
     <dependency>
       <groupId>se.swedenconnect.opensaml</groupId>
       <artifactId>opensaml-addons</artifactId>
-    </dependency>    
-        
+    </dependency>
+
     <dependency>
       <groupId>se.swedenconnect.opensaml</groupId>
       <artifactId>opensaml-swedish-eid</artifactId>
@@ -98,7 +98,7 @@
         </exclusion>
       </exclusions>
     </dependency>
-    
+
     <!-- Jackson -->
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
@@ -115,16 +115,16 @@
       <groupId>javax.xml.bind</groupId>
       <artifactId>jaxb-api</artifactId>
     </dependency>
-    
+
     <dependency>
       <groupId>org.glassfish.jaxb</groupId>
       <artifactId>jaxb-runtime</artifactId>
     </dependency>
-    
+
     <dependency>
       <groupId>javax.activation</groupId>
       <artifactId>activation</artifactId>
-    </dependency>    
+    </dependency>
 
     <dependency>
       <groupId>se.swedenconnect.schemas</groupId>
@@ -144,9 +144,9 @@
 
     <dependency>
       <groupId>se.swedenconnect.schemas.csig</groupId>
-      <artifactId>dss-ext11-jaxb</artifactId>      
+      <artifactId>dss-ext11-jaxb</artifactId>
     </dependency>
-    
+
     <dependency>
       <groupId>se.swedenconnect.schemas</groupId>
       <artifactId>etsi-xades-jaxb</artifactId>
@@ -162,18 +162,18 @@
       <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>
     </dependency>
-        
+
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
     </dependency>
-    
+
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-simple</artifactId>
       <scope>test</scope>
     </dependency>
-    
+
   </dependencies>
 
   <build>
