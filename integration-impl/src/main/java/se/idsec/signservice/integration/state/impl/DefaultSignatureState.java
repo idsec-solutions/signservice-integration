@@ -15,6 +15,7 @@
  */
 package se.idsec.signservice.integration.state.impl;
 
+import java.io.Serial;
 import java.io.Serializable;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -48,22 +49,17 @@ import se.idsec.signservice.integration.state.SignatureSessionState;
 public class DefaultSignatureState implements CacheableSignatureState {
 
   /** For serialization. */
+  @Serial
   private static final long serialVersionUID = 8679954351779851073L;
 
   /**
    * The state ID.
-   *
-   * @param id
-   *          the state ID
    */
   @Setter
   private String id;
 
   /**
    * The session state.
-   *
-   * @param state
-   *          the session state
    */
   @Setter
   private SignatureSessionState state;

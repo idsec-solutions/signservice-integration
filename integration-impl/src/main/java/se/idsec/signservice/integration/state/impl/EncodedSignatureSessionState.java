@@ -15,20 +15,20 @@
  */
 package se.idsec.signservice.integration.state.impl;
 
-import java.io.IOException;
-import java.io.Serializable;
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import se.idsec.signservice.integration.state.SignatureSessionState;
+
+import java.io.IOException;
+import java.io.Serial;
+import java.io.Serializable;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 
 /**
  * Implementation of an encoded signature session state.
@@ -41,6 +41,7 @@ import se.idsec.signservice.integration.state.SignatureSessionState;
 public class EncodedSignatureSessionState implements Serializable {
 
   /** For serialization. */
+  @Serial
   private static final long serialVersionUID = -4038769805839320240L;
 
   /** JSON mapper. */
@@ -49,10 +50,6 @@ public class EncodedSignatureSessionState implements Serializable {
 
   /**
    * The state in the Base64-encoded form of the JSON-serialization of SignatureSessionState.
-   *
-   * @param encodedState
-   *          the state in the Base64-encoded form of the JSON-serialization of SignatureSessionState
-   * @return the state in the Base64-encoded form of the JSON-serialization of SignatureSessionState
    */
   @Setter
   @Getter
@@ -68,8 +65,7 @@ public class EncodedSignatureSessionState implements Serializable {
   /**
    * Constructor.
    *
-   * @param encodedState
-   *          the encoded state
+   * @param encodedState the encoded state
    */
   public EncodedSignatureSessionState(final String encodedState) {
     this();
@@ -79,10 +75,8 @@ public class EncodedSignatureSessionState implements Serializable {
   /**
    * Constructor.
    *
-   * @param state
-   *          the state
-   * @throws IOException
-   *           for serialization errors
+   * @param state the state
+   * @throws IOException for serialization errors
    */
   public EncodedSignatureSessionState(final SignatureSessionState state) throws IOException {
     this();
@@ -92,10 +86,8 @@ public class EncodedSignatureSessionState implements Serializable {
   /**
    * Assigns the state to be compressed.
    *
-   * @param state
-   *          the state
-   * @throws IOException
-   *           for serialization or compression errors
+   * @param state the state
+   * @throws IOException for serialization or compression errors
    */
   @JsonIgnore
   public void setSignatureSessionState(final SignatureSessionState state) throws IOException {
@@ -107,8 +99,7 @@ public class EncodedSignatureSessionState implements Serializable {
    * Decompresses and gets the session state.
    *
    * @return the state
-   * @throws IOException
-   *           for deserialization errors
+   * @throws IOException for deserialization errors
    */
   @JsonIgnore
   public SignatureSessionState getSignatureSessionState() throws IOException {
