@@ -34,6 +34,7 @@ import java.io.InputStream;
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Test cases for DssUtils.
@@ -72,6 +73,11 @@ public class DssUtilsTest {
     Assertions.assertNotNull(value);
     Assertions.assertEquals("195207306886", value);
 
+    // The same, but not type info for the attribute value ...
+    final String value2 = DssUtils.getAttributeValue(statement, "urn:oid:0.9.2342.19200300.100.1.3");
+    Assertions.assertNotNull(value2);
+    Assertions.assertEquals("john.doe@example.com", value2);
+
     // Not a string
     Assertions.assertNull(DssUtils.getAttributeValue(statement, "urn:oid:2.16.840.1.113730.3.1.241"));
 
@@ -93,6 +99,36 @@ public class DssUtilsTest {
 
     // Not present
     Assertions.assertNull(DssUtils.getAttributeValue(statement, "urn:oid:1.2.3.4.5", String.class));
+  }
+
+  @Test
+  void testNpeFixInToSignerIdentityAttributeValue() throws Exception {
+    final Assertion testAssertion;
+    try (final InputStream is = DssUtilsTest.class.getClassLoader().getResourceAsStream("IS-75-saml-assertion.xml")) {
+      final Document doc = DOMUtils.inputStreamToDocument(is);
+      testAssertion = JAXBUnmarshaller.unmarshall(doc, Assertion.class);
+    }
+    final AttributeStatement attributeStatement = DssUtils.getAttributeStatement(testAssertion);
+
+    final String value = DssUtils.getAttributeValue(attributeStatement, "urn:oid:1.3.6.1.4.1.5923.1.1.1.10");
+    Assertions.assertNotNull(value);
+    Assertions.assertEquals("IKXQZCJJPR7WF3L7TV7NVQV4MZO4F26M", value);
+
+    final Attribute attr = attributeStatement.getAttributesAndEncryptedAttributes().stream()
+        .filter(Attribute.class::isInstance)
+        .map(Attribute.class::cast)
+        .filter(a -> Objects.equals(a.getName(), "urn:oid:1.3.6.1.4.1.5923.1.1.1.10"))
+        .filter(Attribute::isSetAttributeValues)
+        .findFirst()
+        .orElse(null);
+    final List<SignerIdentityAttributeValue> siav = DssUtils.toSignerIdentityAttributeValue(attr);
+    Assertions.assertNotNull(siav);
+    Assertions.assertEquals(1, siav.size());
+    Assertions.assertEquals("IKXQZCJJPR7WF3L7TV7NVQV4MZO4F26M", siav.get(0).getValue());
+
+    final List<SignerIdentityAttributeValue> values = DssUtils.fromAttributeStatement(attributeStatement);
+    Assertions.assertNotNull(values);
+    Assertions.assertEquals(8, values.size());
   }
 
   @Test
@@ -144,7 +180,7 @@ public class DssUtilsTest {
   public void testFromAttributeStatement() {
     final AttributeStatement statement = DssUtils.getAttributeStatement(this.assertion);
     final List<SignerIdentityAttributeValue> result = DssUtils.fromAttributeStatement(statement);
-    Assertions.assertEquals(5, result.size());
+    Assertions.assertEquals(6, result.size());
   }
 
   @Test
