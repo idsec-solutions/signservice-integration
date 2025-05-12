@@ -16,7 +16,11 @@
 package se.idsec.signservice.integration.dss;
 
 import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import org.apache.commons.lang3.StringUtils;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import se.idsec.signservice.integration.authentication.SignerIdentityAttribute;
 import se.idsec.signservice.integration.authentication.SignerIdentityAttributeValue;
 import se.idsec.signservice.integration.certificate.CertificateAttributeMapping;
@@ -36,8 +40,10 @@ import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * Utilities for creating DSS elements.
@@ -99,17 +105,33 @@ public class DssUtils {
    * @param type the type of the attribute value
    * @return the value or null if no value is found
    */
+  @Nullable
   public static <T> T getAttributeValue(final AttributeStatement statement, final String name, final Class<T> type) {
-    return statement.getAttributesAndEncryptedAttributes().stream()
+    final Object valueObject = statement.getAttributesAndEncryptedAttributes().stream()
         .filter(Attribute.class::isInstance)
         .map(Attribute.class::cast)
         .filter(a -> Objects.equals(a.getName(), name))
         .filter(Attribute::isSetAttributeValues)
         .map(a -> a.getAttributeValues().get(0))
-        .filter(type::isInstance)
-        .map(type::cast)
         .findFirst()
         .orElse(null);
+    if (valueObject == null) {
+      return null;
+    }
+    if (type.isInstance(valueObject)) {
+      if (String.class.equals(type)) {
+        return type.cast(((String) valueObject).strip());
+      }
+      else {
+        return type.cast(valueObject);
+      }
+    }
+    else if (String.class.equals(type) && valueObject instanceof final Element elm) {
+      return type.cast(getStringValueFromElement(elm));
+    }
+    else {
+      return null;
+    }
   }
 
   /**
@@ -161,6 +183,7 @@ public class DssUtils {
         .filter(Attribute.class::isInstance)
         .map(Attribute.class::cast)
         .map(DssUtils::toSignerIdentityAttributeValue)
+        .filter(Objects::nonNull)
         .forEach(list::addAll);
 
     return list;
@@ -287,6 +310,9 @@ public class DssUtils {
    * @return a list of SignerIdentityAttributeValue objects
    */
   public static List<SignerIdentityAttributeValue> toSignerIdentityAttributeValue(final Attribute attribute) {
+    if (attribute == null) {
+      return Collections.emptyList();
+    }
     final List<SignerIdentityAttributeValue> result = new ArrayList<>();
     for (final Object v : attribute.getAttributeValues()) {
       final SignerIdentityAttributeValue siav = new SignerIdentityAttributeValue();
@@ -295,7 +321,7 @@ public class DssUtils {
       siav.setNameFormat(attribute.getNameFormat());
       if (v instanceof final String s) {
         siav.setAttributeValueType("string");
-        siav.setValue(s);
+        siav.setValue(s.strip());
       }
       else if (v instanceof final Boolean b) {
         siav.setAttributeValueType("boolean");
@@ -309,13 +335,48 @@ public class DssUtils {
         siav.setAttributeValueType(t.getXMLSchemaType().getLocalPart());
         siav.setValue(t.toXMLFormat());
       }
+      else if (v instanceof final Element elm) {
+        siav.setAttributeValueType("string");
+        Optional.ofNullable(getStringValueFromElement(elm))
+            .ifPresent(siav::setValue);
+      }
       else {
         // Hmm ...
         siav.setValue(v.toString());
       }
-      result.add(siav);
+      if (siav.getValue() != null) {
+        result.add(siav);
+      }
     }
     return result;
+  }
+
+  @Nullable
+  private static String getStringValueFromElement(@Nonnull final Element element) {
+    if (element == null) {
+      return null;
+    }
+    if (element.getNodeType() == Node.TEXT_NODE) {
+      return Optional.ofNullable(element.getTextContent())
+          .map(String::trim)
+          .orElse(null);
+    }
+    final NodeList nodes = element.getChildNodes();
+    for (int i = 0; i < nodes.getLength(); i++) {
+      final Node node = nodes.item(i);
+      if (node.getNodeType() == Node.TEXT_NODE) {
+        return Optional.ofNullable(node.getTextContent())
+            .map(String::trim)
+            .orElse(null);
+      }
+      else if (node.getNodeType() == Node.ELEMENT_NODE) {
+        final String value = getStringValueFromElement((Element) node);
+        if (value != null) {
+          return value;
+        }
+      }
+    }
+    return null;
   }
 
   private DssUtils() {
