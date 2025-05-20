@@ -313,6 +313,9 @@ public class DssUtils {
     }
     final List<SignerIdentityAttributeValue> result = new ArrayList<>();
     for (final Object v : attribute.getAttributeValues()) {
+      if (v == null) {
+        continue;
+      }
       final SignerIdentityAttributeValue siav = new SignerIdentityAttributeValue();
       siav.setType(SignerIdentityAttribute.SAML_TYPE);
       siav.setName(attribute.getName());
