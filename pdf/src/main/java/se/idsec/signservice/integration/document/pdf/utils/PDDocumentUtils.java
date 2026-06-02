@@ -89,6 +89,7 @@ public class PDDocumentUtils {
   public static byte[] toBytes(final PDDocument document) throws DocumentProcessingException {
     try (final ByteArrayOutputStream bos = new ByteArrayOutputStream();
         final BufferedOutputStream os = new BufferedOutputStream(bos)) {
+      document.getDocument().setHighestXRefObjectNumber(0);
       document.save(os, CompressParameters.NO_COMPRESSION);
       os.flush();
       return bos.toByteArray();
