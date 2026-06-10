@@ -197,6 +197,8 @@ public class DefaultPdfSignaturePagePreparator implements PdfSignaturePagePrepar
     final List<PdfPrepareReport.PrepareActions> prepareActions = this.issueHandler.fixIssues(document,
         Optional.ofNullable(policyConfiguration.getPdfPrepareSettings()).orElse(PdfPrepareSettings.DEFAULT));
     if (!prepareActions.isEmpty()) {
+      // Document was altered (flattened / encryption removed) — compact the xref table.
+      document.getDocument().setHighestXRefObjectNumber(0);
       result.setPrepareReport(PdfPrepareReport.builder()
           .actions(prepareActions)
           .build());
