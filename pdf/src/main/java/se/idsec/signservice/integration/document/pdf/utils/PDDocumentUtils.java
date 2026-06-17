@@ -135,7 +135,8 @@ public class PDDocumentUtils {
           insertionPos++;
         }
       }
-
+      // Compact the xref table by renumbering from 0.
+      document.getDocument().setHighestXRefObjectNumber(0);
       return PDDocumentUtils.load(PDDocumentUtils.toBytes(document));
     }
     catch (final IndexOutOfBoundsException | IllegalStateException | IllegalArgumentException e) {
