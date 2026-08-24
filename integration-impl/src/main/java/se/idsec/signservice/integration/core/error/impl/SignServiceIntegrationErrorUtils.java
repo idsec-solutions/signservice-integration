@@ -16,12 +16,12 @@
 package se.idsec.signservice.integration.core.error.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import se.idsec.signservice.dss.DSSStatusCodes;
 import se.idsec.signservice.integration.SignResponseCancelStatusException;
 import se.idsec.signservice.integration.SignResponseErrorStatusException;
+import se.idsec.signservice.integration.core.ObjectMapperFactory;
 import se.idsec.signservice.integration.core.error.ErrorCode;
 import se.idsec.signservice.integration.core.error.InputValidationException;
 import se.idsec.signservice.integration.core.error.SignServiceIntegrationErrorBody;
@@ -41,9 +41,6 @@ import java.io.Serial;
  */
 @Slf4j
 public class SignServiceIntegrationErrorUtils {
-
-  /** For JSON deserialization. */
-  private static final ObjectMapper objectMapper = new ObjectMapper();
 
   /**
    * Throws an exception given an error body.
@@ -76,8 +73,8 @@ public class SignServiceIntegrationErrorUtils {
   @Nonnull
   public static Exception toException(@Nonnull final String errorBody) {
     try {
-      final SignServiceIntegrationErrorBody body =
-          objectMapper.readValue(errorBody, SignServiceIntegrationErrorBody.class);
+      final SignServiceIntegrationErrorBody body = ObjectMapperFactory.getInstance().getObjectMapper()
+          .readValue(errorBody, SignServiceIntegrationErrorBody.class);
 
       if (body.getDssError() != null) {
         if (DSSStatusCodes.DSS_MINOR_USER_CANCEL.equals(body.getDssError().getMinorCode())) {
