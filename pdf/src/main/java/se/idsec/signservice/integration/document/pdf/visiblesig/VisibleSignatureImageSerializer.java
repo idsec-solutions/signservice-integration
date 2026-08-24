@@ -26,6 +26,7 @@ import java.util.zip.Inflater;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import se.idsec.signservice.integration.core.ObjectMapperFactory;
 import se.idsec.signservice.security.sign.pdf.document.VisibleSignatureImage;
 
 /**
@@ -42,13 +43,6 @@ import se.idsec.signservice.security.sign.pdf.document.VisibleSignatureImage;
  */
 public class VisibleSignatureImageSerializer {
 
-  /** JSON object mapper. */
-  private static final ObjectMapper objectMapper = new ObjectMapper();
-
-  static {
-    VisibleSignatureImageSerializer.objectMapper.setSerializationInclusion(Include.NON_NULL);
-  }
-
   private VisibleSignatureImageSerializer() {
   }
 
@@ -60,7 +54,7 @@ public class VisibleSignatureImageSerializer {
    * @throws IOException on invalid input
    */
   public static String serializeVisibleSignatureObject(final VisibleSignatureImage signImage) throws IOException {
-    final String json = objectMapper.writeValueAsString(signImage);
+    final String json = ObjectMapperFactory.getInstance().getObjectMapper().writeValueAsString(signImage);
     return Base64.getEncoder().encodeToString(compress(json.getBytes(StandardCharsets.UTF_8)));
   }
 
@@ -73,7 +67,7 @@ public class VisibleSignatureImageSerializer {
    */
   public static VisibleSignatureImage deserializeVisibleSignImage(final String serializedSignImage) throws IOException {
     final String json = new String(decompress(Base64.getDecoder().decode(serializedSignImage)), StandardCharsets.UTF_8);
-    return objectMapper.readValue(json, VisibleSignatureImage.class);
+    return ObjectMapperFactory.getInstance().getObjectMapper().readValue(json, VisibleSignatureImage.class);
   }
 
   /**

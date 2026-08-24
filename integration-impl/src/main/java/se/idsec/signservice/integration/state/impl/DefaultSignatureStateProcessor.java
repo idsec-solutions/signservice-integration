@@ -15,13 +15,13 @@
  */
 package se.idsec.signservice.integration.state.impl;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
 import jakarta.xml.bind.JAXBException;
 import lombok.extern.slf4j.Slf4j;
 import se.idsec.signservice.integration.SignRequestInput;
 import se.idsec.signservice.integration.config.ConfigurationManager;
 import se.idsec.signservice.integration.config.IntegrationServiceConfiguration;
+import se.idsec.signservice.integration.core.ObjectMapperFactory;
 import se.idsec.signservice.integration.core.SignatureState;
 import se.idsec.signservice.integration.core.error.ErrorCode;
 import se.idsec.signservice.integration.core.error.NoAccessException;
@@ -55,9 +55,6 @@ public class DefaultSignatureStateProcessor implements SignatureStateProcessor {
 
   /** Should state objects be Base64-encoded? */
   private boolean base64Encoded = false;
-
-  /** For JSON deserialization. */
-  private final ObjectMapper objectMapper = new ObjectMapper();
 
   /** {@inheritDoc} */
   @Override
@@ -178,12 +175,13 @@ public class DefaultSignatureStateProcessor implements SignatureStateProcessor {
         //
         try {
           if (this.base64Encoded) {
-            final EncodedSignatureSessionState encodedState = this.objectMapper.convertValue(receivedState,
-                EncodedSignatureSessionState.class);
+            final EncodedSignatureSessionState encodedState = ObjectMapperFactory.getInstance().getObjectMapper()
+                .convertValue(receivedState, EncodedSignatureSessionState.class);
             state = encodedState.getSignatureSessionState();
           }
           else {
-            state = this.objectMapper.convertValue(receivedState, SignatureSessionState.class);
+            state = ObjectMapperFactory.getInstance().getObjectMapper()
+                .convertValue(receivedState, SignatureSessionState.class);
           }
         }
         catch (final Exception e) {
